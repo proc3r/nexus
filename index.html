@@ -27,8 +27,7 @@
             margin: 0;
             transition: background-color 0.3s ease;
             min-height: 100dvh;
-            overscroll-behavior-y: none;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         #app { height: 100dvh; overflow: hidden; }
@@ -242,8 +241,7 @@
         }
         .nav-icon-btn:hover { background: rgba(255,255,255,0.15); }
 
-        /* --- Estilo de la Tarjeta de Sesión Reanudable --- */
-        #resume-card {
+         #resume-card {
             position: fixed; bottom: 2rem; right: 2rem; z-index: 1000;
             background: rgba(15, 17, 21, 0.5);
             border: 1px solid rgba(255, 204, 0, 0.5);
@@ -258,19 +256,20 @@
         #resume-card:hover { transform: translateY(-5px); border-color: var(--primary-accent); }
 
         .resume-icon-box {
-            width: 44px; height: 44px; background: var(--primary-accent);
-            border-radius: 14px; display: flex; align-items: center; justify-content: center;
+            width: 37px; height: 38px; background: var(--primary-accent);
+            border-radius: 9px; display: flex; align-items: center; justify-content: center;
             color: #000; flex-shrink: 0;
         }
 
         .resume-info { display: flex; flex-direction: column; overflow: hidden; }
         
-        .resume-main-text { font-weight: 800; color: #fff; text-transform: uppercase; font-size: 13px; letter-spacing: 0.02em; }
-        .resume-chapter-name { color: rgba(255,255,255,0.8); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0; }
+        .resume-main-text { font-weight: 800; color: #ffcc00; text-transform: uppercase; font-size: 14px; text-align: end; padding-right: 6px; font-family: 'Merriweather', sans-serif; font-style: italic;}
+        .resume-chapter-name { color: rgba(255,255,255,0.8); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0.5px 0; letter-spacing: -0.4px;}
         .resume-book-title { 
             font-family: 'Barlow Condensed', sans-serif; font-style: italic; 
             color: #ff4444; font-size: 16px; font-weight: 700; text-transform: uppercase;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+			text-shadow: -5px -2px 7px rgb(0 0 0 / 81%);
         }
 
         @keyframes slideInUp {
@@ -283,7 +282,7 @@
             #reading-container-fixed > .content-wrapper { padding-top: 5px; padding-bottom: 20px; }
             #image-timer { top: 65px; font-size: 11px; padding: 6px 14px; gap: 8px; }
             .nav-icon-btn { width: 24px; height: 24px; }
-            #resume-card { bottom: 1.5rem; right: 1rem; left: 1rem; max-width: none; padding: 8px 8px; }
+            #resume-card { bottom: 1.5rem; right: 1rem; left: 1rem; max-width: none; padding: 13px 14px; }
         }
     </style>
 </head>
@@ -308,13 +307,13 @@
             </main>
         </div>
 
-        <!-- Tarjeta de reanudación mejorada -->
+        <!-- Tarjeta de reanudación -->
         <div id="resume-card" class="hidden" onclick="resumeLastSession()">
             <div class="resume-icon-box">
                 <span class="mi-round text-2xl">history</span>
             </div>
             <div class="resume-info">
-                <span class="resume-main-text">Continuar leyendo</span>
+                <span class="resume-main-text">Continuar leyendo…</span>
                 <span id="resume-chapter-label" class="resume-chapter-name italic">Cargando sección...</span>
                 <span id="resume-book-label" class="resume-book-title">Título del Libro</span>
             </div>
@@ -488,22 +487,36 @@
             setTimeout(() => { window.scrollTo(0, 1); }, 300);
         };
 
-        // --- BLOQUEO AGRESIVO DE PULL-TO-REFRESH ---
+        // --- SOLUCIÓN AL PROBLEMA DE SCROLL ---
         function initPullToRefreshBlocker() {
             let touchStart = 0;
-            const container = document.getElementById('reading-container-fixed');
+            const libraryContainer = document.getElementById('library-container');
+            const readerContainer = document.getElementById('reading-container-fixed');
             
             document.addEventListener('touchstart', (e) => {
                 touchStart = e.touches[0].pageY;
-            }, { passive: false });
+            }, { passive: true });
 
             document.addEventListener('touchmove', (e) => {
                 const touchMove = e.touches[0].pageY;
-                const isAtTop = window.scrollY <= 0 && container.scrollTop <= 0;
+                
+                // Determinamos qué contenedor está activo actualmente
+                const activeContainer = document.getElementById('reader-view').classList.contains('hidden') 
+                    ? libraryContainer 
+                    : readerContainer;
 
-                if (isAtTop && touchMove > touchStart) {
+                const isAtTop = activeContainer.scrollTop <= 0;
+                const isSwipingDown = touchMove > touchStart;
+
+                // Solo bloqueamos el evento si:
+                // 1. Estamos en el tope del scroll (isAtTop)
+                // 2. El usuario está deslizando hacia ABAJO (isSwipingDown), que activaría el refresh
+                if (isAtTop && isSwipingDown) {
                     if (e.cancelable) e.preventDefault();
                 }
+                
+                // El scroll hacia arriba (subir en la página) siempre funcionará 
+                // porque isSwipingDown será false.
             }, { passive: false });
         }
 
