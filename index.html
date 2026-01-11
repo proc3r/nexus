@@ -430,8 +430,8 @@
                             </button>
                             <div id="spacing-dropdown" class="settings-dropdown">
                                 <div class="setting-option" onclick="changeLineHeight(1.4)"><span class="mi-round text-base">reorder</span> Compacto</div>
-                                <div class="setting-option selected" onclick="changeLineHeight(1.8)"><span class="mi-round text-base">notes</span> Normal</div>
-                                <div class="setting-option" onclick="changeLineHeight(2.4)"><span class="mi-round text-base">subject</span> Extenso</div>
+                                <div class="setting-option selected" onclick="changeLineHeight(1.7)"><span class="mi-round text-base">notes</span> Normal</div>
+                                <div class="setting-option" onclick="changeLineHeight(2)"><span class="mi-round text-base">subject</span> Extenso</div>
                             </div>
                         </div>
 
@@ -915,7 +915,7 @@
         function clearImageTimer() { if (imageTimer) clearInterval(imageTimer); imageTimer = null; document.getElementById('image-timer').classList.add('hidden'); }
 
         function processFormatting(str) {
-            return str.replace(/\*\*(.*?)\*\*/g, '<strong class="text-[#ffcc00]">$1</strong>').replace(/[*_](.*?)[*_]/g, '<em class="italic opacity-80">$1</em>');
+            return str.replace(/\*\*(.*?)\*\*/g, '<strong class>$1</strong>').replace(/[*_](.*?)[*_]/g, '<em class="italic opacity-80">$1</em>');
         }
 
         function nextChunk() { 
