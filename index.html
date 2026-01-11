@@ -26,11 +26,8 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             transition: background-color 0.3s ease;
-            /* Prevención de scroll innecesario en el body para móvil */
-            overflow: hidden;
-            width: 100%;
-            height: 100dvh; 
-            position: fixed;
+            /* Se elimina position: fixed para permitir scroll en la galería */
+            min-height: 100dvh;
         }
 
         .hidden { display: none !important; }
@@ -45,14 +42,14 @@
             direction: ltr; -webkit-font-smoothing: antialiased;
         }
 
+        /* Contenedor del Lector con unidades dinámicas */
         #reader-view {
             position: fixed; 
             inset: 0; 
             z-index: 100;
             display: flex; 
             flex-direction: row;
-            height: 100dvh; /* Uso de dvh para ajuste dinámico */
-            /* Safe area padding para móviles con notch */
+            height: 100dvh; /* Altura dinámica que descuenta la barra del navegador */
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
         }
@@ -103,7 +100,7 @@
         #reading-container-fixed {
             flex: 1; overflow-y: auto; padding: 0 10%;
             scroll-behavior: smooth; display: flex; flex-direction: column;
-            -webkit-overflow-scrolling: touch; /* Suavidad en iOS */
+            -webkit-overflow-scrolling: touch; 
         }
 
         #reading-container-fixed > .content-wrapper {
@@ -205,7 +202,6 @@
         }
         .timer-pause-btn:hover { background: #fff; transform: scale(1.05); }
 
-        /* Selectores Dropdown Estilo Adaptable */
         .settings-dropdown-container { position: relative; }
         .settings-dropdown {
             position: absolute; top: 110%; right: 0;
@@ -250,7 +246,7 @@
 
     <div id="app">
         <!-- Contenedor Librería -->
-        <div id="library-container" class="h-full overflow-y-auto">
+        <div id="library-container" class="min-h-screen">
             <header class="p-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
                 <div>
                     <h1 class="text-3xl font-black tracking-tighter text-[#ffcc00]">NEXUS<span class="text-white">LIBRARY</span></h1>
@@ -263,7 +259,7 @@
             </header>
 
             <main class="p-8 max-w-7xl mx-auto">
-                <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20"></div>
             </main>
         </div>
 
@@ -296,7 +292,6 @@
                     <button onclick="togglePauseImageTimer()" class="timer-pause-btn">Pausar</button>
                 </div>
 
-                <!-- Nav superior compacta -->
                 <nav class="h-8 flex-shrink-0 flex items-center justify-center px-4 border-b border-white/10 bg-black/20 backdrop-blur-md relative z-50">
                     <div class="flex items-center gap-2 md:gap-4">
                         <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[11px] font-bold border border-white/5">
@@ -375,7 +370,7 @@
                             <div id="reading-progress-bar"></div>
                             <div id="progress-markers-container"></div>
                         </div>
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center pb-2">
                             <button onclick="prevChunk()" class="bg-[#ffcc00] text-black px-4 py-2 rounded-full font-black uppercase tracking-widest text-[15px] shadow-md hover:bg-[#2196f3] transition-colors condensed">◀ BACK</button>
                             
                             <div class="flex items-center gap-4">
@@ -402,7 +397,6 @@
     </div>
 
     <script>
-        /* ESTADO GLOBAL */
         let library = [];
         let currentBook = null;
         let currentChapterIndex = 0;
@@ -431,11 +425,10 @@
         window.onload = () => {
             fetchBooks();
             initTouchEvents();
-            // Truco adicional para móviles modernos: forzar el scroll al inicio para ayudar a ocultar la barra si el navegador lo permite
-            setTimeout(() => { window.scrollTo(0, 1); }, 500);
+            // Truco de scroll para forzar ocultación de chrome del móvil
+            setTimeout(() => { window.scrollTo(0, 1); }, 300);
         };
 
-        // Cerrar dropdowns si se hace clic fuera
         window.addEventListener('click', (e) => {
             if (!e.target.closest('.settings-dropdown-container')) {
                 document.querySelectorAll('.settings-dropdown').forEach(d => d.classList.remove('show'));
