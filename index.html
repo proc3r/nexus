@@ -20,7 +20,6 @@
             --dropdown-bg: #25262b;
         }
 
-        /* Aplicación de la solución para evitar pull-to-refresh */
         html, body {
             background-color: var(--dark-bg);
             color: var(--text-on-dark);
@@ -28,7 +27,16 @@
             margin: 0;
             transition: background-color 0.3s ease;
             min-height: 100dvh;
-            overscroll-behavior-y: contain; /* Evita refresco accidental en la galería */
+            overscroll-behavior-y: none; /* Primera capa de bloqueo CSS */
+            overflow: hidden; /* Evitamos scroll en el body para delegarlo a los contenedores */
+        }
+
+        #app { height: 100dvh; overflow: hidden; }
+
+        #library-container { 
+            height: 100dvh; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
         }
 
         .hidden { display: none !important; }
@@ -43,7 +51,6 @@
             direction: ltr; -webkit-font-smoothing: antialiased;
         }
 
-        /* Contenedor del Lector con unidades dinámicas */
         #reader-view {
             position: fixed; 
             inset: 0; 
@@ -98,12 +105,11 @@
         .book-container.dark-mode { background-color: var(--reader-dark); color: var(--text-on-dark); --dropdown-bg: #25262b; }
         .book-container.light-mode { background-color: var(--reader-light); color: var(--text-on-light); --dropdown-bg: #ffffff; }
 
-        /* Contenedor de lectura con protección de sobre-scroll */
         #reading-container-fixed {
             flex: 1; overflow-y: auto; padding: 0 10%;
             scroll-behavior: smooth; display: flex; flex-direction: column;
             -webkit-overflow-scrolling: touch; 
-            overscroll-behavior-y: contain; /* Evita que el scroll del texto refresque la página */
+            overscroll-behavior-y: contain;
         }
 
         #reading-container-fixed > .content-wrapper {
@@ -205,7 +211,6 @@
         }
         .timer-pause-btn:hover { background: #fff; transform: scale(1.05); }
 
-        .settings-dropdown-container { position: relative; }
         .settings-dropdown {
             position: absolute; top: 110%; right: 0;
             min-width: 140px; background: var(--dropdown-bg);
@@ -237,11 +242,27 @@
         }
         .nav-icon-btn:hover { background: rgba(255,255,255,0.15); }
 
+        /* Estilo para el botón de recuperar sesión */
+        #resume-btn {
+            position: fixed; bottom: 2rem; right: 2rem; z-index: 1000;
+            background: #ffcc00; color: #000; padding: 12px 24px;
+            border-radius: 50px; font-weight: 800; text-transform: uppercase;
+            box-shadow: 0 10px 25px rgba(255, 204, 0, 0.4);
+            animation: slideInUp 0.5s ease-out;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         @media (max-width: 768px) {
             #reading-container-fixed {padding-right: 20px;  padding-left: 20px;}
             #reading-container-fixed > .content-wrapper { padding-top: 5px; padding-bottom: 20px; }
             #image-timer { top: 65px; font-size: 11px; padding: 6px 14px; gap: 8px; }
             .nav-icon-btn { width: 24px; height: 24px; }
+            #resume-btn { bottom: 1.5rem; right: 1.5rem; padding: 10px 20px; font-size: 12px; }
         }
     </style>
 </head>
@@ -249,7 +270,7 @@
 
     <div id="app">
         <!-- Contenedor Librería -->
-        <div id="library-container" class="min-h-screen">
+        <div id="library-container">
             <header class="p-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
                 <div>
                     <h1 class="text-3xl font-black tracking-tighter text-[#ffcc00]">NEXUS<span class="text-white">LIBRARY</span></h1>
@@ -265,6 +286,12 @@
                 <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20"></div>
             </main>
         </div>
+
+        <!-- Botón de reanudación -->
+        <button id="resume-btn" class="hidden" onclick="resumeLastSession()">
+            <span class="mi-round">history</span>
+            Continuar leyendo
+        </button>
 
         <!-- Contenedor Lector -->
         <div id="reader-view" class="hidden book-container dark-mode">
@@ -426,10 +453,72 @@
         let synth = window.speechSynthesis;
 
         window.onload = () => {
-            fetchBooks();
+            fetchBooks().then(() => {
+                checkLastSession();
+            });
             initTouchEvents();
+            initPullToRefreshBlocker();
             setTimeout(() => { window.scrollTo(0, 1); }, 300);
         };
+
+        // --- BLOQUEO AGRESIVO DE PULL-TO-REFRESH ---
+        function initPullToRefreshBlocker() {
+            let touchStart = 0;
+            const container = document.getElementById('reading-container-fixed');
+            
+            // Listener en el documento completo
+            document.addEventListener('touchstart', (e) => {
+                touchStart = e.touches[0].pageY;
+            }, { passive: false });
+
+            document.addEventListener('touchmove', (e) => {
+                const touchMove = e.touches[0].pageY;
+                const isAtTop = window.scrollY <= 0 && container.scrollTop <= 0;
+
+                // Si estamos en el tope y el usuario desliza hacia ABAJO (refresco)
+                if (isAtTop && touchMove > touchStart) {
+                    if (e.cancelable) e.preventDefault();
+                }
+            }, { passive: false });
+        }
+
+        // --- PERSISTENCIA DE SESIÓN ---
+        function saveProgress() {
+            if (!currentBook) return;
+            const progress = {
+                bookId: currentBook.id,
+                chapter: currentChapterIndex,
+                chunk: currentChunkIndex,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('nexus_last_session', JSON.stringify(progress));
+        }
+
+        function checkLastSession() {
+            const saved = localStorage.getItem('nexus_last_session');
+            if (saved) {
+                const data = JSON.parse(saved);
+                // Solo ofrecer si es reciente (ej: 24h) o simplemente si existe
+                const resumeBtn = document.getElementById('resume-btn');
+                resumeBtn.classList.remove('hidden');
+            }
+        }
+
+        function resumeLastSession() {
+            const saved = localStorage.getItem('nexus_last_session');
+            if (!saved) return;
+            const data = JSON.parse(saved);
+            
+            // Abrir el libro
+            openReader(data.bookId);
+            // Saltar a capítulo y chunk
+            setTimeout(() => {
+                loadChapter(data.chapter);
+                currentChunkIndex = data.chunk;
+                renderChunk();
+                document.getElementById('resume-btn').classList.add('hidden');
+            }, 500);
+        }
 
         window.addEventListener('click', (e) => {
             if (!e.target.closest('.settings-dropdown-container')) {
@@ -509,6 +598,7 @@
             renderProgressMarkers();
             document.getElementById('library-container').classList.add('hidden');
             document.getElementById('reader-view').classList.remove('hidden');
+            document.getElementById('resume-btn').classList.add('hidden');
             loadChapter(0);
         }
 
@@ -517,6 +607,7 @@
             clearImageTimer();
             document.getElementById('reader-view').classList.add('hidden'); 
             document.getElementById('library-container').classList.remove('hidden');
+            checkLastSession();
         }
 
         function loadChapter(idx) {
@@ -560,7 +651,9 @@
 
             content.innerHTML = finalHtml;
             document.getElementById('reading-container-fixed').scrollTop = 0;
+            
             updateProgress();
+            saveProgress(); // Guardar progreso en cada renderizado de bloque
             
             const isLast = currentChunkIndex === chunks.length - 1 && currentChapterIndex === currentBook.chapters.length - 1;
             document.getElementById('next-btn').innerHTML = isLast ? "FIN" : "NEXT ▶";
@@ -786,9 +879,9 @@
         function updateTimeRemaining() {
             if (!currentBook) return;
             let remainingWords = 0;
-            for (let i = currentChunkIndex + 1; i < chunks.length; i++) remainingWords += chunks[i].split(/\s+/).length;
+            for (let i = currentChunkIndex + 1; i < chunks.length; i++) remainingWords += (chunks[i] || "").split(/\s+/).length;
             for (let i = currentChapterIndex + 1; i < currentBook.chapters.length; i++) {
-                currentBook.chapters[i].content.forEach(text => { remainingWords += text.split(/\s+/).length; });
+                currentBook.chapters[i].content.forEach(text => { remainingWords += (text || "").split(/\s+/).length; });
             }
             const mins = remainingWords / 180;
             const timeEl = document.getElementById('time-remaining');
