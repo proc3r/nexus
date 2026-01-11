@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Nexus Library - Reader Settings</title>
+    <title>Nexus Library - Adaptive Styles</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Barlow+Condensed:ital,wght@0,300;0,400;1,300;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700&family=Lora:ital,wght@0,400;0,700&family=Libre+Baskerville:ital,wght@0,400;0,700&family=Source+Sans+3:wght@400;700&family=IBM+Plex+Sans:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Round" rel="stylesheet">												 
@@ -18,6 +18,11 @@
             --text-on-light: #2c2c2c;
 			--marker-h1: #ff4444; 
             --dropdown-bg: #25262b;
+            /* Variables dinámicas de lectura */
+            --reader-font-size: 19px;
+            --reader-font-family: 'Merriweather', serif;
+            --reader-text-align: justify;
+            --reader-line-height: 1.8;
         }
 
         html, body {
@@ -51,23 +56,16 @@
         }
 
         #reader-view {
-            position: fixed; 
-            inset: 0; 
-            z-index: 100;
-            display: flex; 
-            flex-direction: row;
-            height: 100dvh;
+            position: fixed; inset: 0; z-index: 100;
+            display: flex; flex-direction: row; height: 100dvh;
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
         }
 
         #reader-sidebar {
-            height: 100dvh;
-            background: rgba(20, 21, 23, 0.3);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            position: absolute; left: 0; top: 0;
-            display: flex; flex-direction: column; z-index: 110;
+            height: 100dvh; background: rgba(20, 21, 23, 0.3);
+            backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05);
+            position: absolute; left: 0; top: 0; display: flex; flex-direction: column; z-index: 110;
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
             box-sizing: border-box; touch-action: pan-y;
         }
@@ -86,8 +84,7 @@
             #reader-sidebar {
                 width: 85%; padding: 0;
                 box-shadow: 6px 0 11px rgba(0,0,0,0.2);
-                background: rgba(20, 21, 23, 0.85);
-				background-color: var(--sidebar-blur);
+                background-color: var(--sidebar-blur);
             }
             .sidebar-header { padding: 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
             #chapter-list { padding: 0.75rem; }
@@ -103,6 +100,49 @@
 
         .book-container.dark-mode { background-color: var(--reader-dark); color: var(--text-on-dark); --dropdown-bg: #25262b; }
         .book-container.light-mode { background-color: var(--reader-light); color: var(--text-on-light); --dropdown-bg: #ffffff; }
+
+        /* ESTILOS DE TEXTO DINÁMICOS */
+        #book-content {
+            font-family: var(--reader-font-family);
+            font-size: var(--reader-font-size);
+            text-align: var(--reader-text-align);
+            line-height: var(--reader-line-height);
+        }
+
+        .custom-blockquote {
+            border-left: 4px solid var(--primary-accent);
+            padding: 0.5em 0.8em;
+            margin: 0;
+            background: rgba(0, 0, 0, 0.04);
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+        }
+
+        /* Configuración de Escritorio (Desktop) */
+        @media (min-width: 769px) {
+            :root {
+                --reader-font-size: 19px;
+                --reader-font-family: 'Merriweather', serif;
+                --reader-text-align: justify;
+            }
+            .custom-blockquote {
+                font-family: 'Merriweather', serif;
+                text-align: justify;
+            }
+        }
+
+        /* Configuración Móvil (Mobile) */
+        @media (max-width: 768px) {
+            :root {
+                --reader-font-size: 17px;
+                --reader-font-family: 'Atkinson Hyperlegible', sans-serif;
+                --reader-text-align: center;
+            }
+            .custom-blockquote {
+                font-family: 'Merriweather', serif;
+                text-align: left;
+            }
+        }
 
         #reading-container-fixed {
             flex: 1; overflow-y: auto; padding: 0 10%;
@@ -155,10 +195,6 @@
         .reader-section-title {
             font-family: 'Barlow Condensed', sans-serif; font-size: 35px; font-weight: 800;text-transform: uppercase;
             text-align: center; margin: 2rem 0; line-height: 1.1; font-style: italic; color: #ff4444; text-shadow: -3px -2px 5px rgb(0 0 0 / 21%);
-        }
-        .custom-blockquote {
-            border-left: 4px solid var(--primary-accent);
-           padding-left: 0.6em;padding-right: 0.8em;padding-top: 0.5em;padding-bottom: 0.5em; margin: 0px; background: rgba(0, 0, 0, 0.04); border-radius: 0 8px 8px 0; font-style: italic;
         }
 
         #sidebar-trigger {
@@ -241,35 +277,34 @@
         }
         .nav-icon-btn:hover { background: rgba(255,255,255,0.15); }
 
-         #resume-card {
+        #resume-card {
             position: fixed; bottom: 2rem; right: 2rem; z-index: 1000;
-            background: rgba(15, 17, 21, 0.5);
-            border: 1px solid rgba(255, 204, 0, 0.5);
-            padding: 16px 24px; border-radius: 14px;
-            box-shadow: 0 15px 9px rgba(0, 0, 0, 0.65);
+            background: rgba(15, 17, 21, 0.95);
+            border: 1px solid rgba(255, 204, 0, 0.3);
+            padding: 16px 24px; border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(10px);
             animation: slideInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer; display: flex; align-items: center; gap: 9px;
+            cursor: pointer; display: flex; align-items: center; gap: 16px;
             max-width: 320px; transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
         #resume-card:hover { transform: translateY(-5px); border-color: var(--primary-accent); }
 
         .resume-icon-box {
-            width: 37px; height: 38px; background: var(--primary-accent);
-            border-radius: 9px; display: flex; align-items: center; justify-content: center;
+            width: 44px; height: 44px; background: var(--primary-accent);
+            border-radius: 14px; display: flex; align-items: center; justify-content: center;
             color: #000; flex-shrink: 0;
         }
 
         .resume-info { display: flex; flex-direction: column; overflow: hidden; }
         
-        .resume-main-text { font-weight: 800; color: #ffcc00; text-transform: uppercase; font-size: 14px; text-align: end; padding-right: 6px; font-family: 'Merriweather', sans-serif; font-style: italic;}
-        .resume-chapter-name { color: rgba(255,255,255,0.8); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0.5px 0; letter-spacing: -0.4px;}
+        .resume-main-text { font-weight: 800; color: #fff; text-transform: uppercase; font-size: 13px; letter-spacing: 0.02em; }
+        .resume-chapter-name { color: rgba(255,255,255,0.7); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0; }
         .resume-book-title { 
             font-family: 'Barlow Condensed', sans-serif; font-style: italic; 
-            color: #ff4444; font-size: 16px; font-weight: 700; text-transform: uppercase;
+            color: #ff4444; font-size: 10px; font-weight: 700; text-transform: uppercase;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-			text-shadow: -5px -2px 7px rgb(0 0 0 / 81%);
         }
 
         @keyframes slideInUp {
@@ -282,7 +317,7 @@
             #reading-container-fixed > .content-wrapper { padding-top: 5px; padding-bottom: 20px; }
             #image-timer { top: 65px; font-size: 11px; padding: 6px 14px; gap: 8px; }
             .nav-icon-btn { width: 24px; height: 24px; }
-            #resume-card { bottom: 1.5rem; right: 1rem; left: 1rem; max-width: none; padding: 13px 14px; }
+            #resume-card { bottom: 1.5rem; right: 1rem; left: 1rem; max-width: none; padding: 12px 20px; }
         }
     </style>
 </head>
@@ -313,7 +348,7 @@
                 <span class="mi-round text-2xl">history</span>
             </div>
             <div class="resume-info">
-                <span class="resume-main-text">Continuar leyendo…</span>
+                <span class="resume-main-text">Continuar leyendo</span>
                 <span id="resume-chapter-label" class="resume-chapter-name italic">Cargando sección...</span>
                 <span id="resume-book-label" class="resume-book-title">Título del Libro</span>
             </div>
@@ -364,7 +399,7 @@
                             </button>
                             <div id="font-dropdown" class="settings-dropdown font-dropdown custom-scrollbar">
                                 <div class="setting-section-label">Serif</div>
-                                <div class="setting-option selected" style="font-family: 'Merriweather'" onclick="changeFontFamily('Merriweather')">Merriweather</div>
+                                <div class="setting-option" style="font-family: 'Merriweather'" onclick="changeFontFamily('Merriweather')">Merriweather</div>
                                 <div class="setting-option" style="font-family: 'EB Garamond'" onclick="changeFontFamily('EB Garamond')">EB Garamond</div>
                                 <div class="setting-option" style="font-family: 'Playfair Display'" onclick="changeFontFamily('Playfair Display')">Playfair Display</div>
                                 <div class="setting-option" style="font-family: 'Lora'" onclick="changeFontFamily('Lora')">Lora</div>
@@ -383,9 +418,9 @@
                                 <span class="mi-round text-lg">format_align_justify</span>
                             </button>
                             <div id="align-dropdown" class="settings-dropdown">
-                                <div class="setting-option" onclick="changeAlignment('left')"><span class="mi-round text-base">format_align_left</span> Izquierda</div>
-                                <div class="setting-option" onclick="changeAlignment('center')"><span class="mi-round text-base">format_align_center</span> Centro</div>
-                                <div class="setting-option selected" onclick="changeAlignment('justify')"><span class="mi-round text-base">format_align_justify</span> Justificado</div>
+                                <div class="setting-option" id="align-left-opt" onclick="changeAlignment('left')"><span class="mi-round text-base">format_align_left</span> Izquierda</div>
+                                <div class="setting-option" id="align-center-opt" onclick="changeAlignment('center')"><span class="mi-round text-base">format_align_center</span> Centro</div>
+                                <div class="setting-option" id="align-justify-opt" onclick="changeAlignment('justify')"><span class="mi-round text-base">format_align_justify</span> Justificado</div>
                             </div>
                         </div>
 
@@ -405,13 +440,13 @@
                 </nav>
 
                 <div class="flex-shrink-0 flex justify-center w-full pointer-events-none z-10 -mt-0.5">
-                    <div id="chapter-indicator" class="text-[15px] text-[#ff4444] font-bold italic opacity-100 uppercase tracking-[0.03em] truncate max-w-[95%] condensed px-2 py-1 ">Capítulo</div>
+                    <div id="chapter-indicator" class="text-[18px] text-[#ff4444] font-bold italic opacity-100 uppercase tracking-[0.03em] truncate max-w-[95%] condensed px-2 py-1 ">Capítulo</div>
                 </div>
 
                 <div id="reading-container-fixed">
                     <div class="content-wrapper">
                         <div class="max-w-3xl mx-auto w-full">
-                            <div id="book-content" style="font-family: 'Merriweather'; font-size: 19px; line-height: 1.8; text-align: justify;"></div>
+                            <div id="book-content"></div>
                         </div>
                     </div>
                 </div>
@@ -487,7 +522,6 @@
             setTimeout(() => { window.scrollTo(0, 1); }, 300);
         };
 
-        // --- SOLUCIÓN AL PROBLEMA DE SCROLL ---
         function initPullToRefreshBlocker() {
             let touchStart = 0;
             const libraryContainer = document.getElementById('library-container');
@@ -499,8 +533,6 @@
 
             document.addEventListener('touchmove', (e) => {
                 const touchMove = e.touches[0].pageY;
-                
-                // Determinamos qué contenedor está activo actualmente
                 const activeContainer = document.getElementById('reader-view').classList.contains('hidden') 
                     ? libraryContainer 
                     : readerContainer;
@@ -508,19 +540,12 @@
                 const isAtTop = activeContainer.scrollTop <= 0;
                 const isSwipingDown = touchMove > touchStart;
 
-                // Solo bloqueamos el evento si:
-                // 1. Estamos en el tope del scroll (isAtTop)
-                // 2. El usuario está deslizando hacia ABAJO (isSwipingDown), que activaría el refresh
                 if (isAtTop && isSwipingDown) {
                     if (e.cancelable) e.preventDefault();
                 }
-                
-                // El scroll hacia arriba (subir en la página) siempre funcionará 
-                // porque isSwipingDown será false.
             }, { passive: false });
         }
 
-        // --- PERSISTENCIA DE SESIÓN ---
         function saveProgress() {
             if (!currentBook) return;
             const progress = {
@@ -541,10 +566,8 @@
                 const resumeCard = document.getElementById('resume-card');
                 const chapterLabel = document.getElementById('resume-chapter-label');
                 const bookLabel = document.getElementById('resume-book-label');
-                
                 chapterLabel.innerText = data.chapterTitle || "Sección desconocida";
                 bookLabel.innerText = data.bookTitle || "Libro desconocido";
-                
                 resumeCard.classList.remove('hidden');
             }
         }
@@ -553,7 +576,6 @@
             const saved = localStorage.getItem('nexus_last_session');
             if (!saved) return;
             const data = JSON.parse(saved);
-            
             openReader(data.bookId);
             setTimeout(() => {
                 loadChapter(data.chapterIndex);
@@ -642,6 +664,31 @@
             document.getElementById('library-container').classList.add('hidden');
             document.getElementById('reader-view').classList.remove('hidden');
             document.getElementById('resume-card').classList.add('hidden');
+
+            // INICIALIZACIÓN RESPONSIVA DE CONTROLES
+            const isMobile = window.innerWidth <= 768;
+            const initialFontSize = isMobile ? 17 : 19;
+            const initialFontFamily = isMobile ? 'Atkinson Hyperlegible' : 'Merriweather';
+            const initialAlignment = isMobile ? 'center' : 'justify';
+
+            document.getElementById('font-size-val').innerText = initialFontSize;
+            document.getElementById('current-font-label').innerText = initialFontFamily;
+            
+            // Actualizar selectores en los dropdowns
+            document.querySelectorAll('#font-dropdown .setting-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.style.fontFamily.includes(initialFontFamily));
+            });
+            
+            document.getElementById('align-left-opt').classList.toggle('selected', initialAlignment === 'left');
+            document.getElementById('align-center-opt').classList.toggle('selected', initialAlignment === 'center');
+            document.getElementById('align-justify-opt').classList.toggle('selected', initialAlignment === 'justify');
+
+            // Aplicar estilos iniciales directamente al CSS Variable
+            const root = document.documentElement;
+            root.style.setProperty('--reader-font-size', initialFontSize + 'px');
+            root.style.setProperty('--reader-font-family', initialFontFamily);
+            root.style.setProperty('--reader-text-align', initialAlignment);
+
             loadChapter(0);
         }
 
@@ -694,12 +741,14 @@
 
             content.innerHTML = finalHtml;
             document.getElementById('reading-container-fixed').scrollTop = 0;
-            
             updateProgress();
             saveProgress();
             
-            const isLast = currentChunkIndex === chunks.length - 1 && currentChapterIndex === currentBook.chapters.length - 1;
-            document.getElementById('next-btn').innerHTML = isLast ? "FIN" : "NEXT ▶";
+            if (currentChunkIndex === chunks.length - 1 && currentChapterIndex === currentBook.chapters.length - 1) {
+                document.getElementById('next-btn').innerHTML = "FIN";
+            } else {
+                document.getElementById('next-btn').innerHTML = "NEXT ▶";
+            }
 
             if (isSpeaking) {
                 if (isImage) startImageTimer();
@@ -715,7 +764,7 @@
         }
 
         function changeFontFamily(f) {
-            document.getElementById('book-content').style.fontFamily = f;
+            document.documentElement.style.setProperty('--reader-font-family', f);
             document.getElementById('current-font-label').innerText = f;
             document.getElementById('font-dropdown').classList.remove('show');
             document.querySelectorAll('#font-dropdown .setting-option').forEach(opt => {
@@ -724,7 +773,7 @@
         }
 
         function changeAlignment(align) {
-            document.getElementById('book-content').style.textAlign = align;
+            document.documentElement.style.setProperty('--reader-text-align', align);
             document.getElementById('align-dropdown').classList.remove('show');
             document.querySelectorAll('#align-dropdown .setting-option').forEach(opt => {
                 opt.classList.toggle('selected', opt.getAttribute('onclick').includes(align));
@@ -732,7 +781,7 @@
         }
 
         function changeLineHeight(h) {
-            document.getElementById('book-content').style.lineHeight = h;
+            document.documentElement.style.setProperty('--reader-line-height', h);
             document.getElementById('spacing-dropdown').classList.remove('show');
             document.querySelectorAll('#spacing-dropdown .setting-option').forEach(opt => {
                 opt.classList.toggle('selected', opt.getAttribute('onclick').includes(h));
@@ -743,7 +792,7 @@
             const val = document.getElementById('font-size-val'); 
             let s = Math.max(12, Math.min(60, parseInt(val.innerText) + d)); 
             val.innerText = s; 
-            document.getElementById('book-content').style.fontSize = `${s}px`; 
+            document.documentElement.style.setProperty('--reader-font-size', s + 'px');
         }
 
         function toggleSpeech() { 
