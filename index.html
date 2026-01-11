@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Nexus Library - Adaptive Styles</title>
+    <title>Nexus Library - Adaptive Configuration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Barlow+Condensed:ital,wght@0,300;0,400;1,300;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700&family=Lora:ital,wght@0,400;0,700&family=Libre+Baskerville:ital,wght@0,400;0,700&family=Source+Sans+3:wght@400;700&family=IBM+Plex+Sans:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Round" rel="stylesheet">												 
@@ -18,11 +18,20 @@
             --text-on-light: #2c2c2c;
 			--marker-h1: #ff4444; 
             --dropdown-bg: #25262b;
-            /* Variables dinámicas de lectura */
-            --reader-font-size: 19px;
+            /* Variables por defecto (Escritorio) */
+            --reader-font-size: 25px;
             --reader-font-family: 'Merriweather', serif;
             --reader-text-align: justify;
-            --reader-line-height: 1.8;
+            --reader-line-height: 1.7;
+        }
+
+        /* Configuración Adaptativa Móvil */
+        @media (max-width: 768px) {
+            :root {
+                --reader-font-size: 17px;
+                --reader-font-family: 'Atkinson Hyperlegible', sans-serif;
+                --reader-text-align: center;
+            }
         }
 
         html, body {
@@ -101,12 +110,23 @@
         .book-container.dark-mode { background-color: var(--reader-dark); color: var(--text-on-dark); --dropdown-bg: #25262b; }
         .book-container.light-mode { background-color: var(--reader-light); color: var(--text-on-light); --dropdown-bg: #ffffff; }
 
-        /* ESTILOS DE TEXTO DINÁMICOS */
+        /* Estilos del contenido del libro */
         #book-content {
             font-family: var(--reader-font-family);
             font-size: var(--reader-font-size);
             text-align: var(--reader-text-align);
             line-height: var(--reader-line-height);
+        }
+
+        /* Respetar colores de usuario para negrita y cursiva */
+        #book-content strong, #book-content b {
+            font-weight: bold;
+            color: inherit; 
+        }
+
+        #book-content em, #book-content i {
+            font-style: italic;
+            color: inherit;
         }
 
         .custom-blockquote {
@@ -116,32 +136,6 @@
             background: rgba(0, 0, 0, 0.04);
             border-radius: 0 8px 8px 0;
             font-style: italic;
-        }
-
-        /* Configuración de Escritorio (Desktop) */
-        @media (min-width: 769px) {
-            :root {
-                --reader-font-size: 19px;
-                --reader-font-family: 'Merriweather', serif;
-                --reader-text-align: justify;
-            }
-            .custom-blockquote {
-                font-family: 'Merriweather', serif;
-                text-align: justify;
-            }
-        }
-
-        /* Configuración Móvil (Mobile) */
-        @media (max-width: 768px) {
-            :root {
-                --reader-font-size: 17px;
-                --reader-font-family: 'Atkinson Hyperlegible', sans-serif;
-                --reader-text-align: center;
-            }
-            .custom-blockquote {
-                font-family: 'Merriweather', serif;
-                text-align: left;
-            }
         }
 
         #reading-container-fixed {
@@ -387,7 +381,7 @@
                     <div class="flex items-center gap-2 md:gap-4">
                         <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[11px] font-bold border border-white/5">
                             <button onclick="changeFontSize(-2)" class="hover:text-[#ffcc00]">A-</button>
-                            <span id="font-size-val">19</span>
+                            <span id="font-size-val">25</span>
                             <button onclick="changeFontSize(2)" class="hover:text-[#ffcc00]">A+</button>
                         </div>
                         
@@ -418,9 +412,9 @@
                                 <span class="mi-round text-lg">format_align_justify</span>
                             </button>
                             <div id="align-dropdown" class="settings-dropdown">
-                                <div class="setting-option" id="align-left-opt" onclick="changeAlignment('left')"><span class="mi-round text-base">format_align_left</span> Izquierda</div>
-                                <div class="setting-option" id="align-center-opt" onclick="changeAlignment('center')"><span class="mi-round text-base">format_align_center</span> Centro</div>
-                                <div class="setting-option" id="align-justify-opt" onclick="changeAlignment('justify')"><span class="mi-round text-base">format_align_justify</span> Justificado</div>
+                                <div class="setting-option" onclick="changeAlignment('left')"><span class="mi-round text-base">format_align_left</span> Izquierda</div>
+                                <div class="setting-option" onclick="changeAlignment('center')"><span class="mi-round text-base">format_align_center</span> Centro</div>
+                                <div class="setting-option selected" onclick="changeAlignment('justify')"><span class="mi-round text-base">format_align_justify</span> Justificado</div>
                             </div>
                         </div>
 
@@ -431,7 +425,7 @@
                             <div id="spacing-dropdown" class="settings-dropdown">
                                 <div class="setting-option" onclick="changeLineHeight(1.4)"><span class="mi-round text-base">reorder</span> Compacto</div>
                                 <div class="setting-option selected" onclick="changeLineHeight(1.7)"><span class="mi-round text-base">notes</span> Normal</div>
-                                <div class="setting-option" onclick="changeLineHeight(2)"><span class="mi-round text-base">subject</span> Extenso</div>
+                                <div class="setting-option" onclick="changeLineHeight(2.1)"><span class="mi-round text-base">subject</span> Extenso</div>
                             </div>
                         </div>
 
@@ -440,7 +434,7 @@
                 </nav>
 
                 <div class="flex-shrink-0 flex justify-center w-full pointer-events-none z-10 -mt-0.5">
-                    <div id="chapter-indicator" class="text-[18px] text-[#ff4444] font-bold italic opacity-100 uppercase tracking-[0.03em] truncate max-w-[95%] condensed px-2 py-1 ">Capítulo</div>
+                    <div id="chapter-indicator" class="text-[15px] text-[#ff4444] font-bold italic opacity-100 uppercase tracking-[0.03em] truncate max-w-[95%] condensed px-2 py-1 ">Capítulo</div>
                 </div>
 
                 <div id="reading-container-fixed">
@@ -665,29 +659,17 @@
             document.getElementById('reader-view').classList.remove('hidden');
             document.getElementById('resume-card').classList.add('hidden');
 
-            // INICIALIZACIÓN RESPONSIVA DE CONTROLES
+            // Inicialización de UI según dispositivo
             const isMobile = window.innerWidth <= 768;
-            const initialFontSize = isMobile ? 17 : 19;
-            const initialFontFamily = isMobile ? 'Atkinson Hyperlegible' : 'Merriweather';
-            const initialAlignment = isMobile ? 'center' : 'justify';
+            const defFontSize = isMobile ? 17 : 25;
+            const defFontName = isMobile ? 'Atkinson Hyperlegible' : 'Merriweather';
 
-            document.getElementById('font-size-val').innerText = initialFontSize;
-            document.getElementById('current-font-label').innerText = initialFontFamily;
+            document.getElementById('font-size-val').innerText = defFontSize;
+            document.getElementById('current-font-label').innerText = defFontName;
             
-            // Actualizar selectores en los dropdowns
-            document.querySelectorAll('#font-dropdown .setting-option').forEach(opt => {
-                opt.classList.toggle('selected', opt.style.fontFamily.includes(initialFontFamily));
-            });
-            
-            document.getElementById('align-left-opt').classList.toggle('selected', initialAlignment === 'left');
-            document.getElementById('align-center-opt').classList.toggle('selected', initialAlignment === 'center');
-            document.getElementById('align-justify-opt').classList.toggle('selected', initialAlignment === 'justify');
-
-            // Aplicar estilos iniciales directamente al CSS Variable
-            const root = document.documentElement;
-            root.style.setProperty('--reader-font-size', initialFontSize + 'px');
-            root.style.setProperty('--reader-font-family', initialFontFamily);
-            root.style.setProperty('--reader-text-align', initialAlignment);
+            // Forzamos actualización de variables CSS según el estado de la UI inicial
+            document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
+            document.documentElement.style.setProperty('--reader-font-family', defFontName);
 
             loadChapter(0);
         }
@@ -915,7 +897,8 @@
         function clearImageTimer() { if (imageTimer) clearInterval(imageTimer); imageTimer = null; document.getElementById('image-timer').classList.add('hidden'); }
 
         function processFormatting(str) {
-            return str.replace(/\*\*(.*?)\*\*/g, '<strong class>$1</strong>').replace(/[*_](.*?)[*_]/g, '<em class="italic opacity-80">$1</em>');
+            // Se eliminó el color específico para strong/em para permitir que hereden el color del texto base
+            return str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/[*_](.*?)[*_]/g, '<em>$1</em>');
         }
 
         function nextChunk() { 
