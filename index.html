@@ -27,8 +27,8 @@
             margin: 0;
             transition: background-color 0.3s ease;
             min-height: 100dvh;
-            overscroll-behavior-y: none; /* Primera capa de bloqueo CSS */
-            overflow: hidden; /* Evitamos scroll en el body para delegarlo a los contenedores */
+            overscroll-behavior-y: none;
+            overflow: hidden;
         }
 
         #app { height: 100dvh; overflow: hidden; }
@@ -242,18 +242,39 @@
         }
         .nav-icon-btn:hover { background: rgba(255,255,255,0.15); }
 
-        /* Estilo para el botón de recuperar sesión */
-        #resume-btn {
+        /* --- Estilo de la Tarjeta de Sesión Reanudable --- */
+        #resume-card {
             position: fixed; bottom: 2rem; right: 2rem; z-index: 1000;
-            background: #ffcc00; color: #000; padding: 12px 24px;
-            border-radius: 50px; font-weight: 800; text-transform: uppercase;
-            box-shadow: 0 10px 25px rgba(255, 204, 0, 0.4);
-            animation: slideInUp 0.5s ease-out;
-            display: flex; align-items: center; gap: 8px;
+            background: rgba(15, 17, 21, 0.5);
+            border: 1px solid rgba(255, 204, 0, 0.5);
+            padding: 16px 24px; border-radius: 14px;
+            box-shadow: 0 15px 9px rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(10px);
+            animation: slideInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer; display: flex; align-items: center; gap: 9px;
+            max-width: 320px; transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        #resume-card:hover { transform: translateY(-5px); border-color: var(--primary-accent); }
+
+        .resume-icon-box {
+            width: 44px; height: 44px; background: var(--primary-accent);
+            border-radius: 14px; display: flex; align-items: center; justify-content: center;
+            color: #000; flex-shrink: 0;
+        }
+
+        .resume-info { display: flex; flex-direction: column; overflow: hidden; }
+        
+        .resume-main-text { font-weight: 800; color: #fff; text-transform: uppercase; font-size: 13px; letter-spacing: 0.02em; }
+        .resume-chapter-name { color: rgba(255,255,255,0.8); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0; }
+        .resume-book-title { 
+            font-family: 'Barlow Condensed', sans-serif; font-style: italic; 
+            color: #ff4444; font-size: 16px; font-weight: 700; text-transform: uppercase;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
         }
 
         @keyframes slideInUp {
-            from { transform: translateY(100px); opacity: 0; }
+            from { transform: translateY(120px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
@@ -262,7 +283,7 @@
             #reading-container-fixed > .content-wrapper { padding-top: 5px; padding-bottom: 20px; }
             #image-timer { top: 65px; font-size: 11px; padding: 6px 14px; gap: 8px; }
             .nav-icon-btn { width: 24px; height: 24px; }
-            #resume-btn { bottom: 1.5rem; right: 1.5rem; padding: 10px 20px; font-size: 12px; }
+            #resume-card { bottom: 1.5rem; right: 1rem; left: 1rem; max-width: none; padding: 8px 8px; }
         }
     </style>
 </head>
@@ -287,11 +308,17 @@
             </main>
         </div>
 
-        <!-- Botón de reanudación -->
-        <button id="resume-btn" class="hidden" onclick="resumeLastSession()">
-            <span class="mi-round">history</span>
-            Continuar leyendo
-        </button>
+        <!-- Tarjeta de reanudación mejorada -->
+        <div id="resume-card" class="hidden" onclick="resumeLastSession()">
+            <div class="resume-icon-box">
+                <span class="mi-round text-2xl">history</span>
+            </div>
+            <div class="resume-info">
+                <span class="resume-main-text">Continuar leyendo</span>
+                <span id="resume-chapter-label" class="resume-chapter-name italic">Cargando sección...</span>
+                <span id="resume-book-label" class="resume-book-title">Título del Libro</span>
+            </div>
+        </div>
 
         <!-- Contenedor Lector -->
         <div id="reader-view" class="hidden book-container dark-mode">
@@ -466,7 +493,6 @@
             let touchStart = 0;
             const container = document.getElementById('reading-container-fixed');
             
-            // Listener en el documento completo
             document.addEventListener('touchstart', (e) => {
                 touchStart = e.touches[0].pageY;
             }, { passive: false });
@@ -475,7 +501,6 @@
                 const touchMove = e.touches[0].pageY;
                 const isAtTop = window.scrollY <= 0 && container.scrollTop <= 0;
 
-                // Si estamos en el tope y el usuario desliza hacia ABAJO (refresco)
                 if (isAtTop && touchMove > touchStart) {
                     if (e.cancelable) e.preventDefault();
                 }
@@ -487,7 +512,9 @@
             if (!currentBook) return;
             const progress = {
                 bookId: currentBook.id,
-                chapter: currentChapterIndex,
+                bookTitle: currentBook.title,
+                chapterIndex: currentChapterIndex,
+                chapterTitle: currentBook.chapters[currentChapterIndex].title,
                 chunk: currentChunkIndex,
                 timestamp: Date.now()
             };
@@ -498,9 +525,14 @@
             const saved = localStorage.getItem('nexus_last_session');
             if (saved) {
                 const data = JSON.parse(saved);
-                // Solo ofrecer si es reciente (ej: 24h) o simplemente si existe
-                const resumeBtn = document.getElementById('resume-btn');
-                resumeBtn.classList.remove('hidden');
+                const resumeCard = document.getElementById('resume-card');
+                const chapterLabel = document.getElementById('resume-chapter-label');
+                const bookLabel = document.getElementById('resume-book-label');
+                
+                chapterLabel.innerText = data.chapterTitle || "Sección desconocida";
+                bookLabel.innerText = data.bookTitle || "Libro desconocido";
+                
+                resumeCard.classList.remove('hidden');
             }
         }
 
@@ -509,14 +541,12 @@
             if (!saved) return;
             const data = JSON.parse(saved);
             
-            // Abrir el libro
             openReader(data.bookId);
-            // Saltar a capítulo y chunk
             setTimeout(() => {
-                loadChapter(data.chapter);
+                loadChapter(data.chapterIndex);
                 currentChunkIndex = data.chunk;
                 renderChunk();
-                document.getElementById('resume-btn').classList.add('hidden');
+                document.getElementById('resume-card').classList.add('hidden');
             }, 500);
         }
 
@@ -598,7 +628,7 @@
             renderProgressMarkers();
             document.getElementById('library-container').classList.add('hidden');
             document.getElementById('reader-view').classList.remove('hidden');
-            document.getElementById('resume-btn').classList.add('hidden');
+            document.getElementById('resume-card').classList.add('hidden');
             loadChapter(0);
         }
 
@@ -653,7 +683,7 @@
             document.getElementById('reading-container-fixed').scrollTop = 0;
             
             updateProgress();
-            saveProgress(); // Guardar progreso en cada renderizado de bloque
+            saveProgress();
             
             const isLast = currentChunkIndex === chunks.length - 1 && currentChapterIndex === currentBook.chapters.length - 1;
             document.getElementById('next-btn').innerHTML = isLast ? "FIN" : "NEXT ▶";
