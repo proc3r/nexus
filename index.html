@@ -34,6 +34,11 @@
             }
         }
 
+		 /* Scrollbar Personalizada Amarilla Fina */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--primary-accent); border-radius: 10px; }
+										   
         html, body {
             background-color: var(--dark-bg);
             color: var(--text-on-dark);
@@ -107,8 +112,17 @@
             height: 100dvh; overflow: hidden; position: relative;
         }
 
-        .book-container.dark-mode { background-color: var(--reader-dark); color: var(--text-on-dark); --dropdown-bg: #25262b; }
-        .book-container.light-mode { background-color: var(--reader-light); color: var(--text-on-light); --dropdown-bg: #ffffff; }
+        /* Glassmorphism y Blur en Desplegables */
+        .book-container.dark-mode { 
+            background-color: var(--reader-dark); 
+            color: var(--text-on-dark); 
+            --dropdown-bg: rgba(37, 38, 43, 0.85); 
+        }
+        .book-container.light-mode { 
+            background-color: var(--reader-light); 
+            color: var(--text-on-light); 
+            --dropdown-bg: rgba(255, 255, 255, 0.85); 
+        }							 
 
         /* Estilos del contenido del libro */
         #book-content {
@@ -240,20 +254,25 @@
         }
         .timer-pause-btn:hover { background: #fff; transform: scale(1.05); }
 
+		/* Ajustes de Desplegables (Glassmorphism + Alineación Centrada) */
+        .settings-dropdown-container { position: relative; }																	
         .settings-dropdown {
-            position: absolute; top: 110%; right: 0;
+            position: absolute; top: 110%; left: 50%;
+            transform: translateX(-50%);
             min-width: 140px; background: var(--dropdown-bg);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px; box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-            z-index: 200; display: none; padding: 6px 0; color: inherit;
+            border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            z-index: 200; display: none; padding: 4px 0; color: inherit;
         }
         .settings-dropdown.show { display: block; }
         
-        .font-dropdown { width: 180px; max-height: 280px; overflow-y: auto; right: auto; left: 0; }
+        .font-dropdown { width: 140px; max-height: 300px; overflow-y: auto; }
         
         .setting-option {
             padding: 8px 14px; cursor: pointer; font-size: 13px;
             transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+			line-height: 1; /* Menor espacio entre líneas */												   
         }
         .setting-option:hover { background: rgba(255,204,0,0.1); color: var(--primary-accent); }
         .setting-option.selected { border-left: 3px solid var(--primary-accent); font-weight: bold; }
@@ -312,6 +331,9 @@
             #image-timer { top: 65px; font-size: 11px; padding: 6px 14px; gap: 8px; }
             .nav-icon-btn { width: 24px; height: 24px; }
             #resume-card { bottom: 1.5rem; right: 1rem; left: 1rem; max-width: none; padding: 12px 20px; }
+			/* En móvil los menús se alinean a los bordes si es necesario */
+            .settings-dropdown { left: auto; right: 0; transform: none; }
+            .font-dropdown { left: 0; transform: none; }											
         }
     </style>
 </head>
@@ -392,13 +414,13 @@
                                 <svg class="w-2.5 h-2.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </button>
                             <div id="font-dropdown" class="settings-dropdown font-dropdown custom-scrollbar">
-                                <div class="setting-section-label">Serif</div>
+                                
                                 <div class="setting-option" style="font-family: 'Merriweather'" onclick="changeFontFamily('Merriweather')">Merriweather</div>
                                 <div class="setting-option" style="font-family: 'EB Garamond'" onclick="changeFontFamily('EB Garamond')">EB Garamond</div>
                                 <div class="setting-option" style="font-family: 'Playfair Display'" onclick="changeFontFamily('Playfair Display')">Playfair Display</div>
                                 <div class="setting-option" style="font-family: 'Lora'" onclick="changeFontFamily('Lora')">Lora</div>
                                 <div class="setting-option" style="font-family: 'Libre Baskerville'" onclick="changeFontFamily('Libre Baskerville')">Baskerville</div>
-                                <div class="setting-section-label">Sans Serif</div>
+                                
                                 <div class="setting-option" style="font-family: 'Inter'" onclick="changeFontFamily('Inter')">Inter</div>
                                 <div class="setting-option" style="font-family: 'Source Sans 3'" onclick="changeFontFamily('Source Sans 3')">Source Sans</div>
                                 <div class="setting-option" style="font-family: 'IBM Plex Sans'" onclick="changeFontFamily('IBM Plex Sans')">IBM Plex Sans</div>
@@ -407,6 +429,7 @@
                             </div>
                         </div>
 
+						<!-- Alineación -->													   
                         <div class="settings-dropdown-container">
                             <button onclick="toggleDropdown('align-dropdown')" class="nav-icon-btn" title="Alineación">
                                 <span class="mi-round text-lg">format_align_justify</span>
@@ -418,6 +441,7 @@
                             </div>
                         </div>
 
+						<!-- Interlineado -->														 
                         <div class="settings-dropdown-container">
                             <button onclick="toggleDropdown('spacing-dropdown')" class="nav-icon-btn" title="Interlineado">
                                 <span class="mi-round text-lg">format_line_spacing</span>
