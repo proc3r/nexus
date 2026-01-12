@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Barlow+Condensed:ital,wght@0,300;0,400;1,300;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700&family=Lora:ital,wght@0,400;0,700&family=Libre+Baskerville:ital,wght@0,400;0,700&family=Source+Sans+3:wght@400;700&family=IBM+Plex+Sans:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Round" rel="stylesheet">												 
-      <!-- <link rel="stylesheet" href="estilos-nexus.css">-->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/proc3r/nexus@main/estilos-nexus.css">
     <style>
       
@@ -21,7 +20,7 @@
             <header class="pt-4 pb-2 px-8 border-b-4 border-blue-500 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
                 <div>
                     <h1 class="text-3xl font-black tracking-tighter text-[#ffcc00]">NEXUS<span class="text-white">LIBRARY</span></h1>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-[0.3em] font-bold condensed">Modelo Nouménico</p>
+                    <p class="text-[13px] text-gray-300 uppercase tracking-[0.3em] font-bold condensed">Modelo Nouménico</p>
                 </div>
                 <div id="status-indicator" class="flex items-center gap-3 px-6 py-2 rounded-full border border-gray-800 bg-gray-900/50">
                     <div class="w-4 h-4 border-2 border-t-[#ffcc00] border-gray-700 rounded-full animate-spin" id="main-spinner"></div>
@@ -155,7 +154,7 @@
                     <div class="max-w-4xl mx-auto">
                         <div class="flex justify-between text-[14px] uppercase font-bold opacity-70 mb-2 condensed tracking-widest">
                             <span id="time-remaining"class="text-[16px]  font-bold italic opacity-100" style="letter-spacing: normal;">Calculando tiempo...</span>
-                            <span>Bloque <span id="current-p-num">0</span> / <span id="total-p-num">0</span> — <span id="progress-percent">0%</span></span>
+                            <span style="letter-spacing: normal; font-size: 16px;">Bloque <span id="current-p-num">0</span> / <span id="total-p-num">0</span> — <span id="progress-percent">0%</span></span>
                         </div>
                         <div class="progress-bar-container mb-3">
                             <div id="reading-progress-bar"></div>
@@ -595,8 +594,8 @@
         function updateTimerDisplay() {
             const textEl = document.getElementById('timer-text');
             const btnEl = document.querySelector('.timer-pause-btn');
-            if (isImageTimerPaused) { textEl.innerText = "Pausado. Presione NEXT."; btnEl.innerText = "Reanudar"; }
-            else { textEl.innerText = `Próximo en ${imageSecondsLeft}s`; btnEl.innerText = "Pausar"; }
+            if (isImageTimerPaused) { textEl.innerText = "Pausado. Presione REANUDAR o NEXT."; btnEl.innerText = "Reanudar"; }
+            else { textEl.innerText = `Comenzando en ${imageSecondsLeft}s`; btnEl.innerText = "Pausar"; }
         }
 
         function togglePauseImageTimer() { isImageTimerPaused = !isImageTimerPaused; isPaused = isImageTimerPaused; updatePauseUI(isPaused); updateTimerDisplay(); }
