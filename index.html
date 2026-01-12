@@ -275,7 +275,7 @@
 			line-height: 1; /* Menor espacio entre líneas */												   
         }
         .setting-option:hover { background: rgba(255,204,0,0.1); color: var(--primary-accent); }
-        .setting-option.selected { border-left: 3px solid var(--primary-accent); font-weight: bold; }
+        .setting-option.selected { background: rgba(255,204,0,0.1); border-left: 3px solid var(--primary-accent); font-weight: bold; }
 
         .setting-section-label {
             padding: 6px 14px; font-size: 9px; font-weight: 800;
@@ -399,7 +399,11 @@
                     <button onclick="togglePauseImageTimer()" class="timer-pause-btn">Pausar</button>
                 </div>
 
-                <nav class="h-8 flex-shrink-0 flex items-center justify-center px-4 border-b border-white/10 bg-black/20 backdrop-blur-md relative z-50">
+                <nav class="h-8 flex-shrink-0 flex items-center justify-between px-4 border-b border-white/10 bg-black/20 backdrop-blur-md relative z-50">
+					<!-- Cambio: Botón Salir en barra superior -->
+                    <button onclick="closeReader()" class="text-[#ffcc00] font-bold uppercase text-[15px] tracking-[0.02em] condensed flex items-center gap-1 hover:text-white transition-colors">
+                        <span class="mi-round text-sm"></span>Home
+                    </button>											   
                     <div class="flex items-center gap-2 md:gap-4">
                         <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[11px] font-bold border border-white/5">
                             <button onclick="changeFontSize(-2)" class="hover:text-[#ffcc00]">A-</button>
@@ -409,8 +413,8 @@
                         
                         <div class="settings-dropdown-container">
                             <button onclick="toggleDropdown('font-dropdown')" class="flex items-center gap-1 px-3 py-0.5 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5">
-                                <span id="current-font-label" class="text-[11px] font-bold uppercase condensed tracking-wider hidden sm:inline">Merriweather</span>
-                                <span class="mi-round text-sm sm:hidden">font_download</span>
+                                <span id="current-font-label" class="text-[11px] font-bold uppercase condensed tracking-wider w-11 truncate sm:inline">Merriweather</span>
+                                
                                 <svg class="w-2.5 h-2.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </button>
                             <div id="font-dropdown" class="settings-dropdown font-dropdown custom-scrollbar">
