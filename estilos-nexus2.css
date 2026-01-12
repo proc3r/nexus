@@ -14,75 +14,39 @@
     --reader-line-height: 1.7;
 }
 
-/* 1. ELIMINACIÓN GLOBAL DE LA BARRA GRIS DEL SISTEMA */
-* {
-    scrollbar-width: thin !important;
-    scrollbar-color: var(--primary-accent) rgba(0, 0, 0, 0.2) !important;
-													
-									
-							
-	 
-}
-
-/* Configuración Webkit (Chrome, Safari, Edge) */
-::-webkit-scrollbar {
-    width: 4px !important;
-    height: 4px !important;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1) !important;
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: var(--primary-accent) !important;
-    border-radius: 20px !important;
-    border: 1px solid rgba(0, 0, 0, 0.2) !important;
-}
-
-/* 2. CONFIGURACIÓN DEL BODY Y ESTRUCTURA BASE */
-html, body {
-    background-color: var(--dark-bg);
-    color: var(--text-on-dark);
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-    transition: background-color 0.3s ease;
-    height: 100vh; /* Forzamos altura */
-    overflow: hidden; /* Evita barra doble en el body */
-}
-
-										  
-
-#app { 
-    height: 100dvh; 
-    overflow: hidden; 
-}
-
-/* Contenedores con scroll optimizado */
-#library-container, 
-#reader-sidebar, 
-.sidebar-content, 
-#reading-container-fixed, 
-.custom-scrollbar {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: auto !important; /* Evita advertencias de rendimiento */
-}
-
-#library-container {
-    height: 100dvh;
-}
-
 /* Configuración Adaptativa Móvil */
 @media (max-width: 768px) {
     :root {
         --reader-font-size: 19px;
         --reader-font-family: 'Merriweather', serif;
         --reader-text-align: center;
-        --reader-line-height: 1.4;
+		--reader-line-height: 1.4;
     }
 }
 
-/* CLASES DE UTILIDAD */
+/* Scrollbar Personalizada Amarilla Fina */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--primary-accent); border-radius: 10px; }
+
+html, body {
+    background-color: var(--dark-bg);
+    color: var(--text-on-dark);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    transition: background-color 0.3s ease;
+    min-height: 100dvh;
+    overflow-x: hidden;
+}
+
+#app { height: 100dvh; overflow: hidden; }
+
+#library-container { 
+    height: 100dvh; 
+    overflow-y: auto; 
+    -webkit-overflow-scrolling: touch;
+}
+
 .hidden { display: none !important; }
 .condensed { font-family: 'Barlow Condensed', sans-serif; }
 
@@ -95,7 +59,6 @@ html, body {
     direction: ltr; -webkit-font-smoothing: antialiased;
 }
 
-/* 3. LECTOR Y SIDEBAR */
 #reader-view {
     position: fixed; inset: 0; z-index: 100;
     display: flex; flex-direction: row; height: 100dvh;
@@ -132,7 +95,7 @@ html, body {
 }
 
 .sidebar-header { flex-shrink: 0; }
-.sidebar-content { flex: 1; }
+.sidebar-content { flex: 1; overflow-y: auto; }
  
 .reader-main-layout {
     flex: 1; display: flex; flex-direction: column;
@@ -150,7 +113,6 @@ html, body {
     --dropdown-bg: rgba(255, 255, 255, 0.85); 
 }
 
-/* 4. CONTENIDO DEL LIBRO */
 #book-content {
     font-family: var(--reader-font-family);
     font-size: var(--reader-font-size);
@@ -158,15 +120,15 @@ html, body {
     line-height: var(--reader-line-height);
 }
 
-									   
-					  
-					
- 
+#book-content strong, #book-content b {
+    font-weight: bold;
+    color: inherit; 
+}
 
-#book-content strong, #book-content b { font-weight: bold; color: inherit; }
-#book-content em, #book-content i { font-style: italic; color: inherit; }
-				   
- 
+#book-content em, #book-content i {
+    font-style: italic;
+    color: inherit;
+}
 
 .custom-blockquote {
     border-left: 4px solid var(--primary-accent);
@@ -178,9 +140,9 @@ html, body {
 }
 
 #reading-container-fixed {
-    flex: 1; padding: 0 10%;
+    flex: 1; overflow-y: auto; padding: 0 10%;
     scroll-behavior: smooth; display: flex; flex-direction: column;
-									   
+    -webkit-overflow-scrolling: touch; 
     overscroll-behavior-y: contain;
 }
 
@@ -190,7 +152,6 @@ html, body {
     padding-top: 20px; padding-bottom: 40px;
 }
 
-/* 5. PROGRESO Y MARCADORES */
 .progress-bar-container {
     width: 100%; height: 6px; background: rgba(255,255,255,0.4);
     border-radius: 10px; position: relative;
@@ -203,11 +164,9 @@ html, body {
     width: 12px; height: 8px; cursor: pointer; pointer-events: auto;
     display: flex; align-items: center; justify-content: center;
 }
-.marker-h1-dot { 
-    width: 8px; height: 8px; background-color: var(--marker-h1);
+.marker-h1-dot { width: 8px; height: 8px; background-color: var(--marker-h1);
     border-radius: 50%; box-shadow: 0 0 8px rgba(255, 68, 68, 0.4);
-    border: 1px solid rgba(0,0,0,0.2); 
-}
+    border: 1px solid rgba(0,0,0,0.2); }
 .marker-h2-line { width: 2px; height: 8px; background: rgba(200,150,100,0.5); }
  
 .marker-tooltip {
@@ -229,9 +188,8 @@ html, body {
 .toc-toggle:hover { opacity: 1; color: var(--primary-accent); }
 
 .reader-section-title {
-    font-family: 'Barlow Condensed', sans-serif; font-size: 35px; font-weight: 800; text-transform: uppercase;
-    text-align: center; margin: 2rem 0; line-height: 1.1; font-style: italic; color: #ff4444; 
-    text-shadow: -3px -2px 5px rgb(0 0 0 / 21%);
+    font-family: 'Barlow Condensed', sans-serif; font-size: 35px; font-weight: 800;text-transform: uppercase;
+    text-align: center; margin: 2rem 0; line-height: 1.1; font-style: italic; color: #ff4444; text-shadow: -3px -2px 5px rgb(0 0 0 / 21%);
 }
 
 #sidebar-trigger {
@@ -242,7 +200,6 @@ html, body {
 }
 #sidebar-trigger:hover { width: 20px; }
 
-/* 6. IMÁGENES Y LIBRERÍA */
 .reader-image-container {
     width: 100%; display: flex; justify-content: center; margin: 2rem 0;
     flex-direction: column; align-items: center; position: relative;
@@ -284,7 +241,6 @@ html, body {
 }
 .timer-pause-btn:hover { background: #fff; transform: scale(1.05); }
 
-/* 7. DROPDOWNS Y AJUSTES */
 .settings-dropdown-container { position: relative; } 
 .settings-dropdown {
     position: absolute; top: 110%; left: 50%;
@@ -297,7 +253,7 @@ html, body {
 }
 .settings-dropdown.show { display: block; }
 
-.font-dropdown { width: 140px; max-height: 300px; }
+.font-dropdown { width: 140px; max-height: 300px; overflow-y: auto; }
 
 .setting-option {
     padding: 8px 14px; cursor: pointer; font-size: 13px;
