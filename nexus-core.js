@@ -167,8 +167,8 @@
                 const finalCover = book.cover ? book.cover : DEFAULT_COVER;
                 card.innerHTML = `
                     <div class="book-card-cover"><img src="${finalCover}" alt="Cover" loading="lazy"></div>
-                    <h3 class="text-2xl pt-2 font-bold text-white uppercase tracking-tighter condensed">${book.title}</h3>
-                    <div class="flex items-center justify-center gap-3 mt-2">
+                    <h3 class="text-2xl pt-2 px-2 font-bold text-white leading-tight uppercase tracking-tighter condensed">${book.title}</h3>
+                    <div class="flex items-center justify-center pb-3 gap-2 mt-3">
                         <p class="text-[13px] opacity-90 uppercase tracking-normal condensed">${book.chapters.length} secciones</p>
                         <span class="text-[13px] opacity-90">•</span>
                         <p class="text-[13px] text-[#ffcc00] font-bold uppercase tracking-normal condensed italic">
