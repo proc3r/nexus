@@ -162,17 +162,17 @@
                 const totalMins = Math.ceil(totalWords / 185);
                 const timeStr = totalMins >= 60 ? `${Math.floor(totalMins/60)}h ${totalMins%60}m` : `${totalMins} min`;
                 const card = document.createElement('div');
-                card.className = 'book-card group relative bg-white/5 border border-white/10 p-6 rounded-[2.5rem] hover:border-[#ffcc00] transition-all cursor-pointer text-center';
+                card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[2.5rem] hover:border-[#ffcc00] transition-all cursor-pointer text-center';
                 card.onclick = () => openReader(book.id);
                 const finalCover = book.cover ? book.cover : DEFAULT_COVER;
                 card.innerHTML = `
                     <div class="book-card-cover"><img src="${finalCover}" alt="Cover" loading="lazy"></div>
-                    <h3 class="text-xl font-bold text-white uppercase tracking-tighter condensed">${book.title}</h3>
+                    <h3 class="text-2xl pt-2 font-bold text-white uppercase tracking-tighter condensed">${book.title}</h3>
                     <div class="flex items-center justify-center gap-3 mt-2">
-                        <p class="text-[13px] opacity-40 uppercase tracking-normal condensed">${book.chapters.length} secciones</p>
-                        <span class="text-[13px] opacity-20">•</span>
+                        <p class="text-[13px] opacity-90 uppercase tracking-normal condensed">${book.chapters.length} secciones</p>
+                        <span class="text-[13px] opacity-90">•</span>
                         <p class="text-[13px] text-[#ffcc00] font-bold uppercase tracking-normal condensed italic">
-                            <span class="mi-round text-[13px] align-middle mr-1">schedule</span>${timeStr}
+                            <span class="mi-round text-[13px] align-middle mr-1" style="padding-bottom: 2px;">schedule</span>${timeStr}
                         </p>
                     </div>
                 `;
