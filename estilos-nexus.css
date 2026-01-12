@@ -18,7 +18,7 @@
 @media (max-width: 768px) {
     :root {
         --reader-font-size: 19px;
-        --reader-font-family: 'Atkinson Hyperlegible', sans-serif;
+        --reader-font-family: 'Merriweather', serif;
         --reader-text-align: center;
 		--reader-line-height: 1.4;
     }
