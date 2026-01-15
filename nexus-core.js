@@ -179,12 +179,32 @@ let library = [];
             }
         }
 
-        function parseMarkdown(text) {
+         function parseMarkdown(text) {
             const lines = text.split('\n');
             const chapters = [];
             let currentChapter = null;
+            
+            // --- NUEVA LÓGICA PARA IGNORAR METADATOS ---
+            let inFrontmatter = false;
+            let startLine = 0;
 
-            lines.forEach(line => {
+            // Verificamos si la primera línea real (ignorando vacíos) es el inicio de propiedades
+            if (lines.length > 0 && lines[0].trim() === "---") {
+                inFrontmatter = true;
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === "---") {
+                        inFrontmatter = false;
+                        startLine = i + 1; // El contenido real empieza después del segundo ---
+                        break;
+                    }
+                }
+            }
+            // Si nunca se cerró el frontmatter, volvemos al inicio para no perder texto
+            if (inFrontmatter) startLine = 0;
+            // -------------------------------------------
+
+            for (let i = startLine; i < lines.length; i++) {
+                const line = lines[i];
                 const trimmed = line.trim();
                 const titleMatch = trimmed.match(/^(#+)\s+(.*)/);
                 
@@ -195,41 +215,41 @@ let library = [];
                 } else if (trimmed !== "") {
                     if (!currentChapter) currentChapter = { level: 1, title: "Inicio", content: [] };
                     
-				// Identificamos si es un blockquote										
+					// Identificamos si es un blockquote								  
                     const isQuote = trimmed.startsWith('>');
                     let contentToProcess = trimmed;
 
-                    // Separador Universal de Imágenes y Texto
-					// Esta expresión regular divide la línea manteniendo los delimitadores ![[ ]]																				
+					// Separador Universal de Imágenes y Texto
+					// Esta expresión regular divide la línea manteniendo los delimitadores ![[ ]]																						 
                     const parts = contentToProcess.split(/(!\[\[.*?\]\])/g);
-						
+	  
                     
                     parts.forEach(part => {
                         let subChunk = part.trim();
                         if (subChunk === "") return;
 
-						// Si la parte es una imagen, la guardamos tal cual (respetando prefijo > si es necesario)																						  
+						// Si la parte es una imagen, la guardamos tal cual (respetando prefijo > si es necesario)																								
                         if (subChunk.match(/^!\[\[.*?\]\]/)) {
-							// Si la línea original era blockquote y esta pieza no lo tiene, se lo ponemos																			   
+							// Si la línea original era blockquote y esta pieza no lo tiene, se lo ponemos																				
                             if (isQuote && !subChunk.startsWith('>')) {
                                 currentChapter.content.push('> ' + subChunk);
                             } else {
                                 currentChapter.content.push(subChunk);
                             }
                         } else {
-							 // Es texto normal. Si quitamos la imagen y quedó texto "huérfano" de blockquote, lo restauramos																								  
+							 // Es texto normal. Si quitamos la imagen y quedó texto "huérfano" de blockquote, lo restauramos																										
                             if (isQuote && !subChunk.startsWith('>')) {
                                 subChunk = '> ' + subChunk;
                             }
                             currentChapter.content.push(subChunk);
                         }
                     });
+	
 	   
-				   
-				   
-	 
+	   
+  
                 }
-            });
+            }
             if (currentChapter) chapters.push(currentChapter);
             return chapters;
         }
