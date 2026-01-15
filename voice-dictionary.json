@@ -20,9 +20,9 @@
   "NOEMA": "noema",
   "✱": "asterisco",
   "Higgs": "Higs",
-  "SU(2)": "S.U. (2)",
-  "SU(3)": "S.U. (3)",
-  "SU(n)": "S.U. (n)",
+  "SU(2)": "S.U. 2",
+  "SU(3)": "S.U. 3",
+  "SU(n)": "S.U. n",
    
   "EE.UU.": "Estados Unidos"
 }
