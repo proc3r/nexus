@@ -368,6 +368,9 @@ let library = [];
  */  
         function filterTextForVoice(text) {
             let cleanText = text;
+            // 1. ELIMINAR CONTADORES DE CAPÍTULO (Ej: "7.8.21 »")
+            // Buscamos números separados por puntos seguidos del signo » y los borramos
+            cleanText = cleanText.replace(/\d+\.\d+\.\d+\s?»/g, '');														 
 
 			// 1. Reemplazos del Diccionario con límites de palabra												
             for (let [original, reemplazo] of Object.entries(VOICE_REPLACEMENTS)) {
@@ -380,9 +383,12 @@ let library = [];
                 cleanText = cleanText.replace(regex, reemplazo);
             }
 
-			// 2. Forzar lectura de numeración x.y.z								 
-            cleanText = cleanText.replace(/(\d+)\.(\d+)\.(\d+)/g, '$1 punto $2 punto $3');
-	
+			// 3. Manejo de otros puntos decimales si quedaran (opcional)
+            // cleanText = cleanText.replace(/(\d+)\.(\d+)\.(\d+)/g, '$1 punto $2 punto $3');
+
+			 
+			 
+			 
             return cleanText;
         }
 
