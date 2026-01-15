@@ -17,17 +17,17 @@ let library = [];
         let imageSecondsLeft = 5;
         let isImageTimerPaused = false;
 
-        // --- CONFIGURACIÓN DE DICCIONARIO EXTERNO ---
-        // REEMPLAZA ESTA URL por la URL 'Raw' de tu archivo JSON en GitHub
-        const DICTIONARY_URL = "https://raw.githubusercontent.com/proc3r/nexus/master/voice-dictionary.json";
-        let VOICE_REPLACEMENTS = {}; 
-										 
-							   
-									   
-					
-   
-																				   
-		  
+        // --- DICCIONARIO DE SUSTITUCIÓN FONÉTICA (Solo para TTS) ---
+        const VOICE_REPLACEMENTS = {
+            "PROC3R": "Prócer",
+            "a.C.": "antes de Cristo",
+            "d.C.": "después de Cristo",
+            "pág.": "página",
+            "EE.UU.": "Estados Unidos",
+			"QUBIT": "Cubit",
+			
+            // Puedes añadir más aquí siguiendo el formato "Original": "Sonido",
+        };
 
         // Configuración de Repositorios (Escalable)
         const REPOSITORIES = [
@@ -46,29 +46,13 @@ let library = [];
         let synth = window.speechSynthesis;
 
         window.onload = () => {
-            // Primero cargamos el diccionario, luego los libros
-            loadExternalDictionary().then(() => {
-                fetchBooks().then(() => {
-                    checkLastSession();
-                });
+            fetchBooks().then(() => {
+                checkLastSession();
             });
             initTouchEvents();
             initPullToRefreshBlocker();
             setTimeout(() => { window.scrollTo(0, 1); }, 300);
         };
-
-        async function loadExternalDictionary() {
-            try {
-                const response = await fetch(DICTIONARY_URL);
-                if (response.ok) {
-                    VOICE_REPLACEMENTS = await response.json();
-                    console.log("Diccionario fonético cargado correctamente");
-                }
-            } catch (e) {
-                console.error("No se pudo cargar el diccionario externo, usando diccionario vacío.", e);
-                VOICE_REPLACEMENTS = {};
-            }
-        }
 
         function initPullToRefreshBlocker() {
             let touchStart = 0;
@@ -157,7 +141,7 @@ let library = [];
                         
                         let coverUrl = DEFAULT_COVER;
                         if (coverMatch) {
-	  
+				  
                             let fileName = coverMatch[1].split('|')[0].trim();
                             coverUrl = repo.raw + encodeURIComponent(fileName);
                         }
@@ -195,39 +179,39 @@ let library = [];
                 } else if (trimmed !== "") {
                     if (!currentChapter) currentChapter = { level: 1, title: "Inicio", content: [] };
                     
-				// Identificamos si es un blockquote										
+                    // Identificamos si es un blockquote
                     const isQuote = trimmed.startsWith('>');
                     let contentToProcess = trimmed;
 
                     // Separador Universal de Imágenes y Texto
-					// Esta expresión regular divide la línea manteniendo los delimitadores ![[ ]]																				
+                    // Esta expresión regular divide la línea manteniendo los delimitadores ![[ ]]
                     const parts = contentToProcess.split(/(!\[\[.*?\]\])/g);
-						
+																					   
                     
                     parts.forEach(part => {
                         let subChunk = part.trim();
                         if (subChunk === "") return;
 
-						// Si la parte es una imagen, la guardamos tal cual (respetando prefijo > si es necesario)																						  
+                        // Si la parte es una imagen, la guardamos tal cual (respetando prefijo > si es necesario)
                         if (subChunk.match(/^!\[\[.*?\]\]/)) {
-							// Si la línea original era blockquote y esta pieza no lo tiene, se lo ponemos																			   
+                            // Si la línea original era blockquote y esta pieza no lo tiene, se lo ponemos
                             if (isQuote && !subChunk.startsWith('>')) {
                                 currentChapter.content.push('> ' + subChunk);
                             } else {
                                 currentChapter.content.push(subChunk);
                             }
                         } else {
-							 // Es texto normal. Si quitamos la imagen y quedó texto "huérfano" de blockquote, lo restauramos																								  
+                            // Es texto normal. Si quitamos la imagen y quedó texto "huérfano" de blockquote, lo restauramos
                             if (isQuote && !subChunk.startsWith('>')) {
                                 subChunk = '> ' + subChunk;
                             }
                             currentChapter.content.push(subChunk);
                         }
                     });
-	   
-				   
-				   
-	 
+							
+																   
+																   
+					
                 }
             });
             if (currentChapter) chapters.push(currentChapter);
@@ -249,7 +233,7 @@ let library = [];
                 const card = document.createElement('div');
                 card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[2.5rem] hover:border-[#ffcc00] transition-all cursor-pointer text-center';
                 card.onclick = () => openReader(book.id);
-		
+						  
                 card.innerHTML = `
                     <div class="book-card-cover"><img src="${book.cover}" alt="Cover" loading="lazy"></div>
                     <h3 class="text-2xl pt-2 px-2 font-bold text-white leading-tight uppercase tracking-tighter condensed">${book.title}</h3>
@@ -274,7 +258,7 @@ let library = [];
             document.getElementById('reader-view').classList.remove('hidden');
             document.getElementById('resume-card').classList.add('hidden');
 
- 
+	
             const isMobile = window.innerWidth <= 768;
             const defFontSize = isMobile ? 17 : 25;
             const defFontName = isMobile ? 'Atkinson Hyperlegible' : 'Merriweather';
@@ -282,7 +266,7 @@ let library = [];
             document.getElementById('font-size-val').innerText = defFontSize;
             document.getElementById('current-font-label').innerText = defFontName;
             
-  
+		
             document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
             document.documentElement.style.setProperty('--reader-font-family', defFontName);
 
@@ -314,70 +298,70 @@ let library = [];
         }
   
    
+	   
+	  
+	  
+  
+	 
+  
 	
    
    
-  
-  
-  
- 
-   
-   
- 
+	
 
-	/**
+        /**
          * Función Maestra de Limpieza Visual
          * Elimina Callouts, ^anclajes y procesa Wikilinks
-         */	   
+         */
         function cleanMarkdown(str) {
             if (!str) return "";
             return str
-					
+																	   
                 .replace(/\[\![^\]\n]+\][\+\-]?\s?/g, '') // Callouts
-						
+																							 
                 .replace(/\^[a-zA-Z0-9-]+(?:\s|$)/g, '')   // Anclajes de bloque
-					   
+																						 
                 .replace(/\[\[([^\]]+)\]\]/g, (match, p1) => { // Wikilinks
                     return p1.includes('|') ? p1.split('|')[1].trim() : p1.trim();
                 });
         }
 
-/**
+        /**
  * Filtro Fonético para el Motor de Voz (TTS)
  * Actualizado con límites de palabra (\b) para evitar reemplazos erróneos
- */  
-        function filterTextForVoice(text) {
-            let cleanText = text;
+ */
+function filterTextForVoice(text) {
+    let cleanText = text;
 
-			// 1. Reemplazos del Diccionario con límites de palabra												
-            for (let [original, reemplazo] of Object.entries(VOICE_REPLACEMENTS)) {
-			// Escapamos caracteres especiales (como el punto) para que la Regex no falle																		 
-                const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-		
-			// \b asegura que solo coincida con la palabra exacta
-			// Usamos una lógica especial para palabras que terminan en punto como "a.C."																		  
-                const regex = new RegExp(`\\b${escapedOriginal}(?=\\s|$|[,.;])`, 'gi');
-                cleanText = cleanText.replace(regex, reemplazo);
-            }
+    // 1. Reemplazos del Diccionario con límites de palabra
+    for (let [original, reemplazo] of Object.entries(VOICE_REPLACEMENTS)) {
+        // Escapamos caracteres especiales (como el punto) para que la Regex no falle
+        const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        
+        // \b asegura que solo coincida con la palabra exacta
+        // Usamos una lógica especial para palabras que terminan en punto como "a.C."
+        const regex = new RegExp(`\\b${escapedOriginal}(?=\\s|$|[,.;])`, 'gi');
+        cleanText = cleanText.replace(regex, reemplazo);
+    }
 
-			// 2. Forzar lectura de numeración x.y.z								 
-            cleanText = cleanText.replace(/(\d+)\.(\d+)\.(\d+)/g, '$1 punto $2 punto $3');
-	
-            return cleanText;
-        }
+    // 2. Forzar lectura de numeración x.y.z
+    cleanText = cleanText.replace(/(\d+)\.(\d+)\.(\d+)/g, '$1 punto $2 punto $3');
+    
+    return cleanText;
+}
 
- 
-   
+	
+		 
   
-   
+	  
+	 
+	   
+	  
   
 	
-   
+	   
   
- 
 	
-  
- 
   
    
 
@@ -387,42 +371,42 @@ let library = [];
             const content = document.getElementById('book-content');
             let rawText = chunks[currentChunkIndex] || "";
             
-			// Si el chunk es solo un ">", se lo salta										  
+            // Si el chunk es solo un ">", se lo salta
             if (rawText.trim() === ">") { if (window.navDirection === 'prev') prevChunk(); else nextChunk(); return; }
 
             let finalHtml = "";
             let isImage = false;
             
-			// 1. Detección de Archivos Multimedia ![[ ]]											  
+            // 1. Detección de Archivos Multimedia ![[ ]]
             const embedMatch = rawText.match(/!\[\[(.*?)\]\]/);
             
             if (embedMatch) {
                 const fileName = embedMatch[1].split('|')[0].trim().toLowerCase();
-				
-				// Definimos extensiones a ignorar (Audio y Video)												  
+                
+                // Definimos extensiones a ignorar (Audio y Video)
                 const isAudio = fileName.endsWith('.m4a') || fileName.endsWith('.mp3') || fileName.endsWith('.wav') || fileName.endsWith('.ogg');
                 const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.webm') || fileName.endsWith('.mkv');
 
                 if (isAudio || isVideo) {
-					// Si es multimedia, saltar al siguiente automáticamente														 
+                    // Si es multimedia, saltar al siguiente automáticamente
                     if (window.navDirection === 'prev') prevChunk(); else nextChunk(); 
                     return; 
                 }
 
-				// Si no es audio/video, asumimos que es imagen											   
+                // Si no es audio/video, asumimos que es imagen
                 isImage = true;
    
-				  
+																  
                 const imageUrl = currentBook.rawBase + encodeURIComponent(embedMatch[1].split('|')[0].trim());
                 finalHtml = `<div class="reader-image-container"><img src="${imageUrl}" class="reader-image" alt="${fileName}"></div>`;
             } else if (rawText.trim().startsWith('#')) {
                 finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
             } else if (rawText.trim().startsWith('>')) {
-	  
+				  
                 let cleaned = cleanMarkdown(rawText.trim().substring(1).trim());
                 finalHtml = `<div class="custom-blockquote">${processFormatting(cleaned)}</div>`;
             } else {
-	
+				
                 let cleaned = cleanMarkdown(rawText);
                 finalHtml = processFormatting(cleaned);
             }
@@ -504,15 +488,15 @@ let library = [];
             isPaused = false;
             updatePauseUI(false);
 
-			// Obtenemos el texto visible y le aplicamos el filtro fonético																
+            // Obtenemos el texto visible y le aplicamos el filtro fonético
             let textToRead = document.getElementById('book-content').innerText;
             if(!textToRead.trim()) return;
 
             textToRead = filterTextForVoice(textToRead);
 
-					   
-					 
-		 
+																				   
+																		   
+									
             speechSubChunks = splitTextSmartly(textToRead, 140);
             currentSubChunkIndex = 0;
             speakSubChunk();
@@ -574,16 +558,16 @@ let library = [];
             return str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/[*_](.*?)[*_]/g, '<em>$1</em>');
         }
 
-	
-	
+				
+		  
+				 
+				  
+			
+			   
 	 
+					  
+		 
 	  
-   
-	  
-  
-	   
-   
-   
    
 
         function nextChunk() { 
