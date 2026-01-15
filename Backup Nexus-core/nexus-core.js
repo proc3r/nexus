@@ -17,7 +17,7 @@ let library = [];
         let imageSecondsLeft = 5;
         let isImageTimerPaused = false;
 
-        // Configuración de Repositorios (Escalable)
+        // Configuración de Repositorios
         const REPOSITORIES = [
             {
                 api: "https://api.github.com/repos/proc3r/001-Publicados/contents/",
@@ -126,10 +126,10 @@ let library = [];
                         const res = await fetch(file.download_url);
                         const text = await res.text();
                         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
-						// Lógica de Imagen: Si hay match se usa, si no, se usa la DEFAULT_COVER
+                        
                         let coverUrl = DEFAULT_COVER;
                         if (coverMatch) {
-							 // Limpiar el nombre de la imagen de parámetros como |right|280
+																		
                             let fileName = coverMatch[1].split('|')[0].trim();
                             coverUrl = repo.raw + encodeURIComponent(fileName);
                         }
@@ -185,7 +185,7 @@ let library = [];
                 const card = document.createElement('div');
                 card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[2.5rem] hover:border-[#ffcc00] transition-all cursor-pointer text-center';
                 card.onclick = () => openReader(book.id);
-               // Aquí usamos la cover que ya definimos en fetchBooks (sea la del repo o la default)
+																									 
                 card.innerHTML = `
                     <div class="book-card-cover"><img src="${book.cover}" alt="Cover" loading="lazy"></div>
                     <h3 class="text-2xl pt-2 px-2 font-bold text-white leading-tight uppercase tracking-tighter condensed">${book.title}</h3>
@@ -210,7 +210,7 @@ let library = [];
             document.getElementById('reader-view').classList.remove('hidden');
             document.getElementById('resume-card').classList.add('hidden');
 
-													   
+				
             const isMobile = window.innerWidth <= 768;
             const defFontSize = isMobile ? 17 : 25;
             const defFontName = isMobile ? 'Atkinson Hyperlegible' : 'Merriweather';
@@ -218,7 +218,7 @@ let library = [];
             document.getElementById('font-size-val').innerText = defFontSize;
             document.getElementById('current-font-label').innerText = defFontName;
             
-																						 
+					   
             document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
             document.documentElement.style.setProperty('--reader-font-family', defFontName);
 
@@ -249,78 +249,85 @@ let library = [];
             renderChunk();
         }
   
-	  
-																						
-																  
-												   
-		   
-										 
-								
-								  
-										  
-									
-								  
-
-											
-											
-				
-																  
-												 
-																  
-									
-																										  
-					 
-
-									 
-										
-					
-																	
-								
-														  
-													   
-																										
-																										   
-												 
-																									
-					 
-				  
-														 
-																
-																	 
-				  
-																 
+   
 					  
-									
-																										  
-										  
-					 
-																
-																
-				 
+				  
 			   
+	 
+		   
+		
+		  
+			
+		 
+		  
 
-												  
-							
-																								  
+        /**
+         * Función Maestra de Limpieza
+         * Elimina Callouts, Wikilinks y Marcadores de bloque Obsidian
+         */
+        function cleanMarkdown(str) {
+            if (!str) return "";
+            return str
+                // 1. Limpiar Etiquetas de Callouts [!info] o [!error]+
+                .replace(/\[\![^\]\n]+\][\+\-]?\s?/g, '')
+                // 2. Limpiar Marcadores de bloque tipo ^llamado (al final de línea o texto)
+                .replace(/\^[a-zA-Z0-9-]+(?:\s|$)/g, '')
+                // 3. Procesar Wikilinks [[Enlace|Texto]] -> Texto / [[Enlace]] -> Enlace
+                .replace(/\[\[([^\]]+)\]\]/g, (match, p1) => {
+                    return p1.includes('|') ? p1.split('|')[1].trim() : p1.trim();
+                });
+        }
+
+		  
+		  
+	 
+				 
+		
+				
+				
+						  
+							 
 			 
-
-							  
+						 
+	  
+	  
+			   
+				
+				  
+	  
+				 
+	   
 		 
+							
+			
+	  
+				
+				
+	 
+	  
 
-														  
-																												  
-					
-																	 
-											   
-																	  
-																				 
-						  
-												 
-																   
-						  
-					  
 			  
+	   
+						  
+	
+
 		 
+   
+
+				
+							  
+	 
+				  
+			  
+				   
+					 
+		
+			 
+				   
+		
+	   
+	 
+   
 
 
         function renderChunk() {
@@ -335,20 +342,20 @@ let library = [];
             
             if (imgMatch) {
                 isImage = true;
-				// Limpiar el nombre de la imagen (ignorando lo que hay tras el '|')
+				  
                 const fileName = imgMatch[1].split('|')[0].trim();
                 const imageUrl = currentBook.rawBase + encodeURIComponent(fileName);
                 finalHtml = `<div class="reader-image-container"><img src="${imageUrl}" class="reader-image" alt="${fileName}"></div>`;
             } else if (rawText.trim().startsWith('#')) {
-                finalHtml = `<div class="reader-section-title">${rawText.replace(/^#+\s+/, '').trim()}</div>`;
+                finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
             } else if (rawText.trim().startsWith('>')) {
-																			  
-                finalHtml = `<div class="custom-blockquote">${processFormatting(rawText.trim().substring(1).trim())}</div>`;
-																								  
+                // Limpiamos y formateamos bloques de cita (callouts)
+                let cleaned = cleanMarkdown(rawText.trim().substring(1).trim());
+                finalHtml = `<div class="custom-blockquote">${processFormatting(cleaned)}</div>`;
             } else {
-																			
-                finalHtml = processFormatting(rawText);
-														
+                // Limpiamos y formateamos texto normal
+                let cleaned = cleanMarkdown(rawText);
+                finalHtml = processFormatting(cleaned);
             }
 
             content.innerHTML = finalHtml;
@@ -428,6 +435,7 @@ let library = [];
             isPaused = false;
             updatePauseUI(false);
 
+            // El texto que lee la voz ya viene de la pantalla, que ya está limpio
             const text = document.getElementById('book-content').innerText;
             if(!text.trim()) return;
             speechSubChunks = splitTextSmartly(text, 140);
@@ -491,7 +499,7 @@ let library = [];
             return str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/[*_](.*?)[*_]/g, '<em>$1</em>');
         }
 
-																	 
+																
 										
 																	
 																	 

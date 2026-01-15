@@ -1,4 +1,4 @@
-	let library = [];
+let library = [];
         let currentBook = null;
         let currentChapterIndex = 0;
         let currentChunkIndex = 0;
@@ -17,8 +17,30 @@
         let imageSecondsLeft = 5;
         let isImageTimerPaused = false;
 
-        const GITHUB_API_URL = "https://api.github.com/repos/proc3r/001-Publicados/contents/";
-        const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/proc3r/001-Publicados/master/adjuntos/";
+        // --- DICCIONARIO DE SUSTITUCIÓN FONÉTICA (Solo para TTS) ---
+        const VOICE_REPLACEMENTS = {
+            "PROC3R": "Prócer",
+            "a.C.": "antes de Cristo",
+            "d.C.": "después de Cristo",
+            "pág.": "página",
+            "EE.UU.": "Estados Unidos",
+			"QUBIT": "Cubit",
+			
+            // Puedes añadir más aquí siguiendo el formato "Original": "Sonido",
+        };
+
+        // Configuración de Repositorios (Escalable)
+        const REPOSITORIES = [
+            {
+                api: "https://api.github.com/repos/proc3r/001-Publicados/contents/",
+                raw: "https://raw.githubusercontent.com/proc3r/001-Publicados/master/adjuntos/"
+            },
+            {
+                api: "https://api.github.com/repos/proc3r/005-DOCUMENTOS-PROC3R/contents/",
+                raw: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/"
+            }
+        ];
+
         const DEFAULT_COVER = "https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg";
         
         let synth = window.speechSynthesis;
@@ -103,24 +125,35 @@
 
         async function fetchBooks() {
             const statusText = document.getElementById('status-text');
+            library = []; 
             try {
-                const response = await fetch(GITHUB_API_URL);
-                const files = await response.json();
-                const mdFiles = files.filter(f => f.name.toLowerCase().endsWith('.md'));
-                
-                for (const file of mdFiles) {
-                    const res = await fetch(file.download_url);
-                    const text = await res.text();
-                    const coverMatch = text.match(/!\[\[(.*?)\]\]/);
-                    let coverUrl = null;
-                    if (coverMatch) coverUrl = GITHUB_RAW_BASE + encodeURIComponent(coverMatch[1].trim());
+                for (const repo of REPOSITORIES) {
+                    const response = await fetch(repo.api);
+                    const files = await response.json();
+                    if (!Array.isArray(files)) continue;
 
-                    library.push({
-                        id: btoa(file.path),
-                        title: file.name.replace('.md', '').replace(/_/g, ' '),
-                        cover: coverUrl,
-                        chapters: parseMarkdown(text)
-                    });
+                    const mdFiles = files.filter(f => f.name.toLowerCase().endsWith('.md'));
+                    
+                    for (const file of mdFiles) {
+                        const res = await fetch(file.download_url);
+                        const text = await res.text();
+                        const coverMatch = text.match(/!\[\[(.*?)\]\]/);
+                        
+                        let coverUrl = DEFAULT_COVER;
+                        if (coverMatch) {
+				  
+                            let fileName = coverMatch[1].split('|')[0].trim();
+                            coverUrl = repo.raw + encodeURIComponent(fileName);
+                        }
+
+                        library.push({
+                            id: btoa(file.path + repo.api), 
+                            title: file.name.replace('.md', '').replace(/_/g, ' '),
+                            cover: coverUrl,
+                            chapters: parseMarkdown(text),
+                            rawBase: repo.raw 
+                        });
+                    }
                 }
                 statusText.innerText = "Sincronizado";
                 document.getElementById('main-spinner').classList.add('hidden');
@@ -134,15 +167,51 @@
             const lines = text.split('\n');
             const chapters = [];
             let currentChapter = null;
+
             lines.forEach(line => {
-                const titleMatch = line.match(/^(#+)\s+(.*)/);
+                const trimmed = line.trim();
+                const titleMatch = trimmed.match(/^(#+)\s+(.*)/);
+                
                 if (titleMatch) {
                     if (currentChapter) chapters.push(currentChapter);
                     currentChapter = { level: titleMatch[1].length, title: titleMatch[2].trim(), content: [] };
-                    currentChapter.content.push(line.trim()); 
-                } else if (line.trim() !== "") {
+                    currentChapter.content.push(trimmed); 
+                } else if (trimmed !== "") {
                     if (!currentChapter) currentChapter = { level: 1, title: "Inicio", content: [] };
-                    currentChapter.content.push(line.trim());
+                    
+                    // Identificamos si es un blockquote
+                    const isQuote = trimmed.startsWith('>');
+                    let contentToProcess = trimmed;
+
+                    // Separador Universal de Imágenes y Texto
+                    // Esta expresión regular divide la línea manteniendo los delimitadores ![[ ]]
+                    const parts = contentToProcess.split(/(!\[\[.*?\]\])/g);
+																					   
+                    
+                    parts.forEach(part => {
+                        let subChunk = part.trim();
+                        if (subChunk === "") return;
+
+                        // Si la parte es una imagen, la guardamos tal cual (respetando prefijo > si es necesario)
+                        if (subChunk.match(/^!\[\[.*?\]\]/)) {
+                            // Si la línea original era blockquote y esta pieza no lo tiene, se lo ponemos
+                            if (isQuote && !subChunk.startsWith('>')) {
+                                currentChapter.content.push('> ' + subChunk);
+                            } else {
+                                currentChapter.content.push(subChunk);
+                            }
+                        } else {
+                            // Es texto normal. Si quitamos la imagen y quedó texto "huérfano" de blockquote, lo restauramos
+                            if (isQuote && !subChunk.startsWith('>')) {
+                                subChunk = '> ' + subChunk;
+                            }
+                            currentChapter.content.push(subChunk);
+                        }
+                    });
+							
+																   
+																   
+					
                 }
             });
             if (currentChapter) chapters.push(currentChapter);
@@ -164,9 +233,9 @@
                 const card = document.createElement('div');
                 card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[2.5rem] hover:border-[#ffcc00] transition-all cursor-pointer text-center';
                 card.onclick = () => openReader(book.id);
-                const finalCover = book.cover ? book.cover : DEFAULT_COVER;
+						  
                 card.innerHTML = `
-                    <div class="book-card-cover"><img src="${finalCover}" alt="Cover" loading="lazy"></div>
+                    <div class="book-card-cover"><img src="${book.cover}" alt="Cover" loading="lazy"></div>
                     <h3 class="text-2xl pt-2 px-2 font-bold text-white leading-tight uppercase tracking-tighter condensed">${book.title}</h3>
                     <div class="flex items-center justify-center pb-3 gap-2 mt-3">
                         <p class="text-[13px] opacity-90 uppercase tracking-normal condensed">${book.chapters.length} secciones</p>
@@ -189,7 +258,7 @@
             document.getElementById('reader-view').classList.remove('hidden');
             document.getElementById('resume-card').classList.add('hidden');
 
-            // Inicialización de UI según dispositivo
+	
             const isMobile = window.innerWidth <= 768;
             const defFontSize = isMobile ? 17 : 25;
             const defFontName = isMobile ? 'Atkinson Hyperlegible' : 'Merriweather';
@@ -197,7 +266,7 @@
             document.getElementById('font-size-val').innerText = defFontSize;
             document.getElementById('current-font-label').innerText = defFontName;
             
-            // Forzamos actualización de variables CSS según el estado de la UI inicial
+		
             document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
             document.documentElement.style.setProperty('--reader-font-family', defFontName);
 
@@ -227,102 +296,119 @@
             }
             renderChunk();
         }
-		
-		 /**
-         * Interceptor de Callouts: Procesa bloques Obsidian y aplica estilos dinámicos
-         * @param {string[]} lines - Las líneas del bloque actual
-         * @returns {string} - El HTML transformado
+  
+   
+	   
+	  
+	  
+  
+	 
+  
+	
+   
+   
+	
+
+        /**
+         * Función Maestra de Limpieza Visual
+         * Elimina Callouts, ^anclajes y procesa Wikilinks
          */
-        function processCallouts(lines) {
-            let htmlResult = "";
-            let inCallout = false;
-            let currentCalloutData = null;
-            let calloutContent = [];
-            let calloutTitle = "";
-
-            lines.forEach((line, index) => {
-                const trimmed = line.trim();
-                
-                // Detecta el inicio de un callout: > [!id] Titulo
-                if (trimmed.startsWith("> [!")) {
-                    // Si ya estábamos en uno, cerramos el previo
-                    if (inCallout) {
-                        htmlResult += renderCalloutHTML(currentCalloutData, calloutTitle, calloutContent);
-                    }
-
-                    inCallout = true;
-                    calloutContent = [];
-                    
-                    const match = trimmed.match(/> \[!(\w+)\](.*)/);
-                    if (match) {
-                        const id = match[1].toLowerCase();
-                        calloutTitle = match[2].trim();
-                        // Buscamos en callouts-config.js (que debe exportar el objeto 'calloutsConfig')
-                        currentCalloutData = (typeof calloutsConfig !== 'undefined' && calloutsConfig[id]) 
-                            ? calloutsConfig[id] 
-                            : { icon: "info", lightColor: "128,128,128", darkColor: "180,180,180" };
-                    }
-                } 
-                // Detecta continuidad de línea: > texto
-                else if (inCallout && trimmed.startsWith(">")) {
-                    calloutContent.push(trimmed.substring(1).trim());
-                } 
-                // Si la línea no tiene '>', se rompe el callout
-                else {
-                    if (inCallout) {
-                        htmlResult += renderCalloutHTML(currentCalloutData, calloutTitle, calloutContent);
-                        inCallout = false;
-                    }
-                    // Procesamiento normal de línea no-callout
-                    if (trimmed) htmlResult += `<p>${line}</p>`;
-                }
-            });
-
-            // Cerrar el último si quedó abierto
-            if (inCallout) {
-                htmlResult += renderCalloutHTML(currentCalloutData, calloutTitle, calloutContent);
-            }
-
-            return htmlResult;
+        function cleanMarkdown(str) {
+            if (!str) return "";
+            return str
+																	   
+                .replace(/\[\![^\]\n]+\][\+\-]?\s?/g, '') // Callouts
+																							 
+                .replace(/\^[a-zA-Z0-9-]+(?:\s|$)/g, '')   // Anclajes de bloque
+																						 
+                .replace(/\[\[([^\]]+)\]\]/g, (match, p1) => { // Wikilinks
+                    return p1.includes('|') ? p1.split('|')[1].trim() : p1.trim();
+                });
         }
 
-        function renderCalloutHTML(data, title, content) {
-            const styleString = `--callout-rgb-light: ${data.lightColor}; --callout-rgb-dark: ${data.darkColor};`;
-            return `
-                <div class="obsidian-callout" style="${styleString}">
-                    <div class="callout-title">
-                        <span class="callout-icon">${data.icon}</span>
-                        <div class="callout-title-inner">${title || 'Nota'}</div>
-                    </div>
-                    <div class="callout-content">
-                        ${content.map(p => `<p>${p}</p>`).join('')}
-                    </div>
-                </div>
-            `;
-        }
+        /**
+ * Filtro Fonético para el Motor de Voz (TTS)
+ * Actualizado con límites de palabra (\b) para evitar reemplazos erróneos
+ */
+function filterTextForVoice(text) {
+    let cleanText = text;
+
+    // 1. Reemplazos del Diccionario con límites de palabra
+    for (let [original, reemplazo] of Object.entries(VOICE_REPLACEMENTS)) {
+        // Escapamos caracteres especiales (como el punto) para que la Regex no falle
+        const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        
+        // \b asegura que solo coincida con la palabra exacta
+        // Usamos una lógica especial para palabras que terminan en punto como "a.C."
+        const regex = new RegExp(`\\b${escapedOriginal}(?=\\s|$|[,.;])`, 'gi');
+        cleanText = cleanText.replace(regex, reemplazo);
+    }
+
+    // 2. Forzar lectura de numeración x.y.z
+    cleanText = cleanText.replace(/(\d+)\.(\d+)\.(\d+)/g, '$1 punto $2 punto $3');
+    
+    return cleanText;
+}
+
+	
+		 
+  
+	  
+	 
+	   
+	  
+  
+	
+	   
+  
+	
+  
+   
 
 
         function renderChunk() {
             clearImageTimer();
             const content = document.getElementById('book-content');
             let rawText = chunks[currentChunkIndex] || "";
+            
+            // Si el chunk es solo un ">", se lo salta
             if (rawText.trim() === ">") { if (window.navDirection === 'prev') prevChunk(); else nextChunk(); return; }
 
             let finalHtml = "";
             let isImage = false;
-            const imgMatch = rawText.match(/!\[\[(.*?)\]\]/);
             
-            if (imgMatch) {
+            // 1. Detección de Archivos Multimedia ![[ ]]
+            const embedMatch = rawText.match(/!\[\[(.*?)\]\]/);
+            
+            if (embedMatch) {
+                const fileName = embedMatch[1].split('|')[0].trim().toLowerCase();
+                
+                // Definimos extensiones a ignorar (Audio y Video)
+                const isAudio = fileName.endsWith('.m4a') || fileName.endsWith('.mp3') || fileName.endsWith('.wav') || fileName.endsWith('.ogg');
+                const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.webm') || fileName.endsWith('.mkv');
+
+                if (isAudio || isVideo) {
+                    // Si es multimedia, saltar al siguiente automáticamente
+                    if (window.navDirection === 'prev') prevChunk(); else nextChunk(); 
+                    return; 
+                }
+
+                // Si no es audio/video, asumimos que es imagen
                 isImage = true;
-                const fileName = imgMatch[1].trim();
-                const imageUrl = GITHUB_RAW_BASE + encodeURIComponent(fileName);
+   
+																  
+                const imageUrl = currentBook.rawBase + encodeURIComponent(embedMatch[1].split('|')[0].trim());
                 finalHtml = `<div class="reader-image-container"><img src="${imageUrl}" class="reader-image" alt="${fileName}"></div>`;
             } else if (rawText.trim().startsWith('#')) {
-                finalHtml = `<div class="reader-section-title">${rawText.replace(/^#+\s+/, '').trim()}</div>`;
+                finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
             } else if (rawText.trim().startsWith('>')) {
-                finalHtml = `<div class="custom-blockquote">${processFormatting(rawText.trim().substring(1).trim())}</div>`;
+				  
+                let cleaned = cleanMarkdown(rawText.trim().substring(1).trim());
+                finalHtml = `<div class="custom-blockquote">${processFormatting(cleaned)}</div>`;
             } else {
-                finalHtml = processFormatting(rawText);
+				
+                let cleaned = cleanMarkdown(rawText);
+                finalHtml = processFormatting(cleaned);
             }
 
             content.innerHTML = finalHtml;
@@ -402,9 +488,16 @@
             isPaused = false;
             updatePauseUI(false);
 
-            const text = document.getElementById('book-content').innerText;
-            if(!text.trim()) return;
-            speechSubChunks = splitTextSmartly(text, 140);
+            // Obtenemos el texto visible y le aplicamos el filtro fonético
+            let textToRead = document.getElementById('book-content').innerText;
+            if(!textToRead.trim()) return;
+
+            textToRead = filterTextForVoice(textToRead);
+
+																				   
+																		   
+									
+            speechSubChunks = splitTextSmartly(textToRead, 140);
             currentSubChunkIndex = 0;
             speakSubChunk();
         }
@@ -464,6 +557,18 @@
         function processFormatting(str) {
             return str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/[*_](.*?)[*_]/g, '<em>$1</em>');
         }
+
+				
+		  
+				 
+				  
+			
+			   
+	 
+					  
+		 
+	  
+   
 
         function nextChunk() { 
             window.navDirection = 'next'; 
