@@ -17,19 +17,19 @@ let library = [];
         let imageSecondsLeft = 5;
         let isImageTimerPaused = false;
 
-        // --- CONFIGURACIÓN DE DICCIONARIO EXTERNO ---
-        // REEMPLAZA ESTA URL por la URL 'Raw' de tu archivo JSON en GitHub
+														
+																		   
         const DICTIONARY_URL = "https://raw.githubusercontent.com/proc3r/nexus/master/voice-dictionary.json";
         let VOICE_REPLACEMENTS = {}; 
-										 
-							   
-									   
-					
-   
-																				   
+		   
 		  
+			
+	 
+   
+					   
+	
 
-        // Configuración de Repositorios (Escalable)
+													 
         const REPOSITORIES = [
             {
                 api: "https://api.github.com/repos/proc3r/001-Publicados/contents/",
@@ -46,7 +46,7 @@ let library = [];
         let synth = window.speechSynthesis;
 
         window.onload = () => {
-            // Primero cargamos el diccionario, luego los libros
+																
             loadExternalDictionary().then(() => {
                 fetchBooks().then(() => {
                     checkLastSession();
@@ -65,7 +65,7 @@ let library = [];
                     console.log("Diccionario fonético cargado correctamente");
                 }
             } catch (e) {
-                console.error("No se pudo cargar el diccionario externo, usando diccionario vacío.", e);
+                console.error("No se pudo cargar el diccionario externo", e);
                 VOICE_REPLACEMENTS = {};
             }
         }
@@ -74,23 +74,23 @@ let library = [];
             let touchStart = 0;
             const libraryContainer = document.getElementById('library-container');
             const readerContainer = document.getElementById('reading-container-fixed');
-            
-            document.addEventListener('touchstart', (e) => {
-                touchStart = e.touches[0].pageY;
-            }, { passive: true });
+			
+            document.addEventListener('touchstart', (e) => { touchStart = e.touches[0].pageY; }, { passive: true });
+												
+								  
 
             document.addEventListener('touchmove', (e) => {
                 const touchMove = e.touches[0].pageY;
-                const activeContainer = document.getElementById('reader-view').classList.contains('hidden') 
-                    ? libraryContainer 
-                    : readerContainer;
+                const activeContainer = document.getElementById('reader-view').classList.contains('hidden') ? libraryContainer : readerContainer;
+									   
+									  
 
-                const isAtTop = activeContainer.scrollTop <= 0;
-                const isSwipingDown = touchMove > touchStart;
+															   
+															 
 
-                if (isAtTop && isSwipingDown) {
-                    if (e.cancelable) e.preventDefault();
-                }
+											   
+                if (activeContainer.scrollTop <= 0 && touchMove > touchStart) { if (e.cancelable) e.preventDefault(); }
+				 
             }, { passive: false });
         }
 
@@ -111,12 +111,12 @@ let library = [];
             const saved = localStorage.getItem('nexus_last_session');
             if (saved) {
                 const data = JSON.parse(saved);
-                const resumeCard = document.getElementById('resume-card');
-                const chapterLabel = document.getElementById('resume-chapter-label');
-                const bookLabel = document.getElementById('resume-book-label');
-                chapterLabel.innerText = data.chapterTitle || "Sección desconocida";
-                bookLabel.innerText = data.bookTitle || "Libro desconocido";
-                resumeCard.classList.remove('hidden');
+																		  
+																					 
+																			   
+                document.getElementById('resume-chapter-label').innerText = data.chapterTitle || "Sección desconocida";
+                document.getElementById('resume-book-label').innerText = data.bookTitle || "Libro desconocido";
+                document.getElementById('resume-card').classList.remove('hidden');
             }
         }
 
@@ -149,15 +149,15 @@ let library = [];
                     if (!Array.isArray(files)) continue;
 
                     const mdFiles = files.filter(f => f.name.toLowerCase().endsWith('.md'));
-                    
+					
                     for (const file of mdFiles) {
                         const res = await fetch(file.download_url);
                         const text = await res.text();
                         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
-                        
+						
                         let coverUrl = DEFAULT_COVER;
                         if (coverMatch) {
-	  
+   
                             let fileName = coverMatch[1].split('|')[0].trim();
                             coverUrl = repo.raw + encodeURIComponent(fileName);
                         }
@@ -174,79 +174,79 @@ let library = [];
                 statusText.innerText = "Sincronizado";
                 document.getElementById('main-spinner').classList.add('hidden');
                 renderLibrary();
-            } catch (e) {
-                statusText.innerText = "Error API";
-            }
+						 
+            } catch (e) { statusText.innerText = "Error API"; }
+			 
         }
 
-         function parseMarkdown(text) {
+        function parseMarkdown(text) {
             const lines = text.split('\n');
             const chapters = [];
             let currentChapter = null;
-            
-            // --- NUEVA LÓGICA PARA IGNORAR METADATOS ---
+			
+														   
             let inFrontmatter = false;
             let startLine = 0;
 
-            // Verificamos si la primera línea real (ignorando vacíos) es el inicio de propiedades
+																									
             if (lines.length > 0 && lines[0].trim() === "---") {
                 inFrontmatter = true;
                 for (let i = 1; i < lines.length; i++) {
-                    if (lines[i].trim() === "---") {
-                        inFrontmatter = false;
-                        startLine = i + 1; // El contenido real empieza después del segundo ---
-                        break;
-                    }
+                    if (lines[i].trim() === "---") { inFrontmatter = false; startLine = i + 1; break; }
+											  
+																								
+							  
+					 
                 }
             }
-            // Si nunca se cerró el frontmatter, volvemos al inicio para no perder texto
+																						 
             if (inFrontmatter) startLine = 0;
-            // -------------------------------------------
+														  
 
             for (let i = startLine; i < lines.length; i++) {
                 const line = lines[i];
                 const trimmed = line.trim();
                 const titleMatch = trimmed.match(/^(#+)\s+(.*)/);
-                
+				
                 if (titleMatch) {
                     if (currentChapter) chapters.push(currentChapter);
                     currentChapter = { level: titleMatch[1].length, title: titleMatch[2].trim(), content: [] };
                     currentChapter.content.push(trimmed); 
                 } else if (trimmed !== "") {
                     if (!currentChapter) currentChapter = { level: 1, title: "Inicio", content: [] };
-                    
-					// Identificamos si es un blockquote								  
+					
+												   
                     const isQuote = trimmed.startsWith('>');
-                    let contentToProcess = trimmed;
+												   
 
-					// Separador Universal de Imágenes y Texto
-					// Esta expresión regular divide la línea manteniendo los delimitadores ![[ ]]																						 
-                    const parts = contentToProcess.split(/(!\[\[.*?\]\])/g);
-	  
-                    
+												
+																											
+                    const parts = trimmed.split(/(!\[\[.*?\]\])/g);
+   
+					
                     parts.forEach(part => {
                         let subChunk = part.trim();
                         if (subChunk === "") return;
 
-						// Si la parte es una imagen, la guardamos tal cual (respetando prefijo > si es necesario)																								
+																														
                         if (subChunk.match(/^!\[\[.*?\]\]/)) {
-							// Si la línea original era blockquote y esta pieza no lo tiene, se lo ponemos																				
-                            if (isQuote && !subChunk.startsWith('>')) {
-                                currentChapter.content.push('> ' + subChunk);
-                            } else {
-                                currentChapter.content.push(subChunk);
-                            }
+																										  
+                            currentChapter.content.push(isQuote && !subChunk.startsWith('>') ? '> ' + subChunk : subChunk);
+																			 
+									
+																	  
+							 
                         } else {
-							 // Es texto normal. Si quitamos la imagen y quedó texto "huérfano" de blockquote, lo restauramos																										
-                            if (isQuote && !subChunk.startsWith('>')) {
-                                subChunk = '> ' + subChunk;
-                            }
-                            currentChapter.content.push(subChunk);
+																																	
+                            currentChapter.content.push(isQuote && !subChunk.startsWith('>') ? '> ' + subChunk : subChunk);
+														   
+							 
+																  
                         }
                     });
+ 
 	
-	   
-	   
+	
   
                 }
             }
@@ -254,33 +254,33 @@ let library = [];
             return chapters;
         }
 
-         function renderLibrary() {
+        function renderLibrary() {
             const grid = document.getElementById('library-grid');
             grid.innerHTML = library.length ? '' : '<div class="col-span-full py-32 text-center opacity-20 italic text-white">No hay libros disponibles.</div>';
             library.forEach(book => {
                 let totalWords = 0;
-                book.chapters.forEach(ch => {
-                    ch.content.forEach(text => {
-                        totalWords += (text || "").split(/\s+/).filter(w => w.length > 0).length;
-                    });
-                });
+											 
+												
+                book.chapters.forEach(ch => ch.content.forEach(text => { totalWords += (text || "").split(/\s+/).filter(w => w.length > 0).length; }));
+					   
+				   
                 const totalMins = Math.ceil(totalWords / 185);
                 const timeStr = totalMins >= 60 ? `${Math.floor(totalMins/60)}h ${totalMins%60}m` : `${totalMins} min`;
                 const card = document.createElement('div');
                 card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[2.5rem] hover:border-[#ffcc00] transition-all cursor-pointer text-center';
                 card.onclick = () => openReader(book.id);
-		
-                card.innerHTML = `
-                    <div class="book-card-cover"><img src="${book.cover}" alt="Cover" loading="lazy"></div>
-                    <h3 class="text-2xl pt-2 px-2 font-bold text-white leading-tight uppercase tracking-tighter condensed">${book.title}</h3>
-                    <div class="flex items-center justify-center pb-3 gap-2 mt-3">
-                        <p class="text-[13px] opacity-90 uppercase tracking-normal condensed">${book.chapters.length} secciones</p>
-                        <span class="text-[13px] opacity-90">•</span>
-                        <p class="text-[13px] text-[#ffcc00] font-bold uppercase tracking-normal condensed italic">
-                            <span class="mi-round text-[13px] align-middle mr-1" style="padding-bottom: 2px;">schedule</span>${timeStr}
-                        </p>
-                    </div>
-                `;
+                card.innerHTML = `<div class="book-card-cover"><img src="${book.cover}" alt="Cover" loading="lazy"></div><h3 class="text-2xl pt-2 px-2 font-bold text-white leading-tight uppercase tracking-tighter condensed">${book.title}</h3><div class="flex items-center justify-center pb-3 gap-2 mt-3"><p class="text-[13px] opacity-90 uppercase tracking-normal condensed">${book.chapters.length} secciones</p><span class="text-[13px] opacity-90">•</span><p class="text-[13px] text-[#ffcc00] font-bold uppercase tracking-normal condensed italic"><span class="mi-round text-[13px] align-middle mr-1" style="padding-bottom: 2px;">schedule</span>${timeStr}</p></div>`;
+								  
+																										   
+																																			 
+																				  
+																																   
+																	   
+																												   
+																																	   
+							
+						  
+				  
                 grid.appendChild(card);
             });
         }
@@ -301,7 +301,7 @@ let library = [];
 
             document.getElementById('font-size-val').innerText = defFontSize;
             document.getElementById('current-font-label').innerText = defFontName;
-            
+			
   
             document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
             document.documentElement.style.setProperty('--reader-font-family', defFontName);
@@ -309,13 +309,13 @@ let library = [];
             loadChapter(0);
         }
 
-        function closeReader() { 
-            stopSpeech(); 
-            clearImageTimer();
-            document.getElementById('reader-view').classList.add('hidden'); 
-            document.getElementById('library-container').classList.remove('hidden');
-            checkLastSession();
-        }
+								 
+						  
+							  
+																			
+        function closeReader() { stopSpeech(); clearImageTimer(); document.getElementById('reader-view').classList.add('hidden'); document.getElementById('library-container').classList.remove('hidden'); checkLastSession(); }
+							   
+		 
 
         function loadChapter(idx) {
             currentChapterIndex = idx;
@@ -334,7 +334,7 @@ let library = [];
         }
   
    
-	
+ 
    
    
   
@@ -345,50 +345,50 @@ let library = [];
    
  
 
-	/**
-         * Función Maestra de Limpieza Visual
-         * Elimina Callouts, ^anclajes y procesa Wikilinks
-         */	   
+	
+											  
+														  
+			   
         function cleanMarkdown(str) {
             if (!str) return "";
-            return str
-					
-                .replace(/\[\![^\]\n]+\][\+\-]?\s?/g, '') // Callouts
-						
-                .replace(/\^[a-zA-Z0-9-]+(?:\s|$)/g, '')   // Anclajes de bloque
-					   
-                .replace(/\[\[([^\]]+)\]\]/g, (match, p1) => { // Wikilinks
-                    return p1.includes('|') ? p1.split('|')[1].trim() : p1.trim();
-                });
+            return str.replace(/\[\![^\]\n]+\][\+\-]?\s?/g, '').replace(/\^[a-zA-Z0-9-]+(?:\s|$)/g, '').replace(/\[\[([^\]]+)\]\]/g, (match, p1) => p1.includes('|') ? p1.split('|')[1].trim() : p1.trim());
+	 
+																	 
+	  
+																				
+		
+																		   
+																				  
+				   
         }
 
-/**
- * Filtro Fonético para el Motor de Voz (TTS)
- * Actualizado con límites de palabra (\b) para evitar reemplazos erróneos
- */  
+   
+											  
+																			
+	 
         function filterTextForVoice(text) {
             let cleanText = text;
-            // 1. ELIMINAR CONTADORES DE CAPÍTULO (Ej: "7.8.21 »")
-            // Buscamos números separados por puntos seguidos del signo » y los borramos
-            cleanText = cleanText.replace(/\d+\.\d+\.\d+\s?»/g, '');														 
+            // 1. Eliminar numeraciones tipo 7.8.21 »
+																						  
+            cleanText = cleanText.replace(/\d+\.\d+\.\d+\s?»/g, '');
 
-			// 1. Reemplazos del Diccionario con límites de palabra												
+            // 2. Aplicar Diccionario Fonético
             for (let [original, reemplazo] of Object.entries(VOICE_REPLACEMENTS)) {
-			// Escapamos caracteres especiales (como el punto) para que la Regex no falle																		 
+																								   
                 const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-		
-			// \b asegura que solo coincida con la palabra exacta
-			// Usamos una lógica especial para palabras que terminan en punto como "a.C."																		  
+  
+														
+																									 
                 const regex = new RegExp(`\\b${escapedOriginal}(?=\\s|$|[,.;])`, 'gi');
                 cleanText = cleanText.replace(regex, reemplazo);
             }
 
-			// 3. Manejo de otros puntos decimales si quedaran (opcional)
-            // cleanText = cleanText.replace(/(\d+)\.(\d+)\.(\d+)/g, '$1 punto $2 punto $3');
+																
+																							 
 
-			 
-			 
-			 
+	
+	
+	
             return cleanText;
         }
 
@@ -397,11 +397,11 @@ let library = [];
   
    
   
-	
+ 
    
   
  
-	
+ 
   
  
   
@@ -412,69 +412,69 @@ let library = [];
             clearImageTimer();
             const content = document.getElementById('book-content');
             let rawText = chunks[currentChunkIndex] || "";
-            
-			// Si el chunk es solo un ">", se lo salta										  
+			
+														 
             if (rawText.trim() === ">") { if (window.navDirection === 'prev') prevChunk(); else nextChunk(); return; }
 
             let finalHtml = "";
             let isImage = false;
-            
-			// 1. Detección de Archivos Multimedia ![[ ]]											  
+			
+															  
             const embedMatch = rawText.match(/!\[\[(.*?)\]\]/);
-            
+			
             if (embedMatch) {
                 const fileName = embedMatch[1].split('|')[0].trim().toLowerCase();
-				
-				// Definimos extensiones a ignorar (Audio y Video)												  
+	
+																	
                 const isAudio = fileName.endsWith('.m4a') || fileName.endsWith('.mp3') || fileName.endsWith('.wav') || fileName.endsWith('.ogg');
                 const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.webm') || fileName.endsWith('.mkv');
 
-                if (isAudio || isVideo) {
-					// Si es multimedia, saltar al siguiente automáticamente														 
-                    if (window.navDirection === 'prev') prevChunk(); else nextChunk(); 
-                    return; 
-                }
+										 
+																			 
+                if (isAudio || isVideo) { if (window.navDirection === 'prev') prevChunk(); else nextChunk(); return; }
+							
+				 
 
-				// Si no es audio/video, asumimos que es imagen											   
+																 
                 isImage = true;
    
-				  
+	  
                 const imageUrl = currentBook.rawBase + encodeURIComponent(embedMatch[1].split('|')[0].trim());
                 finalHtml = `<div class="reader-image-container"><img src="${imageUrl}" class="reader-image" alt="${fileName}"></div>`;
             } else if (rawText.trim().startsWith('#')) {
                 finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
             } else if (rawText.trim().startsWith('>')) {
-	  
-                let cleaned = cleanMarkdown(rawText.trim().substring(1).trim());
-                finalHtml = `<div class="custom-blockquote">${processFormatting(cleaned)}</div>`;
+   
+																				
+                finalHtml = `<div class="custom-blockquote">${processFormatting(cleanMarkdown(rawText.trim().substring(1).trim()))}</div>`;
             } else {
-	
-                let cleaned = cleanMarkdown(rawText);
-                finalHtml = processFormatting(cleaned);
+ 
+                finalHtml = processFormatting(cleanMarkdown(rawText));
+													   
             }
 
             content.innerHTML = finalHtml;
             document.getElementById('reading-container-fixed').scrollTop = 0;
             updateProgress();
             saveProgress();
-            
-            if (currentChunkIndex === chunks.length - 1 && currentChapterIndex === currentBook.chapters.length - 1) {
-                document.getElementById('next-btn').innerHTML = "FIN";
-            } else {
-                document.getElementById('next-btn').innerHTML = "NEXT ▶";
-            }
+			
+            document.getElementById('next-btn').innerHTML = (currentChunkIndex === chunks.length - 1 && currentChapterIndex === currentBook.chapters.length - 1) ? "FIN" : "NEXT ▶";
+																	  
+					
+																		   
+			 
 
-            if (isSpeaking) {
-                if (isImage) startImageTimer();
-                else prepareAndStartSpeech();
-            }
+							 
+            if (isSpeaking) { if (isImage) startImageTimer(); else prepareAndStartSpeech(); }
+											 
+			 
         }
 
-        function toggleSpeech() { 
-            if (isPaused) resumeSpeech(); 
-            else if (isSpeaking) stopSpeech(); 
-            else startSpeech(); 
-        }
+        function toggleSpeech() { if (isPaused) resumeSpeech(); else if (isSpeaking) stopSpeech(); else startSpeech(); }
+										  
+											   
+								
+		 
 
         function startSpeech() {
             isSpeaking = true; isPaused = false;
@@ -482,47 +482,47 @@ let library = [];
             document.getElementById('pause-btn').classList.remove('hidden');
             document.getElementById('stop-btn').classList.remove('hidden');
             updatePauseUI(false);
-            
+			
             const isImage = (chunks[currentChunkIndex] || "").match(/!\[\[(.*?)\]\]/);
-            if (isImage) startImageTimer();
-            else prepareAndStartSpeech();
+            if (isImage) startImageTimer(); else prepareAndStartSpeech();
+										 
         }
+        function pauseSpeech() { if (synth.speaking && !isPaused) { synth.pause(); isPaused = true; updatePauseUI(true); } else if (isPaused) resumeSpeech(); if (imageTimer) isImageTimerPaused = true; }
+        function resumeSpeech() { synth.resume(); isPaused = false; updatePauseUI(false); if ((chunks[currentChunkIndex] || "").match(/!\[\[(.*?)\]\]/)) { isImageTimerPaused = false; if (!imageTimer) startImageTimer(); } }
+											   
+							   
+								 
+									 
+								  
+							   
+			 
+													  
+		 
 
-        function pauseSpeech() { 
-            if (synth.speaking && !isPaused) { 
-                synth.pause(); 
-                isPaused = true; 
-                updatePauseUI(true); 
-            } else if (isPaused) {
-                resumeSpeech();
-            }
-            if (imageTimer) isImageTimerPaused = true;
-        }
+								  
+							
+							  
+								  
+																			
+										   
+												   
+			 
+		 
 
-        function resumeSpeech() { 
-            synth.resume(); 
-            isPaused = false; 
-            updatePauseUI(false); 
-            if ((chunks[currentChunkIndex] || "").match(/!\[\[(.*?)\]\]/)) {
-                isImageTimerPaused = false;
-                if (!imageTimer) startImageTimer();
-            }
-        }
+										
+        function updatePauseUI(paused) { const icon = document.getElementById('pause-icon'); if(icon) icon.innerHTML = paused ? '&#xe037;' : '&#xe1a2;'; }
+        function stopSpeech() { synth.cancel(); isSpeaking = false; isPaused = false; clearImageTimer(); document.getElementById('tts-btn').classList.remove('hidden'); document.getElementById('pause-btn').classList.add('hidden'); document.getElementById('stop-btn').classList.add('hidden'); updatePauseUI(false); }
+		 
 
-        function updatePauseUI(paused) {
-            const icon = document.getElementById('pause-icon');
-            icon.innerHTML = paused ? '&#xe037;' : '&#xe1a2;';
-        }
-
-        function stopSpeech() {
-            synth.cancel(); 
-            isSpeaking = false; isPaused = false;
-            clearImageTimer();
-            document.getElementById('tts-btn').classList.remove('hidden');
-            document.getElementById('pause-btn').classList.add('hidden');
-            document.getElementById('stop-btn').classList.add('hidden');
-            updatePauseUI(false);
-        }
+							   
+							
+												 
+							  
+																		  
+																		 
+																		
+								 
+		 
 
         function prepareAndStartSpeech() {
             if (isPaused) synth.resume(); 
@@ -530,15 +530,16 @@ let library = [];
             isPaused = false;
             updatePauseUI(false);
 
-			// Obtenemos el texto visible y le aplicamos el filtro fonético																
+																				   
             let textToRead = document.getElementById('book-content').innerText;
             if(!textToRead.trim()) return;
-
+            // MEJORA: Convertimos a minúsculas solo para el motor de voz para evitar que deletree títulos
+            textToRead = textToRead.toLowerCase(); 
             textToRead = filterTextForVoice(textToRead);
 
-					   
-					 
-		 
+		
+	  
+   
             speechSubChunks = splitTextSmartly(textToRead, 140);
             currentSubChunkIndex = 0;
             speakSubChunk();
@@ -589,25 +590,26 @@ let library = [];
         function updateTimerDisplay() {
             const textEl = document.getElementById('timer-text');
             const btnEl = document.querySelector('.timer-pause-btn');
-            if (isImageTimerPaused) { textEl.innerText = "Pausado. Presione REANUDAR o NEXT."; btnEl.innerText = "Reanudar"; }
-            else { textEl.innerText = `Comenzando en ${imageSecondsLeft}s`; btnEl.innerText = "Pausar"; }
+            if (isImageTimerPaused) { textEl.innerText = "Pausado. Presione REANUDAR o NEXT."; if(btnEl) btnEl.innerText = "Reanudar"; }
+            else { textEl.innerText = `Comenzando en ${imageSecondsLeft}s`; if(btnEl) btnEl.innerText = "Pausar"; }
         }
 
         function togglePauseImageTimer() { isImageTimerPaused = !isImageTimerPaused; isPaused = isImageTimerPaused; updatePauseUI(isPaused); updateTimerDisplay(); }
         function clearImageTimer() { if (imageTimer) clearInterval(imageTimer); imageTimer = null; document.getElementById('image-timer').classList.add('hidden'); }
+									 
 
-        function processFormatting(str) {
-            return str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/[*_](.*?)[*_]/g, '<em>$1</em>');
-        }
+										 
+        function processFormatting(str) { return str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/[*_](.*?)[*_]/g, '<em>$1</em>'); }
+		 
 
-	
-	
-	 
-	  
-   
-	  
+ 
+ 
   
-	   
+   
+   
+   
+  
+	
    
    
    
@@ -618,12 +620,12 @@ let library = [];
             if (isSpeaking && isPaused) { synth.resume(); isPaused = false; updatePauseUI(false); }
             if (isSpeaking) synth.cancel(); 
 
-            if (currentChunkIndex < chunks.length - 1) { 
-                currentChunkIndex++; 
-                renderChunk(); 
-            } else if (currentChapterIndex < currentBook.chapters.length - 1) { 
-                loadChapter(currentChapterIndex + 1); 
-            } 
+            if (currentChunkIndex < chunks.length - 1) { currentChunkIndex++; renderChunk(); }
+									 
+							   
+            else if (currentChapterIndex < currentBook.chapters.length - 1) { loadChapter(currentChapterIndex + 1); } 
+													  
+			  
         }
 
         function prevChunk() { 
@@ -632,23 +634,23 @@ let library = [];
             if (isSpeaking && isPaused) { synth.resume(); isPaused = false; updatePauseUI(false); }
             if (isSpeaking) synth.cancel(); 
 
-            if (currentChunkIndex > 0) { 
-                currentChunkIndex--; 
-                renderChunk(); 
-            } else if (currentChapterIndex > 0) { 
-                currentChapterIndex--; 
-                loadChapter(currentChapterIndex); 
-                currentChunkIndex = chunks.length - 1; 
-                renderChunk(); 
-            } 
+            if (currentChunkIndex > 0) { currentChunkIndex--; renderChunk(); }
+            else if (currentChapterIndex > 0) { currentChapterIndex--; loadChapter(currentChapterIndex); currentChunkIndex = chunks.length - 1; renderChunk(); } 
+							   
+												  
+									   
+												  
+													   
+							   
+			  
         }
 
-        function jumpToChapter(idx) { 
-            let wasSpeaking = isSpeaking;
-            stopSpeech(); 
-            loadChapter(idx); 
-            if (wasSpeaking) startSpeech();
-        }
+        function jumpToChapter(idx) { let wasSpeaking = isSpeaking; stopSpeech(); loadChapter(idx); if (wasSpeaking) startSpeech(); }
+										 
+						  
+							  
+										   
+		 
 
         function updateProgress() {
             if(!currentBook || currentBook.chapters.length === 0) return;
@@ -698,6 +700,7 @@ let library = [];
         function toggleTOCSection(idx, event) { if (event) event.stopPropagation(); const container = document.getElementById(`child-container-${idx}`); if (container) { container.classList.toggle('hidden'); event.target.innerText = container.classList.contains('hidden') ? '+' : '−'; } }
         function toggleExpandMode() { allExpanded = !allExpanded; document.getElementById('expand-mode-btn').classList.toggle('text-[#ffcc00]', allExpanded); document.querySelectorAll('[id^="child-container-"]').forEach(c => c.classList.toggle('hidden', !allExpanded)); if (!allExpanded) expandActiveHierarchy(currentChapterIndex); }
         function expandActiveHierarchy(idx) { if (!allExpanded) { let current = document.getElementById(`toc-item-${idx}`); while (current) { const container = current.parentElement; if (container && container.id.startsWith('child-container-')) { container.classList.remove('hidden'); const pIdx = container.id.replace('child-container-', ''); const t = document.querySelector(`#toc-item-${pIdx} .toc-toggle`); if(t) t.innerText = '−'; current = document.getElementById(`toc-item-${pIdx}`); } else current = null; } } }
+        
         function renderProgressMarkers() {
             const container = document.getElementById('progress-markers-container');
             container.innerHTML = '';
@@ -725,7 +728,7 @@ let library = [];
             const sidebar = document.getElementById('reader-sidebar');
             let startX = 0;
             sidebar.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive: true});
-            sidebar.addEventListener('touchend', e => {
-                if (startX - e.changedTouches[0].clientX > 50) closeSidebar();
-            }, {passive: true});
+													   
+            sidebar.addEventListener('touchend', e => { if (startX - e.changedTouches[0].clientX > 50) closeSidebar(); }, {passive: true});
+								
         }
