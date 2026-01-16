@@ -216,6 +216,16 @@ let library = [];
                     if (!currentChapter) currentChapter = { level: 1, title: "Inicio", content: [] };
 					
 												   
+															
+													 
+												   
+																									 
+																						
+																	 
+																   
+						 
+																  
+							  
                     const isQuote = trimmed.startsWith('>');
 												   
 
@@ -228,8 +238,18 @@ let library = [];
                         let subChunk = part.trim();
                         if (subChunk === "") return;
 
-																														
-                        if (subChunk.match(/^!\[\[.*?\]\]/)) {
+                        // --- MEJORA PARA CALLOUTS ---
+                        // Si detectamos el inicio de un Callout de Obsidian [!...]
+                        if (subChunk.startsWith('> [!')) {
+                            let calloutBlock = subChunk;
+                            // Revisamos si la siguiente línea también es parte de la cita para unirla
+                            if (i + 1 < lines.length && lines[i+1].trim().startsWith('>')) {
+                                calloutBlock += '\n' + lines[i+1].trim();
+                                i++; // Saltamos la lectura de la línea siguiente ya que la acabamos de unir
+                            }
+                            currentChapter.content.push(calloutBlock);
+                        } 
+                        else if (subChunk.match(/^!\[\[.*?\]\]/)) {
 																										  
                             currentChapter.content.push(isQuote && !subChunk.startsWith('>') ? '> ' + subChunk : subChunk);
 																			 
@@ -444,9 +464,10 @@ let library = [];
             } else if (rawText.trim().startsWith('#')) {
                 finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
             } else if (rawText.trim().startsWith('>')) {
-   
-																				
-                finalHtml = `<div class="custom-blockquote">${processFormatting(cleanMarkdown(rawText.trim().substring(1).trim()))}</div>`;
+                // Modificación para Callouts: Procesamos múltiples líneas si están presentes (unidas por \n)
+                let lines = rawText.split('\n');
+                let processedLines = lines.map(l => cleanMarkdown(l.trim().replace(/^>\s?/, ''))).join('<br><hr>');
+                finalHtml = `<div class="custom-blockquote">${processFormatting(processedLines)}</div>`;
             } else {
  
                 finalHtml = processFormatting(cleanMarkdown(rawText));
