@@ -3,7 +3,7 @@
   "a.C.": "antes de Cristo",
   "d.C.": "después de Cristo",
   "pág.": "página",
-    "ADONIN": "adonin",
+  "ADONIN": "adonin",
   "ADONAIU": "adonaiu",
   "ASTAPHAIOS": "astaphaios",
   "YABEL": "yabel",
@@ -24,5 +24,16 @@
   "SU(3)": "S.U. 3",
   "SU(n)": "S.U. n",
   "'c'": "c",  
+  "XIX": "diecinueve",
+  "XX": "veinte", 
+  "XXI": "veintiuno",
+  "XVIII": "dieciocho",
+  "XVII": "diecisiete",
+  "XVI": "dieciseis",
+  "XIV": "catorce",
+  "XIII": "trece",
+  "XII": "doce",
+  "XI": "once",
+  
   "EE.UU.": "Estados Unidos"
 }
