@@ -26,6 +26,14 @@
   "'c'": "c",  
   "XIX": "diecinueve",
   "XX": "veinte", 
-  "XXI": "veintiuno", 
+  "XXI": "veintiuno",
+  "XVIII": "dieciocho",
+  "XVII": "diecisiete",
+  "XVI": "dieciseis",
+  "XIV": "catorce",
+  "XIII": "trece",
+  "XII": "doce",
+  "XI": "once",
+  
   "EE.UU.": "Estados Unidos"
 }
