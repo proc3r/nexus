@@ -32,12 +32,12 @@ let library = [];
 													 
         const REPOSITORIES = [
             {
-                api: "https://api.github.com/repos/proc3r/001-Publicados/contents/",
-                raw: "https://raw.githubusercontent.com/proc3r/001-Publicados/master/adjuntos/"
-            },
-            {
                 api: "https://api.github.com/repos/proc3r/005-DOCUMENTOS-PROC3R/contents/",
                 raw: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/"
+            },
+            {
+				api: "https://api.github.com/repos/proc3r/001-Publicados/contents/",
+                raw: "https://raw.githubusercontent.com/proc3r/001-Publicados/master/adjuntos/"  
             }
         ];
 
