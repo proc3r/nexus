@@ -316,7 +316,7 @@ let library = [];
 
  
             const isMobile = window.innerWidth <= 768;
-            const defFontSize = isMobile ? 17 : 25;
+            const defFontSize = isMobile ? 23 : 25;
             const defFontName = isMobile ? 'Atkinson Hyperlegible' : 'Merriweather';
 
             document.getElementById('font-size-val').innerText = defFontSize;
