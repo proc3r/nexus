@@ -153,6 +153,10 @@ let library = [];
                     for (const file of mdFiles) {
                         const res = await fetch(file.download_url);
                         const text = await res.text();
+
+                        // --- FILTRO DE METADATOS (indexar: true) ---
+                        const hasIndexTag = /indexar:\s*true/.test(text.split('---')[1] || "");
+                        if (!hasIndexTag) continue; 
                         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
 						
                         let coverUrl = DEFAULT_COVER;
@@ -187,6 +191,7 @@ let library = [];
 														   
             let inFrontmatter = false;
             let startLine = 0;
+			let inMediaBlock = false; // Nueva bandera para detectar bloques media																	  
 
 																									
             if (lines.length > 0 && lines[0].trim() === "---") {
@@ -206,6 +211,19 @@ let library = [];
             for (let i = startLine; i < lines.length; i++) {
                 const line = lines[i];
                 const trimmed = line.trim();
+
+                // Lógica para saltar bloques ```media
+                if (trimmed.startsWith('```media')) {
+                    inMediaBlock = true;
+                    continue;
+                }
+                if (inMediaBlock) {
+                    if (trimmed.startsWith('```')) inMediaBlock = false;
+                    continue;
+                }
+                // --- IGNORAR ARCHIVOS PPTX ---
+                if (trimmed.toLowerCase().includes('.pptx]]')) continue;
+														
                 const titleMatch = trimmed.match(/^(#+)\s+(.*)/);
 				
                 if (titleMatch) {
