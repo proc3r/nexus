@@ -157,8 +157,9 @@ let library = [];
                         // --- FILTRO DE METADATOS (indexar: true) ---
                         const hasIndexTag = /indexar:\s*true/.test(text.split('---')[1] || "");
                         if (!hasIndexTag) continue; 
+
                         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
-						
+	  
                         let coverUrl = DEFAULT_COVER;
                         if (coverMatch) {
    
@@ -178,9 +179,9 @@ let library = [];
                 statusText.innerText = "Sincronizado";
                 document.getElementById('main-spinner').classList.add('hidden');
                 renderLibrary();
-						 
+	   
             } catch (e) { statusText.innerText = "Error API"; }
-			 
+	
         }
 
         function parseMarkdown(text) {

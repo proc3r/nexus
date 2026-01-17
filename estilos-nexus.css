@@ -236,7 +236,7 @@ html, body {
 
 #sidebar-trigger {
     position: fixed; left: 0; top: 50%; transform: translateY(-50%);
-    z-index: 120; width: 14px; height: 60px; background: var(--primary-accent);
+    z-index: 120; width: 21px; height: 60px; background: var(--primary-accent);
     border-radius: 0 10px 10px 0; display: flex; align-items: center; justify-content: center;
     cursor: pointer; color: #000; transition: width 0.2s ease;
 }
@@ -249,7 +249,7 @@ html, body {
 }
 .reader-image {
     max-width: 100%; max-height: 85vh; border-radius: 0.75rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+   /* box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);*/
     object-fit: contain;
 }
 
@@ -364,4 +364,15 @@ html, body {
     .settings-dropdown { left: auto; right: 0; transform: none; }
     .font-dropdown { left: 0; transform: none; }                                            
 }
+
+ /* Ocultar etiquetas de Callouts estilo Obsidian [!tipo] */
+        #book-content blockquote, #book-content p {
+            unicode-bidi: isolate;
+        }
+        
+        /* Esta técnica busca el texto que empieza con [! y lo hace invisible */
+        /* Nota: Como el contenido es dinámico, aplicamos una limpieza visual simple */
+        .callout-tag-hidden {
+            display: none !important;
+        }
 
