@@ -123,12 +123,12 @@ html, body {
 
 @media (max-width: 768px) {
     #reader-sidebar {
-        width: 85%; padding: 0;
+        width: 100%; padding: 0;
         box-shadow: 6px 0 11px rgba(0,0,0,0.2);
         background-color: var(--sidebar-blur);
     }
     .sidebar-header { padding: 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-    #chapter-list { padding: 0.75rem; }
+    #chapter-list {     padding-left: 0.1px; padding-right: 0.1px; }
 }
 
 .sidebar-header { flex-shrink: 0; }
@@ -225,7 +225,7 @@ html, body {
 .toc-toggle { 
     cursor: pointer; font-size: 0.7em; width: 1.2em; height: 1.2em; display: inline-flex; 
     align-items: center; justify-content: center; border-radius: 3px; 
-    background: rgba(255, 204, 0, 0.05); margin-right: 4px; flex-shrink: 0;
+    background: rgba(255, 204, 0, 0.05); margin-right: 0.5px; flex-shrink: 0;
 }
 
 /* 1. Ajuste de altura para reducir espacios en blanco entre elementos 

@@ -740,11 +740,11 @@ let library = [];
         
         // Estructura optimizada para el CSS de hijo directo ( > )
         item.innerHTML = `
-            <div class="flex items-center group py-1">
-                <span class="toc-toggle text-[10px] mr-2 opacity-50" onclick="toggleTOCSection(${i}, event)">
+            <div class="flex items-center group py-[1.5px]">
+                <span class="toc-toggle text-[10px] opacity-50" onclick="toggleTOCSection(${i}, event)">
                     ${hasChildren ? '+' : '•'}
                 </span>
-                <span class="toc-text cursor-pointer hover:opacity-80 transition-opacity truncate flex-1 condensed uppercase tracking-tight text-[17px]" onclick="jumpToChapter(${i})">
+                <span class="toc-text cursor-pointer hover:opacity-80 transition-opacity truncate flex-1 condensed uppercase tracking-tight text-[20px]" onclick="jumpToChapter(${i})">
                     ${ch.title}
                 </span>
             </div>
