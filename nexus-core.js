@@ -744,7 +744,7 @@ let library = [];
                 <span class="toc-toggle text-[10px] opacity-50" onclick="toggleTOCSection(${i}, event)">
                     ${hasChildren ? '+' : '•'}
                 </span>
-                <span class="toc-text cursor-pointer hover:opacity-80 transition-opacity truncate flex-1 condensed uppercase tracking-tight text-[20px]" onclick="jumpToChapter(${i})">
+                <span class="toc-text cursor-pointer hover:opacity-80 transition-opacity truncate font-extrabold flex-1 condensed uppercase tracking-[0.015em] text-[21px]" onclick="jumpToChapter(${i})">
                     ${ch.title}
                 </span>
             </div>

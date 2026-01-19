@@ -105,7 +105,7 @@ html, body {
 
 #reader-sidebar {
     height: 100dvh; background: rgba(20, 21, 23, 0.3);
-    backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(100px); border-right: 1px solid rgba(255, 255, 255, 0.05);
     position: absolute; left: 0; top: 0; display: flex; flex-direction: column; z-index: 110;
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
     box-sizing: border-box; touch-action: pan-y;
@@ -123,7 +123,7 @@ html, body {
 
 @media (max-width: 768px) {
     #reader-sidebar {
-        width: 100%; padding: 0;
+        width: 95%; padding: 0;
         box-shadow: 6px 0 11px rgba(0,0,0,0.2);
         background-color: var(--sidebar-blur);
     }
@@ -212,8 +212,8 @@ html, body {
  
 .marker-tooltip {
     position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-    background: black; color: white; padding: 4px 8px; border-radius: 4px;
-    font-size: 15px; white-space: nowrap; opacity: 0; transition: opacity 0.2s;
+    background: rgb(55 58 55 / 85%); color: white; padding: 4px 8px; border-radius: 4px;
+    font-size: 20px; white-space: nowrap; opacity: 0; transition: opacity 0.2s;
 }
 .progress-marker:hover .marker-tooltip { opacity: 1; }
 
