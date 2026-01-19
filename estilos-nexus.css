@@ -116,7 +116,7 @@ html, body {
 #reader-sidebar.pinned { position: relative; transform: translateX(0); }
 
 @media (min-width: 769px) {
-    #reader-sidebar { width: 320px; padding: 0; }
+    #reader-sidebar { width: 380px; padding: 0; }
     .sidebar-header { padding: 0.8rem 0.8rem 1rem 0.8rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
     #chapter-list { padding: 1rem; background: rgb(167 145 39 / 8%); }
 }
