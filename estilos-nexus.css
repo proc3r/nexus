@@ -217,8 +217,10 @@ html, body {
 }
 .progress-marker:hover .marker-tooltip { opacity: 1; }
 
+/**/
 .toc-item { position: relative; padding-left: 0.5rem; margin-bottom: 0.15rem; }
-.toc-item.active .toc-text { color: #ff4444; font-weight: bold; }
+/*.toc-item.active .toc-text { color: #ff4444; font-weight: bold; }
+ */
  
 .toc-toggle { 
     cursor: pointer; font-size: 0.7em; width: 1.2em; height: 1.2em; display: inline-flex; 
@@ -226,12 +228,46 @@ html, body {
     background: rgba(255, 204, 0, 0.05); margin-right: 4px; flex-shrink: 0;
 }
 
+/* 1. Ajuste de altura para reducir espacios en blanco entre elementos 
+
+.toc-item {
+    margin: 2px 0 !important;
+    padding: 2px 0 !important; 
+}
+*/
+
+.toc-text {
+    line-height: 1.2 !important; /* Reduce el espacio entre líneas del texto */
+    display: inline-block;
+    width: 100%;
+}
+
+/* 2. Estilo para la sección activa (Sin afectar a los hijos) */
+/* Usamos > para que solo afecte al contenedor flex inmediato del item activo */
+.toc-item.active > .flex {
+    background: rgba(0, 0, 0, 0.4); /* Fondo oscuro */
+    border-left: 3px solid #ffcc00; /* Borde izquierdo amarillo */
+    padding-left: 6px; /* Espacio solicitado */
+    border-radius: 4px; /* Opcional: suaviza las esquinas del fondo */
+}
+
+/* 3. Resetear el color rojo para que mande el color del span interno */
+.toc-item.active > .flex .toc-text {
+    color: inherit !important; /* Permite que el color CSS del título mande */
+}
+
 .toc-toggle:hover { opacity: 1; color: var(--primary-accent); }
 
 .reader-section-title {
     font-family: 'Barlow Condensed', sans-serif; font-size: 35px; font-weight: 800; text-transform: uppercase;
-    text-align: center; margin: 2rem 0; line-height: 1.1; font-style: italic; color: #ff4444; 
+    text-align: center; margin: 2rem 0; line-height: 1.1; font-style: italic; 
     text-shadow: -3px -2px 5px rgb(0 0 0 / 21%);
+}
+
+#chapter-indicator {
+    color: #ff4444 !important; /* Forzamos el color rojo igual al botón */
+    font-weight: bold;
+    text-transform: uppercase;
 }
 
 #sidebar-trigger {

@@ -363,24 +363,21 @@ let library = [];
 		 
 
         function loadChapter(idx) {
-    currentChapterIndex = idx;
-    const chapter = currentBook.chapters[idx];
-    document.getElementById('chapter-indicator').innerText = stripHtml(chapter.title);
-    chunks = chapter.content;
-    currentChunkIndex = 0;
-
-    // Limpiamos la clase active de TODOS los items
-    document.querySelectorAll('.toc-item').forEach(el => el.classList.remove('active'));
-    
-    // Asignamos active solo al item actual
-    const activeItem = document.getElementById(`toc-item-${idx}`);
-    if (activeItem) {
-        activeItem.classList.add('active');
-        if (!allExpanded) expandActiveHierarchy(idx);
-        activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-    renderChunk();
-}
+            currentChapterIndex = idx;
+            const chapter = currentBook.chapters[idx];
+			// LIMPIEZA APLICADA PARA EL INDICADOR DE CAPÍTULO SUPERIOR															
+            document.getElementById('chapter-indicator').innerText = stripHtml(chapter.title);
+            chunks = chapter.content;
+            currentChunkIndex = 0;
+            document.querySelectorAll('.toc-item').forEach(el => el.classList.remove('active'));
+            const activeItem = document.getElementById(`toc-item-${idx}`);
+            if (activeItem) {
+                activeItem.classList.add('active');
+                if (!allExpanded) expandActiveHierarchy(idx);
+                activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            renderChunk();
+        }
   
    
  
@@ -730,40 +727,24 @@ let library = [];
         }
 
         function renderTOC() {
-    const list = document.getElementById('chapter-list');
-    list.innerHTML = '';
-    currentBook.chapters.forEach((ch, i) => {
-        const item = document.createElement('div');
-        item.className = `toc-item pr-[0.2em]`;
-        item.id = `toc-item-${i}`;
-        const hasChildren = (i < currentBook.chapters.length - 1 && currentBook.chapters[i+1].level > ch.level);
-        
-        // Estructura optimizada para el CSS de hijo directo ( > )
-        item.innerHTML = `
-            <div class="flex items-center group py-1">
-                <span class="toc-toggle text-[10px] mr-2 opacity-50" onclick="toggleTOCSection(${i}, event)">
-                    ${hasChildren ? '+' : '•'}
-                </span>
-                <span class="toc-text cursor-pointer hover:opacity-80 transition-opacity truncate flex-1 condensed uppercase tracking-tight text-[17px]" onclick="jumpToChapter(${i})">
-                    ${ch.title}
-                </span>
-            </div>
-            <div id="child-container-${i}" class="hidden mt-0 pl-3 border-l border-white/5"></div>`;
-            
-        if (ch.level === 1) {
-            list.appendChild(item);
-        } else {
-            const parents = list.querySelectorAll('.toc-item');
-            for(let p = parents.length - 1; p >= 0; p--) {
-                const parentIdx = parseInt(parents[p].id.split('-').pop());
-                if (currentBook.chapters[parentIdx].level < ch.level) {
-                    parents[p].querySelector(`[id^="child-container-"]`).appendChild(item);
-                    break;
+            const list = document.getElementById('chapter-list');
+            list.innerHTML = '';
+            currentBook.chapters.forEach((ch, i) => {
+                const item = document.createElement('div');
+                item.className = `toc-item pr-4`;
+                item.id = `toc-item-${i}`;
+                const hasChildren = (i < currentBook.chapters.length - 1 && currentBook.chapters[i+1].level > ch.level);
+				// TOC: SE MANTIENE EL HTML (ch.title) PARA PERMITIR COLORES CSS																
+                item.innerHTML = `<div class="flex items-start group"><span class="toc-toggle text-[10px] mt-1" onclick="toggleTOCSection(${i}, event)">${hasChildren ? '+' : '•'}</span><span class="toc-text cursor-pointer hover:text-[#ff4444] transition-colors truncate flex-1 condensed uppercase tracking-tight text-[17px]" onclick="jumpToChapter(${i})">${ch.title}</span></div><div id="child-container-${i}" class="hidden mt-1 pl-2"></div>`;
+                if (ch.level === 1) list.appendChild(item);
+                else {
+                    const parents = list.querySelectorAll('.toc-item');
+                    for(let p = parents.length - 1; p >= 0; p--) {
+                        if (currentBook.chapters[parseInt(parents[p].id.split('-').pop())].level < ch.level) { parents[p].querySelector(`[id^="child-container-"]`).appendChild(item); break; }
+                    }
                 }
-            }
+            });
         }
-    });
-}
 
         function toggleTOCSection(idx, event) { if (event) event.stopPropagation(); const container = document.getElementById(`child-container-${idx}`); if (container) { container.classList.toggle('hidden'); event.target.innerText = container.classList.contains('hidden') ? '+' : '−'; } }
         function toggleExpandMode() { allExpanded = !allExpanded; document.getElementById('expand-mode-btn').classList.toggle('text-[#ffcc00]', allExpanded); document.querySelectorAll('[id^="child-container-"]').forEach(c => c.classList.toggle('hidden', !allExpanded)); if (!allExpanded) expandActiveHierarchy(currentChapterIndex); }
