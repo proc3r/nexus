@@ -16,18 +16,27 @@
 <body>
     <div id="app">
         <div id="library-container">
-            <header class="pt-4 pb-2 px-8 border-b-4 border-blue-500 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
-                <div>
-                    <h1 class="text-3xl font-black tracking-tighter text-[#ffcc00]">NEXUS<span class="text-white">LIBRARY</span></h1>
-                    <p class="text-[13px] text-gray-300 uppercase tracking-[0.3em] font-bold condensed">Modelo Nouménico</p>
-                </div>
-                <div id="status-indicator" class="flex items-center gap-3 px-6 py-2 rounded-full border border-gray-800 bg-gray-900/50">
-                    <div class="w-4 h-4 border-2 border-t-[#ffcc00] border-gray-700 rounded-full animate-spin" id="main-spinner"></div>
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400 condensed" id="status-text">Sincronizando...</span>
-                </div>
-            </header>
-            <main class="px-8 py-6 max-w-7xl mx-auto">
-                <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20"></div>
+            
+                <header class="pt-4 pb-4 px-3 md:px-10 border-b-4 border-blue-500 max-w-7xl mx-auto flex flex-row justify-between items-end">
+    <div>
+        <h1 class="text-3xl font-black tracking-tighter text-[#ffcc00]">NEXUS<span class="text-white">LIBRARY</span></h1>
+        <p class="text-[11px] text-gray-500 uppercase tracking-[0.3em] font-bold condensed">Modelo Nouménico</p>
+    </div>
+    
+    <div id="status-indicator" class="flex flex-col items-end pb-1">
+        <div class="flex items-center gap-2">
+            <div class="w-3 h-3 border-2 border-t-[#ffcc00] border-white/10 rounded-full animate-spin" id="main-spinner"></div>
+            <div id="sync-led-visual" class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] hidden"></div>
+            <span class="text-[9px] font-bold uppercase tracking-widest text-gray-500 condensed" id="status-text">Sincronizando</span>
+        </div>
+    </div>
+</header>
+			<div id="book-shelf" class="shelf-container"></div>
+<div class="shelf-divider"></div>
+			
+			
+            <main class="px-2 md:px-10 pb-[3em] pt-2md:py-8 max-w-7xl mx-auto">
+                <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8 pb-20"></div>
             </main>
         </div>
         <div id="resume-card" class="hidden" onclick="resumeLastSession()">
@@ -40,27 +49,39 @@
                 <span id="resume-book-label" class="resume-book-title">Título del Libro</span>
             </div>
         </div>
-        <div id="reader-view" class="hidden book-container dark-mode">
-            <div id="sidebar-trigger" onmouseenter="openSidebar()" onclick="openSidebar()">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
-            </div>
-            <aside id="reader-sidebar" class="custom-scrollbar" onmouseleave="handleSidebarLeave()">
-                <div class="sidebar-header" style="background: rgba(0, 0, 0, 0.07);">
-                    <div class="flex justify-between items-center mb-2">
-                        <button onclick="closeReader()" class="text-[#ffcc00] font-bold uppercase text-[21px] tracking-widest condensed" style="text-shadow: -1px 1px 5px rgb(0 0 0 / 79%);">⬅️ Salir</button>
-                        <div class="flex items-center gap-3">
-                            <button id="expand-mode-btn" onclick="toggleExpandMode()" class="text-gray-500 text-[15px] font-bold uppercase condensed hover:text-[#ffcc00]">Exp</button>
-                            <button id="pin-btn" onclick="togglePin()" class="text-gray-500 opacity-90 text-xs hover:opacity-100">📌</button>
-                            <button onclick="closeSidebar()" class="text-[#ffcc00] hover:text-white ml-1">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
-                        </div>
+       <div id="reader-view" class="hidden book-container dark-mode">
+    <div id="sidebar-trigger" onmouseenter="openSidebar()" onclick="openSidebar()">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
+    </div>
+    
+    <aside id="reader-sidebar" class="custom-scrollbar" onmouseleave="handleSidebarLeave()">
+    <div class="sidebar-header" style="padding: 0;">
+        <div id="sidebar-cover-preview" class="w-full h-48 relative overflow-hidden border-b border-white/10 shadow-lg">
+            
+            <div class="absolute inset-0 "></div>
+
+            <div class="absolute inset-0 p-4 flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <button onclick="closeReader()" class="text-[#ffcc00] px-2 bg-black/40 backdrop-blur-sm p-1 rounded-lg border border-white/10 font-bold uppercase text-[16px] tracking-widest condensed drop-shadow-lg">⬅️ Salir</button>
+                    
+                    <div class="flex items-center px-3 gap-3 bg-black/40 backdrop-blur-sm p-1 rounded-lg border border-white/10">
+                        <button id="expand-mode-btn" onclick="toggleExpandMode()" class="text-gray-300 text-[12px] font-bold uppercase condensed hover:text-[#ffcc00]">Exp</button>
+                        <button id="pin-btn" onclick="togglePin()" class="text-gray-300 opacity-90 text-xs hover:opacity-100">📌</button>
+                        <button onclick="closeSidebar()" class="text-[#ffcc00] hover:text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
                     </div>
-                    <h2 id="reader-title" class="text-2xl font-bold text-[#ff4444] condensed uppercase italic narrowing-tight leading-none">Título del Libro</h2>
                 </div>
-                <div id="chapter-list" class="sidebar-content custom-scrollbar" style="text-shadow: 0.5px 0.5px 1px rgb(103 106 105);
-"></div>
-            </aside>
+
+                <h2 id="reader-title" class="text-[2.2rem] font-bold text-white condensed uppercase italic leading-none drop-shadow-md  pl-2">
+                    Título del Libro
+                </h2>
+            </div>
+        </div>
+    </div>
+    
+    <div id="chapter-list" class="sidebar-content custom-scrollbar" style="text-shadow: 0.5px 0.5px 1px rgb(103 106 105);"></div>
+</aside>
             <main class="reader-main-layout">
                 <div id="image-timer" class="hidden">
                     <span id="timer-text">La lectura se reanudará en 5s</span>
@@ -159,6 +180,40 @@
             </main>
         </div>
     </div>
+	
+	<div id="synopsis-modal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-2 md:p-4 ">
+    <div class="modal-container bg-[#1a1b1e] border border-white/10 w-full max-w-2xl rounded-[1.5rem] relative shadow-2xl flex flex-col max-h-[90vh]">
+        
+        <div class="synopsis-header px-4">
+            <h2 class="synopsis-title text-[#ffcc00] font-black uppercase condensed italic italic">Sinopsis</h2>
+            <button onclick="closeSynopsis()" class="text-white/40 hover:text-red-500 flex items-center gap-1 uppercase text-[11px] font-bold tracking-tighter">
+                cerrar <span class="mi-round text-xl" style="color: #ff4444;font-size: 26px;
+">close</span>
+            </button>
+        </div>
+        
+        <div id="synopsis-body" class="text-gray-300 overflow-y-auto px-4 custom-scrollbar">
+            </div>
+
+        <div class="audio-float-control">
+            <button id="btn-synopsis-tts" onclick="startSynopsisTTS()" class="btn-audio-circle bg-[#ffcc00] text-black">
+                <span class="mi-round text-3xl">play_arrow</span>
+            </button>
+            <button id="btn-synopsis-stop" onclick="stopSynopsisTTS()" class="btn-audio-circle bg-red-600 text-white hidden">
+                <span class="mi-round text-3xl">stop</span>
+            </button>
+        </div>
+
+        <div class="p-1 pt-4 flex justify-center">
+            <button id="btn-synopsis-read" class="btn-synopsis2">
+                Entrar al Libro →
+            </button>
+        </div>
+    </div>
+</div>
+    </div>
+</div>
+	
 	 <script src="nexus-core.js" defer></script>    <!-- ATENCION NO BORRAR USADO PARA TEST LOCAL  -->
    <!--  <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-core.js" defer></script>-->
 	
@@ -243,5 +298,7 @@
             v.classList.toggle('light-mode', !isDarkMode); 
         }
     </script>
+	
+	
 </body>
 </html>

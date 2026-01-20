@@ -186,7 +186,7 @@ let library = [];
                 document.getElementById('main-spinner').classList.add('hidden');
                 renderLibrary();
 	   
-            } catch (e) { statusText.innerText = "Fail"; }
+            } catch (e) { statusText.innerText = "Error API"; }
 	
         }
 
@@ -298,142 +298,71 @@ let library = [];
             if (currentChapter) chapters.push(currentChapter);
             return chapters;
         }
-function renderLibrary() {
-    const grid = document.getElementById('library-grid');
-    grid.innerHTML = library.length ? '' : '<div class="col-span-full py-32 text-center opacity-20 italic text-white">No hay libros disponibles.</div>';
-    
-    library.forEach(book => {
-        // --- 1. LÓGICA DE CONTEO EXACTO PARA H1 (# + espacio) ---
-        let chapterCount = 0;
-        book.chapters.forEach(ch => {
-            if (ch.content) {
-                const hasH1 = ch.content.some(text => (text || "").trim().startsWith('# '));
-                if (hasH1) chapterCount++;
-            }
-        });
 
-        const displayChapters = chapterCount > 0 ? chapterCount : book.chapters.length;
+        function renderLibrary() {
+            const grid = document.getElementById('library-grid');
+            grid.innerHTML = library.length ? '' : '<div class="col-span-full py-32 text-center opacity-20 italic text-white">No hay libros disponibles.</div>';
+            library.forEach(book => {
+                let totalWords = 0;
+											 
+												
+                book.chapters.forEach(ch => ch.content.forEach(text => { totalWords += (text || "").split(/\s+/).filter(w => w.length > 0).length; }));
+					   
+				   
+                const totalMins = Math.ceil(totalWords / 185);
+                const timeStr = totalMins >= 60 ? `${Math.floor(totalMins/60)}h ${totalMins%60}m` : `${totalMins} min`;
+                const card = document.createElement('div');
+                card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[2.5rem] hover:border-[#ffcc00] transition-all cursor-pointer text-center';
+                card.onclick = () => openReader(book.id);
+                card.innerHTML = `<div class="book-card-cover"><img src="${book.cover}" alt="Cover" loading="lazy"></div><h3 class="text-2xl pt-2 px-2 font-bold text-white leading-tight uppercase tracking-tighter condensed">${book.title}</h3><div class="flex items-center justify-center pb-3 gap-2 mt-3"><p class="text-[13px] opacity-90 uppercase tracking-normal condensed">${book.chapters.length} secciones</p><span class="text-[13px] opacity-90">•</span><p class="text-[13px] text-[#ffcc00] font-bold uppercase tracking-normal condensed italic"><span class="mi-round text-[13px] align-middle mr-1" style="padding-bottom: 2px;">schedule</span>${timeStr}</p></div>`;
+								  
+																										   
+																																			 
+																				  
+																																   
+																	   
+																												   
+																																	   
+							
+						  
+				  
+                grid.appendChild(card);
+            });
+        }
 
-        // --- 2. LÓGICA DE DETECCIÓN DE SINOPSIS (# Sinopsis) ---
-        // Buscamos si existe un capítulo que empiece exactamente con "# Sinopsis"
-        const hasSynopsis = book.chapters.some(ch => 
-            ch.content && ch.content.some(text => (text || "").trim().startsWith('# Sinopsis'))
-        );
+        function openReader(id) {
+            currentBook = library.find(b => b.id === id);
+            document.getElementById('reader-title').innerText = currentBook.title;
+            renderTOC();
+            renderProgressMarkers();
+            document.getElementById('library-container').classList.add('hidden');
+            document.getElementById('reader-view').classList.remove('hidden');
+            document.getElementById('resume-card').classList.add('hidden');
 
-        // --- 3. CÁLCULO DE TIEMPO ---
-        let totalWords = 0;
-        book.chapters.forEach(ch => ch.content.forEach(text => { 
-            totalWords += (text || "").split(/\s+/).filter(w => w.length > 0).length; 
-        }));
-        const totalMins = Math.ceil(totalWords / 185);
-        const timeStr = totalMins >= 60 ? `${Math.floor(totalMins/60)}h ${totalMins%60}m` : `${totalMins} min`;
-        
-        const card = document.createElement('div');
-        card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[0.5rem] hover:border-[#ffcc00] transition-all cursor-pointer text-center overflow-hidden';
-        
-        // Ajustamos el click para que no interfiera con el botón de sinopsis
-        card.onclick = (e) => {
-            if (!e.target.closest('.btn-synopsis')) {
-                openReader(book.id);
-            }
-        };
-        
-        card.innerHTML = `
-            <div class="book-card-cover relative w-full aspect-[2/3]">
-                <img src="${book.cover}" alt="Cover" loading="lazy" class="w-full h-full object-cover">
-                
-                <div class="book-card-overlay absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black/95 via-black/20 to-transparent">
-                    
-                    <h3 class="book-card-title-internal text-left text-white font-bold leading-[1em] uppercase condensed text-[1.3rem] mb-[0.2em]">
-                        ${book.title}
-                    </h3>
+ 
+            const isMobile = window.innerWidth <= 768;
+            const defFontSize = isMobile ? 23 : 25;
+            const defFontName = isMobile ? 'Atkinson Hyperlegible' : 'Merriweather';
 
-                    <div class="flex items-center justify-between w-full pt-2 border-t border-white/10">
-                        <p class="text-[15px] text-white/70 font-[500] uppercase tracking-[0.01em] condensed">
-                            ${displayChapters} SECCIONES
-                        </p>
+            document.getElementById('font-size-val').innerText = defFontSize;
+            document.getElementById('current-font-label').innerText = defFontName;
+			
+  
+            document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
+            document.documentElement.style.setProperty('--reader-font-family', defFontName);
 
-                        <div id="synopsis-slot-${book.id}" class="flex-1 flex justify-center">
-                            ${hasSynopsis ? `<button class="btn-synopsis" onclick="event.stopPropagation(); showSynopsis('${book.id}')">SINOPSIS</button>` : ''}
-                        </div>
+            loadChapter(0);
+        }
 
-                        <p class="text-[18px] text-[#ffcc00] font-bold uppercase condensed italic">
-                            <span class="mi-round text-[18px] align-middle mr-1">schedule</span>${timeStr}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        grid.appendChild(card);
-    });
+								 
+						  
+							  
+																			
+        function closeReader() { stopSpeech(); clearImageTimer(); document.getElementById('reader-view').classList.add('hidden'); document.getElementById('library-container').classList.remove('hidden'); checkLastSession(); }
+							   
+		 
 
-    renderShelf();
-}
-
-// FUNCIÓN DEL PLUGIN PARA RENDERIZAR EL ESTANTE SUPERIOR
-function renderShelf() {
-    const shelf = document.getElementById('book-shelf');
-    if (!shelf || !library.length) return;
-    
-    shelf.innerHTML = '';
-    library.forEach((book, index) => {
-        const bookNode = document.createElement('div');
-        bookNode.className = 'shelf-book';
-        
-        // Mantenemos la lógica de apertura para el estante
-        bookNode.onclick = () => openReader(book.id);
-        
-        // Imagen de portada: buscamos cover o primer adjunto
-        const coverImg = book.cover || (book.chapters[0] && book.chapters[0].attachments && book.chapters[0].attachments[0]) || '';
-        
-        bookNode.innerHTML = `
-            <img src="${coverImg}" alt="${stripHtml(book.title)}" onerror="this.src='https://via.placeholder.com/120x175?text=SIN+PORTADA'">
-            <div class="shelf-book-overlay">
-                <div class="shelf-book-title">${stripHtml(book.title)}</div>
-            </div>
-        `;
-        shelf.appendChild(bookNode);
-    });
-}
-function openReader(id) {
-    currentBook = library.find(b => b.id === id);
-    document.getElementById('reader-title').innerText = currentBook.title;
-
-    // ACTUALIZACIÓN: Imagen de portada en el sidebar
-    const coverPreview = document.getElementById('sidebar-cover-preview');
-    if (coverPreview) {
-        coverPreview.style.backgroundImage = `url('${currentBook.cover}')`;
-    }
-
-    renderTOC();
-    renderProgressMarkers();
-    document.getElementById('library-container').classList.add('hidden');
-    document.getElementById('reader-view').classList.remove('hidden');
-    document.getElementById('resume-card').classList.add('hidden');
-
-    const isMobile = window.innerWidth <= 768;
-    const defFontSize = isMobile ? 23 : 25;
-    const defFontName = isMobile ? 'Atkinson Hyperlegible' : 'Merriweather';
-
-    document.getElementById('font-size-val').innerText = defFontSize;
-    document.getElementById('current-font-label').innerText = defFontName;
-
-    document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
-    document.documentElement.style.setProperty('--reader-font-family', defFontName);
-
-    loadChapter(0);
-}
-
-function closeReader() { 
-    stopSpeech(); 
-    clearImageTimer(); 
-    document.getElementById('reader-view').classList.add('hidden'); 
-    document.getElementById('library-container').classList.remove('hidden'); 
-    checkLastSession(); 
-}
-
-function loadChapter(idx) {
+        function loadChapter(idx) {
     currentChapterIndex = idx;
     const chapter = currentBook.chapters[idx];
     document.getElementById('chapter-indicator').innerText = stripHtml(chapter.title);
@@ -872,161 +801,3 @@ function loadChapter(idx) {
             sidebar.addEventListener('touchend', e => { if (startX - e.changedTouches[0].clientX > 50) closeSidebar(); }, {passive: true});
 								
         }
-
-function showSynopsis(bookId) {
-    const book = library.find(b => b.id === bookId);
-    if (!book) return;
-
-    const startIndex = book.chapters.findIndex(ch => 
-        ch.content && ch.content.some(t => (t || "").trim().startsWith('# Sinopsis'))
-    );
-
-    if (startIndex !== -1) {
-        const modal = document.getElementById('synopsis-modal');
-        const body = document.getElementById('synopsis-body');
-        
-						   
-
-        let rawText = book.chapters.slice(startIndex)
-            .map(ch => ch.content.join('\n'))
-            .join('\n\n');
-
-        const lines = rawText.split('\n');
-        let formattedHtml = "";
-
-        lines.forEach(line => {
-            let cleanLine = line.trim();
-								   
-            if (!cleanLine || cleanLine.toLowerCase().startsWith('# sinopsis')) return;
-
-            if (cleanLine.startsWith('##')) {
-                formattedHtml += `<h2 class="synopsis-h2">${cleanLine.replace(/^#+\s*/, '')}</h2>`;
-            } else if (cleanLine.startsWith('>')) {
-                formattedHtml += `<blockquote class="synopsis-quote">${cleanLine.replace(/^>\s*/, '')}</blockquote>`;
-            } else {
-                let text = cleanLine
-                    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>');
-														  
-                formattedHtml += `<p class="synopsis-p">${text}</p>`;
-            }
-        });
-
-        body.innerHTML = formattedHtml;
-
-        // 1. Mostrar el modal primero
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-
-        // 2. Resetear el scroll (con un ligero delay para asegurar que el DOM respondió)
-        setTimeout(() => {
-            body.scrollTop = 0;
-        }, 10);
-
-        // Configurar botón leer completo
-        const readBtn = document.getElementById('btn-synopsis-read');
-        readBtn.onclick = (e) => {
-            e.preventDefault();
-								
-            closeSynopsis();
-            openReader(bookId);
-        };
-
-
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-
-        // --- CERRAR AL TOCAR FUERA ---
-        modal.onclick = (e) => {
-            // Si el clic es en el fondo negro (el modal en sí) y no en el contenedor blanco
-            if (e.target.id === 'synopsis-modal') {
-                closeSynopsis();
-            }
-        };
-    }
-}
-
-let synopsisSubChunks = [];
-let currentSynopsisIdx = 0;
-
-function startSynopsisTTS() {
-    const text = document.getElementById('synopsis-body').innerText;
-    
-    // Cambiamos estado de botones
-    document.getElementById('btn-synopsis-tts').classList.add('hidden');
-    document.getElementById('btn-synopsis-stop').classList.remove('hidden');
-    
-    window.speechSynthesis.cancel(); // Limpiar cualquier lectura previa
-
-    // REUTILIZAMOS TU LÓGICA CORE: splitTextSmartly a 140 caracteres
-    synopsisSubChunks = splitTextSmartly(text, 140);
-    currentSynopsisIdx = 0;
-
-    function speakNextSynopsisChunk() {
-        // Verificamos si el modal sigue abierto antes de procesar el siguiente fragmento
-        const modalVisible = !document.getElementById('synopsis-modal').classList.contains('hidden');
-        
-        if (!modalVisible || currentSynopsisIdx >= synopsisSubChunks.length) {
-            stopSynopsisTTS();
-            return;
-        }
-
-        const textToRead = synopsisSubChunks[currentSynopsisIdx].trim();
-        if (textToRead.length === 0) {
-            currentSynopsisIdx++;
-            speakNextSynopsisChunk();
-            return;
-        }
-
-        const utter = new SpeechSynthesisUtterance(textToRead);
-        utter.lang = 'es-ES';
-        utter.rate = 1.0;
-
-        utter.onend = () => {
-            currentSynopsisIdx++;
-            speakNextSynopsisChunk();
-        };
-
-        utter.onerror = (e) => {
-            console.error("Error TTS Sinopsis:", e);
-            stopSynopsisTTS();
-        };
-
-        window.speechSynthesis.speak(utter);
-    }
-
-    speakNextSynopsisChunk();
-}
-
-function stopSynopsisTTS() {
-    isSynopsisReading = false; // Por seguridad
-    window.speechSynthesis.cancel();
-    document.getElementById('btn-synopsis-stop').classList.add('hidden');
-    document.getElementById('btn-synopsis-tts').classList.remove('hidden');
-    synopsisSubChunks = []; // Limpiamos la cola
-}
-
-function closeSynopsis() {
-    // 1. Detener audio y limpiar cola inmediatamente
-    window.speechSynthesis.cancel();
-    synopsisSubChunks = [];
-    isSynopsisReading = false;
-
-    // 2. Referencias a elementos
-    const modal = document.getElementById('synopsis-modal');
-    const body = document.getElementById('synopsis-body');
-    const btnStop = document.getElementById('btn-synopsis-stop');
-    const btnPlay = document.getElementById('btn-synopsis-tts');
-
-    // 3. Ocultar modal y restaurar scroll del body
-    if (modal) modal.classList.add('hidden');
-    document.body.style.overflow = '';
-
-    // 4. Resetear el scroll interno del texto para la próxima vez
-    if (body) body.scrollTop = 0;
-
-    // 5. Restaurar estado de los botones
-    if (btnStop) btnStop.classList.add('hidden');
-    if (btnPlay) btnPlay.classList.remove('hidden');
-}
