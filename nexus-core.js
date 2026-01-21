@@ -367,7 +367,7 @@ function renderLibrary() {
                         ${book.title}
                     </h3>
 
-                    <div class="flex items-center justify-between w-full pt-2 border-t border-white/10">
+                    <div class="flex items-center justify-between h-[25%] w-full pt-2 border-t border-white/10">
                         <p class="text-[15px] text-white/70 font-[500] uppercase tracking-[0.01em] condensed">
                             ${displayChapters} SECCIONES
                         </p>
@@ -824,9 +824,12 @@ function stopSpeech() {
 			  
         }
 
-        function jumpToChapter(idx) { let wasSpeaking = isSpeaking; stopSpeech(); loadChapter(idx); if (wasSpeaking) startSpeech(); }
-										 
-						  
+        function jumpToChapter(idx) { let wasSpeaking = isSpeaking; stopSpeech(); loadChapter(idx);
+    // Solo cerramos el sidebar si NO está anclado (isPinned es false)
+    if (!isPinned) closeSidebar();
+
+    if (wasSpeaking) startSpeech();
+}				  
 							  
 										   
 		 
@@ -923,9 +926,23 @@ function stopSpeech() {
     if (sidebarTimer) clearTimeout(sidebarTimer); 
 }
 
-function closeSidebar() { 
-    document.getElementById('reader-sidebar').classList.remove('open'); 
-    document.getElementById('sidebar-trigger').classList.remove('hidden'); 
+function closeSidebar() {
+    // Resetear estado del PIN para que el layout vuelva a pantalla completa
+    isPinned = false; 
+    document.body.classList.remove('sidebar-pinned');
+    
+    const sidebar = document.getElementById('reader-sidebar');
+    const trigger = document.getElementById('sidebar-trigger');
+    
+    if (sidebar) {
+        sidebar.classList.remove('open');
+        sidebar.classList.remove('pinned');
+    }
+    
+    // Volver a mostrar el disparador (la etiqueta amarilla lateral)
+    if (trigger) {
+        trigger.classList.remove('hidden');
+    }
 }
 
 function handleSidebarLeave() { 
@@ -1177,5 +1194,25 @@ document.addEventListener('click', function(event) {
         if (!speedMenuSynopsis.contains(event.target) && !speedBtnSynopsis.contains(event.target)) {
             speedMenuSynopsis.classList.add('hidden');
         }
+    }
+});
+
+window.addEventListener('resize', () => {
+    const width = window.innerWidth;
+    
+    // Si la pantalla baja de 1024px y está anclado, forzamos el desanclado completo
+    if (width < 1024 && isPinned) {
+        isPinned = false; // Cambiamos el estado global
+        
+        const sidebar = document.getElementById('reader-sidebar');
+        const trigger = document.getElementById('sidebar-trigger');
+        const pinBtn = document.getElementById('pin-btn');
+
+        document.body.classList.remove('sidebar-pinned');
+        if (sidebar) sidebar.classList.remove('pinned', 'open');
+        if (trigger) trigger.classList.remove('hidden'); // MOSTRAR el disparador amarillo
+        if (pinBtn) pinBtn.classList.remove('active'); // Resetear icono del pin si lo usas
+        
+        console.log("Reseteo automático: Pantalla pequeña detectada.");
     }
 });

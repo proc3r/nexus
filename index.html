@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Nexus Library - Adaptive Configuration</title>
+    <title>Nexus Avatar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Barlow+Condensed:ital,wght@0,300;0,400;1,300;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700&family=Lora:ital,wght@0,400;0,700&family=Libre+Baskerville:ital,wght@0,400;0,700&family=Source+Sans+3:wght@400;700&family=IBM+Plex+Sans:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Round" rel="stylesheet">
@@ -17,17 +17,17 @@
     <div id="app">
         <div id="library-container">
             
-                <header class="pt-4 pb-4 px-3 md:px-10 border-b-4 border-blue-500 max-w-7xl mx-auto flex flex-row justify-between items-end">
+                <header class="pt-3 pb-3 px-3 md:px-10 border-b-4 border-blue-500 max-w-7xl mx-auto flex flex-row justify-between items-end">
     <div>
-        <h1 class="text-3xl font-black tracking-tighter text-[#ffcc00]">NEXUS<span class="text-white">LIBRARY</span></h1>
-        <p class="text-[11px] text-gray-500 uppercase tracking-[0.3em] font-bold condensed">Modelo Nouménico</p>
+        <h1 class="text-3xl font-black tracking-tighter text-[#ffcc00]">NEXUS</h1>
+        <p class="text-[13px] text-gray-200 uppercase tracking-[0.18em] font-bold condensed">Guia Avatárica</p>
     </div>
     
     <div id="status-indicator" class="flex flex-col items-end pb-1">
         <div class="flex items-center gap-2">
             <div class="w-3 h-3 border-2 border-t-[#ffcc00] border-white/10 rounded-full animate-spin" id="main-spinner"></div>
             <div id="sync-led-visual" class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] hidden"></div>
-            <span class="text-[9px] font-bold uppercase tracking-widest text-gray-500 condensed" id="status-text">Sincronizando</span>
+            <span class="text-[11px] font-bold uppercase tracking-widest text-gray-500 condensed" id="status-text">Sincronizando</span>
         </div>
     </div>
 </header>
@@ -41,7 +41,7 @@
         </div>
         <div id="resume-card" class="hidden" onclick="resumeLastSession()">
             <div class="resume-icon-box">
-                <span class="mi-round text-2xl">history</span>
+                <span class="mi-round text-2xl text-black">history</span>
             </div>
             <div class="resume-info">
                 <span class="resume-main-text">Continuar leyendo</span>
@@ -60,8 +60,8 @@
             
             <div class="absolute inset-0 "></div>
 
-            <div class="absolute inset-0 p-4 flex flex-col justify-between">
-                <div class="flex justify-between items-start">
+            <div class="p-4 flex flex-col justify-between">
+                <div class="flex justify-between pb-3 items-start">
                     <button onclick="closeReader()" class="text-[#ffcc00] px-2 bg-black/40 backdrop-blur-sm p-1 rounded-lg border border-white/10 font-bold uppercase text-[16px] tracking-widest condensed drop-shadow-lg">⬅️ Salir</button>
                     
                     <div class="flex items-center px-3 gap-3 bg-black/40 backdrop-blur-sm p-1 rounded-lg border border-white/10">
@@ -73,7 +73,7 @@
                     </div>
                 </div>
 
-                <h2 id="reader-title" class="text-[2.2rem] font-bold text-white condensed uppercase italic leading-none drop-shadow-md  pl-2">
+                <h2 id="reader-title" class="text-[2rem] font-bold text-white condensed uppercase italic leading-none drop-shadow-md  pl-2">
                     Título del Libro
                 </h2>
             </div>
@@ -184,8 +184,8 @@
             <button onclick="setReaderSpeed(1.1)">1.1x</button>
             <button onclick="setReaderSpeed(1.2)">1.2x</button>
         </div>
-        <button onclick="toggleReaderSpeedMenu()" class="speed-btn-center">
-            <span id="reader-speed-label" class="btn-float-stop">1.0x</span>
+        <button onclick="toggleReaderSpeedMenu()" class="btn-speed">
+            <span id="reader-speed-label" class="btn-speed">1.0x</span>
         </button>
     </div>
 
@@ -202,7 +202,8 @@
             <span class="mi-round">&#xe91f;</span>
         </button>
 
-        <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden">
+        <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden"
+		title="Si la lectura no reanuda, presione STOP y luego PLAY nuevamente">
             <span id="pause-icon" class="mi-round">&#xe1a2;</span>
         </button>
     </div>
@@ -229,29 +230,30 @@
             </div>
 
         <div class="audio-float-control">
-    <div class="speed-control-container relative">
+    
+
+    <button id="btn-synopsis-tts" onclick="startSynopsisTTS()" class="btn-float-sinopsis">
+        <span class="mi-round text-3xl text-black"></span>
+    </button>
+    <button id="btn-synopsis-stop" onclick="stopSynopsisTTS()" class="btn-float-stop-sinopsis hidden">
+        <span class="mi-round text-3xl">stop</span>
+    </button>
+	<div class="speed-control-container relative">
         <div id="synopsis-speed-menu" class="speed-menu hidden">
             <button onclick="setSynopsisSpeed(0.9)">0.9x</button>
             <button onclick="setSynopsisSpeed(1.0)">1.0x</button>
             <button onclick="setSynopsisSpeed(1.1)">1.1x</button>
             <button onclick="setSynopsisSpeed(1.2)">1.2x</button>
         </div>
-        <button id="btn-synopsis-speed" onclick="toggleSynopsisSpeedMenu()" class="btn-audio-circle bg-black/75 text-[#ffcc00] border border-white/20 mb-2">
+        <button id="btn-synopsis-speed" onclick="toggleSynopsisSpeedMenu()" class="btn-speed-sinopsis">
             <span class="text-[13px] font-bold" id="current-speed-label">1.1x</span>
         </button>
     </div>
-
-    <button id="btn-synopsis-tts" onclick="startSynopsisTTS()" class="btn-audio-circle bg-[#ffcc00] text-black">
-        <span class="mi-round text-3xl"></span>
-    </button>
-    <button id="btn-synopsis-stop" onclick="stopSynopsisTTS()" class="btn-audio-circle bg-red-600 text-white hidden">
-        <span class="mi-round text-3xl">stop</span>
-    </button>
 </div>
 
         <div class="p-1 pt-4 flex justify-center">
             <button id="btn-synopsis-read" class="btn-synopsis2">
-                Entrar al Libro →
+                Leer el Libro
             </button>
         </div>
     </div>
