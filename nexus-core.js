@@ -658,6 +658,7 @@ function loadChapter(idx) {
 			textToRead = textToRead.replace(/^>\s*-\s*/gm, "… ");
 			textToRead = textToRead.replace(/^-\s+/gm, "… ");
 			textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ0-9])\s*-\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1 … $2");
+			textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ0-9])\s*—\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1,$2");
             // MEJORA: Convertimos a minúsculas solo para el motor de voz para evitar que deletree títulos
             textToRead = textToRead.toLowerCase(); 
             textToRead = filterTextForVoice(textToRead);
@@ -977,6 +978,7 @@ function startSynopsisTTS() {
     // (Asegura que cualquier guion rodeado de espacios que no sea matemático se silencie)
     textToRead = textToRead.replace(/\s+-\s+([a-zA-Z])/g, " … $1");
 	
+	textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ0-9])\s*—\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1,$2");
     // NOTA: Los guiones entre números (ej: "3 - 3") NO son tocados por estas reglas, 
     // así que el motor los seguirá leyendo como "menos".
 
