@@ -1001,19 +1001,26 @@ function showSynopsis(bookId) {
 
         lines.forEach(line => {
             let cleanLine = line.trim();
-								   
+            
             if (!cleanLine || cleanLine.toLowerCase().startsWith('# sinopsis')) return;
+
+            // Función interna para procesar Markdown de Obsidian
+            const processMD = (str) => {
+                return str
+                    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/_(.*?)_/g, '<em>$1</em>');
+            };
 
             if (cleanLine.startsWith('##')) {
                 formattedHtml += `<h2 class="synopsis-h2">${cleanLine.replace(/^#+\s*/, '')}</h2>`;
             } else if (cleanLine.startsWith('>')) {
-                formattedHtml += `<blockquote class="synopsis-quote">${cleanLine.replace(/^>\s*/, '')}</blockquote>`;
+                // Ahora también procesamos negritas e itálicas dentro de las citas
+                let quoteText = processMD(cleanLine.replace(/^>\s*/, ''));
+                formattedHtml += `<blockquote class="synopsis-quote">${quoteText}</blockquote>`;
             } else {
-                let text = cleanLine
-                    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>');
-														  
+                let text = processMD(cleanLine);
                 formattedHtml += `<p class="synopsis-p">${text}</p>`;
             }
         });
@@ -1092,13 +1099,16 @@ function startSynopsisTTS() {
     // Buscamos guiones que NO tengan números a ambos lados
     textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ])\s*-\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1 … $2");
 	
-	// REGLA 3: Guiones persistentes que quedan tras limpiar HTML
-    // (Asegura que cualquier guion rodeado de espacios que no sea matemático se silencie)
+	// REGLA C: LIMPIEZA DE SÍMBOLOS DE ESTILO (Para que no diga "asterisco")
+    // Eliminamos ***, **, * y _ para que el motor de voz no los nombre
+    textToRead = textToRead.replace(/\*\*\*/g, '')
+                           .replace(/\*\*/g, '')
+                           .replace(/\*/g, '')
+                           .replace(/_/g, '');
+
+    // REGLA 3: Guiones persistentes
     textToRead = textToRead.replace(/\s+-\s+([a-zA-Z])/g, " … $1");
-	
-	textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ0-9])\s*—\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1,$2");
-    // NOTA: Los guiones entre números (ej: "3 - 3") NO son tocados por estas reglas, 
-    // así que el motor los seguirá leyendo como "menos".
+    textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ0-9])\s*—\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1,$2");
 
     // 3. CAMBIAR INTERFAZ
     document.getElementById('btn-synopsis-tts').classList.add('hidden');

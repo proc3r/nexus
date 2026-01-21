@@ -678,7 +678,7 @@ html, body {
 }
 
 #synopsis-body strong {
-    color: #ffcc00; /* Resaltamos negritas con tu color primario */
+   /* color: #ffcc00;   */
 }
 
 /* Scrollbar personalizado para el modal */
