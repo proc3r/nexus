@@ -115,26 +115,41 @@
                                 <div class="setting-option" style="font-family: 'Atkinson Hyperlegible'" onclick="changeFontFamily('Atkinson Hyperlegible')">Hyperlegible</div>
                             </div>
                         </div>
-                        <div class="settings-dropdown-container">
-                            <button onclick="toggleDropdown('align-dropdown')" class="nav-icon-btn" title="Alineación">
-                                <span class="mi-round text-lg">format_align_justify</span>
-                            </button>
-                            <div id="align-dropdown" class="settings-dropdown">
-                                <div class="setting-option" onclick="changeAlignment('left')"><span class="mi-round text-base">format_align_left</span> Izquierda</div>
-                                <div class="setting-option" onclick="changeAlignment('center')"><span class="mi-round text-base">format_align_center</span> Centro</div>
-                                <div class="setting-option selected" onclick="changeAlignment('justify')"><span class="mi-round text-base">format_align_justify</span> Justificado</div>
-                            </div>
-                        </div>
-                        <div class="settings-dropdown-container">
-                            <button onclick="toggleDropdown('spacing-dropdown')" class="nav-icon-btn" title="Interlineado">
-                                <span class="mi-round text-lg">format_line_spacing</span>
-                            </button>
-                            <div id="spacing-dropdown" class="settings-dropdown">
-                                <div class="setting-option" onclick="changeLineHeight(1.4)"><span class="mi-round text-base">reorder</span> Compacto</div>
-                                <div class="setting-option selected" onclick="changeLineHeight(1.7)"><span class="mi-round text-base">notes</span> Normal</div>
-                                <div class="setting-option" onclick="changeLineHeight(2.1)"><span class="mi-round text-base">subject</span> Extenso</div>
-                            </div>
-                        </div>
+                        
+						<div class="settings-dropdown-container">
+    <button onclick="toggleDropdown('align-dropdown')" class="nav-icon-btn" title="Alineación">
+        <span class="mi-round text-lg">format_align_center</span>
+    </button>
+    <div id="align-dropdown" class="settings-dropdown">
+        <div class="setting-option" onclick="changeAlignment('left')">
+            <span class="mi-round text-base">format_align_left</span> Izquierda
+        </div>
+        <div class="setting-option selected" onclick="changeAlignment('center')">
+            <span class="mi-round text-base">format_align_center</span> Centro
+        </div>
+        <div class="setting-option" onclick="changeAlignment('justify')">
+            <span class="mi-round text-base">format_align_justify</span> Justificado
+        </div>
+    </div>
+</div>
+
+<div class="settings-dropdown-container">
+    <button onclick="toggleDropdown('spacing-dropdown')" class="nav-icon-btn" title="Interlineado">
+        <span class="mi-round text-lg">format_line_spacing</span>
+    </button>
+    <div id="spacing-dropdown" class="settings-dropdown">
+        <div class="setting-option selected" onclick="changeLineHeight(1.4)">
+            <span class="mi-round text-base">reorder</span> Compacto
+        </div>
+        <div class="setting-option" onclick="changeLineHeight(1.7)">
+            <span class="mi-round text-base">notes</span> Normal
+        </div>
+        <div class="setting-option" onclick="changeLineHeight(2.1)">
+            <span class="mi-round text-base">subject</span> Extenso
+        </div>
+    </div>
+</div>
+
                         <button onclick="toggleDarkMode()" class="nav-icon-btn" title="Modo Color">🌓</button>
                     </div>
                 </nav>
@@ -158,23 +173,41 @@
                             <div id="reading-progress-bar"></div>
                             <div id="progress-markers-container"></div>
                         </div>
-                        <div class="flex justify-between items-center pb-2">
-                            <button onclick="prevChunk()" class="bg-[#ffcc00] text-black px-4 py-2 rounded-full font-black uppercase tracking-widest text-[15px] shadow-md hover:bg-[#2196f3] transition-colors condensed">◀ BACK</button>
-                            <div class="flex items-center gap-4">
-                                <button onclick="stopSpeech()" id="stop-btn" class="hidden text-black-500 hover:text-[#b426f5] transition-colors">
-                                    <span class="mi-round text-3xl">&#xef71;</span>
-                                </button>
-                                <div class="flex gap-4">
-                                    <button id="tts-btn" onclick="toggleSpeech()" class="w-14 h-10 bg-[#ff4444] text-black rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-transform">
-                                        <span class="mi-round text-3xl">&#xe91f;</span>
-                                    </button>
-                                    <button id="pause-btn" onclick="pauseSpeech()" class="hidden w-14 h-10 bg-[#ffcc00] text-black rounded-full flex items-center justify-center shadow-md hover:scale-105 hover:bg-[#41eb1e] transition-transform">
-                                        <span id="pause-icon" class="mi-round text-3xl">&#xe1a2;</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <button id="next-btn" onclick="nextChunk()" class="bg-[#ffcc00] text-black px-4 py-2 rounded-full font-black uppercase tracking-widest text-[15px] shadow-md hover:bg-[#ff4444] transition-colors condensed">NEXT ▶</button>
-                        </div>
+						
+                        <div class="flex justify-between items-center pb-4 px-4">
+    <button onclick="prevChunk()" class="bg-[#ffcc00] text-black px-6 py-2 rounded-full font-black uppercase tracking-widest text-[15px] shadow-md hover:bg-[#2196f3] transition-colors condensed">◀ BACK</button>
+    
+    <div class="relative">
+        <div id="reader-speed-menu" class="speed-menu-up hidden">
+            <button onclick="setReaderSpeed(0.9)">0.9x</button>
+            <button onclick="setReaderSpeed(1.0)">1.0x</button>
+            <button onclick="setReaderSpeed(1.1)">1.1x</button>
+            <button onclick="setReaderSpeed(1.2)">1.2x</button>
+        </div>
+        <button onclick="toggleReaderSpeedMenu()" class="speed-btn-center">
+            <span id="reader-speed-label" class="btn-float-stop">1.0x</span>
+        </button>
+    </div>
+
+    <button id="next-btn" onclick="nextChunk()" class="bg-[#ffcc00] text-black px-6 py-2 rounded-full font-black uppercase tracking-widest text-[15px] shadow-md hover:bg-[#ff4444] transition-colors condensed">NEXT ▶</button>
+</div>
+
+<div class="reader-controls-wrapper">
+    <button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
+        <span class="mi-round">&#xef71;</span>
+    </button>
+
+    <div class="main-audio-trigger">
+        <button id="tts-btn" onclick="startSpeech()" class="btn-float-red">
+            <span class="mi-round">&#xe91f;</span>
+        </button>
+
+        <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden">
+            <span id="pause-icon" class="mi-round">&#xe1a2;</span>
+        </button>
+    </div>
+</div>
+
                     </div>
                 </footer>
             </main>
@@ -196,13 +229,25 @@
             </div>
 
         <div class="audio-float-control">
-            <button id="btn-synopsis-tts" onclick="startSynopsisTTS()" class="btn-audio-circle bg-[#ffcc00] text-black">
-                <span class="mi-round text-3xl">play_arrow</span>
-            </button>
-            <button id="btn-synopsis-stop" onclick="stopSynopsisTTS()" class="btn-audio-circle bg-red-600 text-white hidden">
-                <span class="mi-round text-3xl">stop</span>
-            </button>
+    <div class="speed-control-container relative">
+        <div id="synopsis-speed-menu" class="speed-menu hidden">
+            <button onclick="setSynopsisSpeed(0.9)">0.9x</button>
+            <button onclick="setSynopsisSpeed(1.0)">1.0x</button>
+            <button onclick="setSynopsisSpeed(1.1)">1.1x</button>
+            <button onclick="setSynopsisSpeed(1.2)">1.2x</button>
         </div>
+        <button id="btn-synopsis-speed" onclick="toggleSynopsisSpeedMenu()" class="btn-audio-circle bg-black/75 text-[#ffcc00] border border-white/20 mb-2">
+            <span class="text-[13px] font-bold" id="current-speed-label">1.1x</span>
+        </button>
+    </div>
+
+    <button id="btn-synopsis-tts" onclick="startSynopsisTTS()" class="btn-audio-circle bg-[#ffcc00] text-black">
+        <span class="mi-round text-3xl"></span>
+    </button>
+    <button id="btn-synopsis-stop" onclick="stopSynopsisTTS()" class="btn-audio-circle bg-red-600 text-white hidden">
+        <span class="mi-round text-3xl">stop</span>
+    </button>
+</div>
 
         <div class="p-1 pt-4 flex justify-center">
             <button id="btn-synopsis-read" class="btn-synopsis2">

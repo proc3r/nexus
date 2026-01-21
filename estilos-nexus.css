@@ -156,6 +156,7 @@ html, body {
     font-size: var(--reader-font-size);
     text-align: var(--reader-text-align);
     line-height: var(--reader-line-height);
+	padding-bottom: 23px;
 }
 
 									   
@@ -781,4 +782,262 @@ html, body {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+}
+
+.speed-control-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.speed-menu {
+    position: absolute;
+    bottom: 110%; /* Aparece arriba del botón */
+    background: #1a1b1e;
+    border: 1px border-white/10;
+    border-radius: 12px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    z-index: 100;
+}
+
+.speed-menu button {
+    padding: 8px 15px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.speed-menu button:hover {
+    background: #ffcc00;
+    color: black;
+}
+
+.speed-menu.hidden {
+    display: none;
+}
+
+/* Selector de velocidad en el centro de la barra */
+.sspeed-btn-center {
+    background: rgb(98 11 6 / 73%);
+    border: 1px solid rgba(255, 204, 0, 1.3);
+    color: #ffcc00;
+    width: 39px;
+    height: 37px;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 17px;
+}
+
+.speed-btn-center:hover {
+    background: rgba(255, 204, 0, 0.1);
+    border-color: #ffcc00;
+}
+
+/* Menú de velocidad que sube */
+.speed-menu-up {
+    position: absolute;
+    bottom: 37px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 3px 0px 3px 0px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    box-shadow: 0 0px 10px rgb(255 42 42 / 65%);
+    z-index: 1100;
+    backdrop-filter: blur(2px);
+	z-index: 9999;
+}
+
+
+/* Contenedor general que posiciona el grupo en la pantalla */
+.reader-controls-wrapper {
+    position: fixed;
+    bottom: 112px;
+    right: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    z-index: 9998;
+}
+
+/* Estilo Base para los botones circulares */
+.btn-float-red, .btn-float-pause {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /*border: 4px solid #141517;*/
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.3s;
+}
+
+.btn-float-red span, .btn-float-pause span {
+    font-size: 35px;
+    color: black;
+}
+
+/* Botón Rojo (Persona hablando) */
+.btn-float-red {
+    background-color: rgb(247 46 6 / 76%);
+}
+
+/* Botón Pausa (Amarillo por defecto) */
+.btn-float-pause {
+    background-color: rgb(255 204 0 / 0.7);
+}
+
+/* Clase que se aplica por JS cuando se pausa (Verde) */
+.btn-float-pause.bg-pause-active {
+    background-color: rgb(52 243 12 / 77%) !important;
+}
+
+/* Botón Stop (El pequeño que aparece arriba) */
+.btn-float-stop {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(220, 38, 38, 0.4);
+    backdrop-filter: blur(2px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-float-stop:hover {
+    background-color: rgba(220, 38, 38, 0.8);
+}
+
+.btn-float-red:hover, .btn-float-pause:hover {
+    transform: scale(1.08);
+}
+
+/* Utilidad para ocultar */
+.hidden {
+    display: none !important;
+}
+
+
+
+.speed-menu-up button {
+    padding: 6px 15px;
+    color: white;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    font-weight: bold;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.speed-menu-up button:hover {
+    background: #ffcc00;
+    color: black;
+}
+
+/* Estilo para el botón de Pausa cuando está en verde (activo) */
+.bg-pause-active {
+    background-color: #41eb1e !important;
+}
+
+.speed-menu-up.hidden {
+    display: none;
+}
+
+/* --- CONFIGURACIÓN PARA ESCRITORIO (Pantallas grandes) --- */
+@media (min-width: 1024px) {
+    .reader-controls-wrapper {
+        right: 50%; /* Lo movemos al centro horizontal */
+        transform: translateX(50%); /* Ajuste exacto para centrar */
+        bottom: 134px; /* Lo posicionamos justo arriba de la barra de avance */
+        flex-direction: row; /* En escritorio, los botones se ponen uno al lado del otro */
+        gap: 20px;
+		transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* En escritorio, el botón Stop se mueve a la izquierda del botón de Play */
+    .btn-float-stop {
+        order: -1; /* Esto lo posiciona visualmente a la izquierda */
+        width: 45px;
+        height: 45px;
+    }
+}
+
+  /* CUANDO EL SIDEBAR ESTÁ ANCLADO:
+       Si tu sidebar mide, por ejemplo, 300px, movemos el centro 150px a la derecha.
+       Ajusta el valor '150px' según el ancho de tu sidebar dividido por 2.
+    */
+    #reader-sidebar.pinned ~ .reader-controls-wrapper,
+    body.sidebar-pinned .reader-controls-wrapper {
+        /* Movemos el punto de anclaje para compensar la barra lateral */
+        right: calc(50% - 150px); 
+    }
+
+    .btn-float-stop {
+        order: -1;
+        width: 45px;
+        height: 45px;
+    }
+}
+
+/* Ocultar PIN en móviles por defecto */
+#pin-btn {
+    display: none;
+}
+
+/* Mostrar PIN solo en Escritorio */
+@media (min-width: 1024px) {
+    #pin-btn {
+        display: block;
+    }
+
+    /* Lógica de centrado de botones con sidebar anclado */
+    .reader-controls-wrapper {
+        position: fixed;
+        bottom: 120px;
+        right: 50%;
+        transform: translateX(50%);
+        transition: right 0.4s ease, transform 0.4s ease; /* Movimiento suave */
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        z-index: 9998;
+    }
+
+    /* Si el body tiene la clase sidebar-pinned, desplazamos el centro */
+    /* Asumiendo que tu sidebar mide 300px, el centro se mueve 150px a la derecha */
+    body.sidebar-pinned .reader-controls-wrapper {
+        right: calc(50% - 192px);
+    }
+}
+
+/* Mobile: mantener posición original */
+@media (max-width: 1023px) {
+    .reader-controls-wrapper {
+        position: fixed;
+        bottom: 85px;
+        right: 25px;
+        flex-direction: column;
+    }
 }

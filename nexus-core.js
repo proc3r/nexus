@@ -12,12 +12,14 @@ let library = [];
         let speechSubChunks = [];
         let currentSubChunkIndex = 0;
         let currentUtterance = null;
-        
+        let synopsisSpeechRate = 1.1; // Variable global para la velocidad
         let imageTimer = null;
         let imageSecondsLeft = 5;
         let isImageTimerPaused = false;
-
-														
+		let synopsisSubChunks = [];
+		let currentSynopsisIdx = 0;
+		let readerSpeechRate = 1.0; // Velocidad por defecto
+		let synth = window.speechSynthesis;												
 																		   
         const DICTIONARY_URL = "https://raw.githubusercontent.com/proc3r/nexus/master/voice-dictionary.json";
         let VOICE_REPLACEMENTS = {}; 
@@ -43,7 +45,24 @@ let library = [];
 
         const DEFAULT_COVER = "https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg";
         
-        let synth = window.speechSynthesis;
+		function toggleReaderSpeedMenu(event) {
+			if (event) event.stopPropagation(); // Evita que el clic llegue al document
+			const menu = document.getElementById('reader-speed-menu');
+			menu.classList.toggle('hidden');
+}
+
+
+		function setReaderSpeed(rate) {
+			readerSpeechRate = rate;
+			const label = document.getElementById('reader-speed-label');
+			if (label) label.innerText = rate + 'x';
+    
+    // Ocultar el menú tras seleccionar
+    document.getElementById('reader-speed-menu').classList.add('hidden');
+    
+    // Si se cambia la velocidad mientras está hablando, se aplicará en el próximo fragmento
+}	
+        
 
         window.onload = () => {
 																
@@ -598,48 +617,81 @@ function loadChapter(idx) {
 								
 		 
 
-        function startSpeech() {
-            isSpeaking = true; isPaused = false;
-            document.getElementById('tts-btn').classList.add('hidden');
-            document.getElementById('pause-btn').classList.remove('hidden');
-            document.getElementById('stop-btn').classList.remove('hidden');
-            updatePauseUI(false);
-			
-            const isImage = (chunks[currentChunkIndex] || "").match(/!\[\[(.*?)\]\]/);
-            if (isImage) startImageTimer(); else prepareAndStartSpeech();
-										 
+     function startSpeech() {
+    isSpeaking = true; 
+    isPaused = false;
+    
+    // Visibilidad de botones flotantes
+    document.getElementById('tts-btn').classList.add('hidden'); // Oculta Persona hablando (Rojo)
+    document.getElementById('pause-btn').classList.remove('hidden'); // Muestra Pausa (Amarillo)
+    document.getElementById('stop-btn').classList.remove('hidden'); // Muestra Stop pequeño
+    
+    // Asegurar que el botón de pausa empiece en estado "sonando" (Amarillo)
+    updatePauseUI(false);
+    
+    const isImage = (chunks[currentChunkIndex] || "").match(/!\[\[(.*?)\]\]/);
+    if (isImage) startImageTimer(); else prepareAndStartSpeech();
+}
+
+function pauseSpeech() { 
+    if (synth.speaking && !isPaused) { 
+        synth.pause(); 
+        isPaused = true; 
+        updatePauseUI(true); // Cambia a icono Play y color Verde
+    } else if (isPaused) {
+        resumeSpeech(); 
+    }
+    if (imageTimer) isImageTimerPaused = true; 
+}
+
+function resumeSpeech() { 
+    synth.resume(); 
+    isPaused = false; 
+    updatePauseUI(false); // Vuelve a icono Pausa y color Amarillo
+    
+    if ((chunks[currentChunkIndex] || "").match(/!\[\[(.*?)\]\]/)) { 
+        isImageTimerPaused = false; 
+        if (!imageTimer) startImageTimer(); 
+    } 
+}
+
+function updatePauseUI(paused) { 
+    const icon = document.getElementById('pause-icon'); 
+    const pauseBtn = document.getElementById('pause-btn');
+
+    if (icon) {
+        // Si está pausado, ponemos el icono de Play (&#xe037;), si no, el de Pausa (&#xe1a2;)
+        icon.innerHTML = paused ? '&#xe037;' : '&#xe1a2;'; 
+    }
+
+    if (pauseBtn) {
+        if (paused) {
+            // APLICAR COLOR VERDE
+            pauseBtn.classList.add('bg-pause-active');
+        } else {
+            // VOLVER A COLOR AMARILLO
+            pauseBtn.classList.remove('bg-pause-active');
         }
-        function pauseSpeech() { if (synth.speaking && !isPaused) { synth.pause(); isPaused = true; updatePauseUI(true); } else if (isPaused) resumeSpeech(); if (imageTimer) isImageTimerPaused = true; }
-        function resumeSpeech() { synth.resume(); isPaused = false; updatePauseUI(false); if ((chunks[currentChunkIndex] || "").match(/!\[\[(.*?)\]\]/)) { isImageTimerPaused = false; if (!imageTimer) startImageTimer(); } }
-											   
-							   
-								 
-									 
-								  
-							   
-			 
-													  
-		 
+    }
+}
 
-								  
-							
-							  
-								  
-																			
-										   
-												   
-			 
-		 
-
-										
-        function updatePauseUI(paused) { const icon = document.getElementById('pause-icon'); if(icon) icon.innerHTML = paused ? '&#xe037;' : '&#xe1a2;'; }
-        function stopSpeech() { synth.cancel(); isSpeaking = false; isPaused = false; clearImageTimer(); document.getElementById('tts-btn').classList.remove('hidden'); document.getElementById('pause-btn').classList.add('hidden'); document.getElementById('stop-btn').classList.add('hidden'); updatePauseUI(false); }
-		 
-
-							   
-							
-												 
-							  
+function stopSpeech() { 
+    synth.cancel(); 
+    isSpeaking = false; 
+    isPaused = false; 
+    clearImageTimer(); 
+    
+    // Volver al estado inicial: Solo botón rojo de persona hablando
+    document.getElementById('tts-btn').classList.remove('hidden'); 
+    document.getElementById('pause-btn').classList.add('hidden'); 
+    document.getElementById('stop-btn').classList.add('hidden'); 
+    
+    // Limpiar color verde por si acaso
+    const pauseBtn = document.getElementById('pause-btn');
+    if (pauseBtn) pauseBtn.classList.remove('bg-pause-active');
+    
+    updatePauseUI(false); 
+}					  
 																		  
 																		 
 																		
@@ -693,7 +745,8 @@ function loadChapter(idx) {
             }
             currentUtterance = new SpeechSynthesisUtterance(speechSubChunks[currentSubChunkIndex]);
             currentUtterance.lang = 'es-ES';
-            currentUtterance.onend = () => { currentSubChunkIndex++; setTimeout(speakSubChunk, 100); };
+            currentUtterance.rate = readerSpeechRate; 
+			currentUtterance.onend = () => { currentSubChunkIndex++; setTimeout(speakSubChunk, 100); };
             synth.speak(currentUtterance);
         }
 
@@ -863,19 +916,50 @@ function loadChapter(idx) {
                 container.appendChild(marker);
             });
         }
+		
+        function openSidebar() { 
+    document.getElementById('reader-sidebar').classList.add('open'); 
+    document.getElementById('sidebar-trigger').classList.add('hidden'); 
+    if (sidebarTimer) clearTimeout(sidebarTimer); 
+}
 
-        function openSidebar() { document.getElementById('reader-sidebar').classList.add('open'); document.getElementById('sidebar-trigger').classList.add('hidden'); if (sidebarTimer) clearTimeout(sidebarTimer); }
-        function closeSidebar() { document.getElementById('reader-sidebar').classList.remove('open'); document.getElementById('sidebar-trigger').classList.remove('hidden'); }
-        function handleSidebarLeave() { if (isPinned) return; sidebarTimer = setTimeout(() => { closeSidebar(); }, 1200); }
-        function togglePin() { isPinned = !isPinned; document.getElementById('reader-sidebar').classList.toggle('pinned', isPinned); document.getElementById('pin-btn').classList.toggle('opacity-100', isPinned); }
-        function initTouchEvents() {
-            const sidebar = document.getElementById('reader-sidebar');
-            let startX = 0;
-            sidebar.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive: true});
-													   
-            sidebar.addEventListener('touchend', e => { if (startX - e.changedTouches[0].clientX > 50) closeSidebar(); }, {passive: true});
-								
-        }
+function closeSidebar() { 
+    document.getElementById('reader-sidebar').classList.remove('open'); 
+    document.getElementById('sidebar-trigger').classList.remove('hidden'); 
+}
+
+function handleSidebarLeave() { 
+    if (isPinned) return; 
+    sidebarTimer = setTimeout(() => { closeSidebar(); }, 1200); 
+}
+
+function togglePin() { 
+    // Seguridad: Si es móvil (ancho menor a 1024), no permitir el PIN
+    if (window.innerWidth < 1024) return; 
+
+    isPinned = !isPinned; 
+    const sidebar = document.getElementById('reader-sidebar');
+    const pinBtn = document.getElementById('pin-btn');
+    
+    sidebar.classList.toggle('pinned', isPinned); 
+    pinBtn.classList.toggle('opacity-100', isPinned); 
+
+    // Añadimos clase al body para mover los controles de audio en el CSS
+    if (isPinned) {
+        document.body.classList.add('sidebar-pinned');
+    } else {
+        document.body.classList.remove('sidebar-pinned');
+    }
+}
+
+function initTouchEvents() {
+    const sidebar = document.getElementById('reader-sidebar');
+    let startX = 0;
+    sidebar.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive: true});
+    sidebar.addEventListener('touchend', e => { 
+        if (startX - e.changedTouches[0].clientX > 50) closeSidebar(); 
+    }, {passive: true});
+}
 
 function showSynopsis(bookId) {
     const book = library.find(b => b.id === bookId);
@@ -951,8 +1035,24 @@ function showSynopsis(bookId) {
     }
 }
 
-let synopsisSubChunks = [];
-let currentSynopsisIdx = 0;
+
+
+
+function toggleSynopsisSpeedMenu(event) {
+    if (event) event.stopPropagation(); // ¡Importante! Evita el cierre inmediato
+    const menu = document.getElementById('synopsis-speed-menu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+}
+
+function setSynopsisSpeed(rate) {
+    synopsisSpeechRate = rate;
+    document.getElementById('current-speed-label').innerText = rate + 'x';
+    document.getElementById('synopsis-speed-menu').classList.add('hidden');
+    // El cambio se aplicará automáticamente en el siguiente chunk
+}
+
 
 function startSynopsisTTS() {
     const body = document.getElementById('synopsis-body');
@@ -1007,8 +1107,8 @@ function startSynopsisTTS() {
         }
 
         const utter = new SpeechSynthesisUtterance(currentText);
-        utter.lang = 'es-US';
-        utter.rate = 1.1;
+		utter.lang = 'es-ES';
+		utter.rate = synopsisSpeechRate; // <--- Cambiado de 1.0 a la variable
 
         utter.onend = () => {
             currentSynopsisIdx++;
@@ -1054,3 +1154,28 @@ function closeSynopsis() {
     if (btnStop) btnStop.classList.add('hidden');
     if (btnPlay) btnPlay.classList.remove('hidden');
 }
+
+// Cerrar menús de velocidad al tocar fuera de ellos
+document.addEventListener('click', function(event) {
+    const speedMenuReader = document.getElementById('reader-speed-menu');
+    const speedBtnReader = document.querySelector('.speed-btn-center');
+    
+    const speedMenuSynopsis = document.getElementById('synopsis-speed-menu');
+    const speedBtnSynopsis = document.getElementById('btn-synopsis-speed');
+
+    // Lógica para el Lector Principal
+    if (speedMenuReader && !speedMenuReader.classList.contains('hidden')) {
+        // Si el clic NO fue en el menú ni en el botón que lo abre
+        if (!speedMenuReader.contains(event.target) && !speedBtnReader.contains(event.target)) {
+            speedMenuReader.classList.add('hidden');
+        }
+    }
+
+    // Lógica para la Sinopsis
+    if (speedMenuSynopsis && !speedMenuSynopsis.classList.contains('hidden')) {
+        // Si el clic NO fue en el menú ni en el botón que lo abre
+        if (!speedMenuSynopsis.contains(event.target) && !speedBtnSynopsis.contains(event.target)) {
+            speedMenuSynopsis.classList.add('hidden');
+        }
+    }
+});
