@@ -963,13 +963,17 @@ function startSynopsisTTS() {
     let textToRead = body.innerText;
 
     // REGLA A: Guiones de lista (inicio de línea o tras blockquote) -> Reemplazar por pausa (.)
-    textToRead = textToRead.replace(/^>\s*-\s*/gm, "2 ");
-    textToRead = textToRead.replace(/^-\s+/gm, "2 ");
+    textToRead = textToRead.replace(/^>\s*-\s*/gm, "… ");
+    textToRead = textToRead.replace(/^-\s+/gm, "… ");
 
     // REGLA B: Guion entre letras o palabras (ej: "hardware - orgánico") -> Reemplazar por pausa (.)
     // Buscamos guiones que NO tengan números a ambos lados
-    textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ])\s*-\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1 2 $2");
-
+    textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ])\s*-\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1 … $2");
+	
+	// REGLA 3: Guiones persistentes que quedan tras limpiar HTML
+    // (Asegura que cualquier guion rodeado de espacios que no sea matemático se silencie)
+    textToRead = textToRead.replace(/\s+-\s+([a-zA-Z])/g, " … $1");
+	
     // NOTA: Los guiones entre números (ej: "3 - 3") NO son tocados por estas reglas, 
     // así que el motor los seguirá leyendo como "menos".
 
