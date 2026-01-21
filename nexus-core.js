@@ -1007,8 +1007,8 @@ function startSynopsisTTS() {
         }
 
         const utter = new SpeechSynthesisUtterance(currentText);
-        utter.lang = 'es-ES';
-        utter.rate = 1.0;
+        utter.lang = 'es-US';
+        utter.rate = 1.1;
 
         utter.onend = () => {
             currentSynopsisIdx++;
