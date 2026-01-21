@@ -88,11 +88,18 @@ html, body {
 
 .mi-round {
     font-family: 'Material Icons Round';
-    font-weight: normal; font-style: normal;
-    display: inline-block; line-height: 1;
-    text-transform: none; letter-spacing: normal;
-    word-wrap: normal; white-space: nowrap;
-    direction: ltr; -webkit-font-smoothing: antialiased;
+    font-weight: normal;
+    font-style: normal;
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    font-size: 23px;
+    color: white;
 }
 
 /* 3. LECTOR Y SIDEBAR */
@@ -897,16 +904,19 @@ html, body {
 /* Botón Rojo (Persona hablando) */
 .btn-float-red {
     background-color: rgb(247 46 6 / 76%);
+	box-shadow: 0 0px 5px rgb(249 11 11 / 95%);
+    backdrop-filter: blur(2px);
 }
 
 /* Botón Pausa (Amarillo por defecto) */
 .btn-float-pause {
-    background-color: rgb(255 204 0 / 0.7);
+    background-color: rgb(255 204 0 / 0.5);
 }
 
 /* Clase que se aplica por JS cuando se pausa (Verde) */
 .btn-float-pause.bg-pause-active {
-    background-color: rgb(52 243 12 / 77%) !important;
+    background-color: rgb(52 243 12 / 70%) !important;
+	box-shadow: 0 0px 5px rgb(30 189 24 / 90%);
 }
 
 /* Botón Stop (El pequeño que aparece arriba) */
@@ -914,7 +924,7 @@ html, body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: rgba(220, 38, 38, 0.4);
+    background-color: rgba(220, 0, 0, 0.4);
     backdrop-filter: blur(2px);
     border: 1px solid rgba(255,255,255,0.1);
     color: white;
@@ -923,6 +933,8 @@ html, body {
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s;
+	box-shadow: 0 0px 5px rgb(249 11 11 / 95%);
+	
 }
 
 .btn-float-stop:hover {
@@ -981,6 +993,7 @@ html, body {
         order: -1; /* Esto lo posiciona visualmente a la izquierda */
         width: 45px;
         height: 45px;
+		
     }
 }
 
@@ -1036,8 +1049,8 @@ html, body {
 @media (max-width: 1023px) {
     .reader-controls-wrapper {
         position: fixed;
-        bottom: 85px;
-        right: 25px;
-        flex-direction: column;
+        bottom: 107px;
+        right: 154px;
+        flex-direction: row;
     }
 }
