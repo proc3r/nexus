@@ -900,25 +900,76 @@ function stopSpeech() {
         function toggleExpandMode() { allExpanded = !allExpanded; document.getElementById('expand-mode-btn').classList.toggle('text-[#ffcc00]', allExpanded); document.querySelectorAll('[id^="child-container-"]').forEach(c => c.classList.toggle('hidden', !allExpanded)); if (!allExpanded) expandActiveHierarchy(currentChapterIndex); }
         function expandActiveHierarchy(idx) { if (!allExpanded) { let current = document.getElementById(`toc-item-${idx}`); while (current) { const container = current.parentElement; if (container && container.id.startsWith('child-container-')) { container.classList.remove('hidden'); const pIdx = container.id.replace('child-container-', ''); const t = document.querySelector(`#toc-item-${pIdx} .toc-toggle`); if(t) t.innerText = '−'; current = document.getElementById(`toc-item-${pIdx}`); } else current = null; } } }
         
-        function renderProgressMarkers() {
-            const container = document.getElementById('progress-markers-container');
-            container.innerHTML = '';
-            currentBook.chapters.forEach((ch, i) => {
-                if (ch.level > 2) return;
-                const pos = (i / currentBook.chapters.length) * 100;
-                const marker = document.createElement('div');
-                marker.className = `progress-marker`;
-                marker.style.left = `${pos}%`;
-                marker.innerHTML = ch.level === 1 ? `<div class="marker-h1-dot"></div>` : `<div class="marker-h2-line"></div>`;
-                const tooltip = document.createElement('div');
-                tooltip.className = 'marker-tooltip condensed';
-				// TOOLTIP: LIMPIEZA APLICADA PARA QUE NO MUESTRE CÓDIGO CSS
-                tooltip.innerText = stripHtml(ch.title);
-                marker.appendChild(tooltip);
-                marker.onclick = (e) => { e.stopPropagation(); jumpToChapter(i); };
-                container.appendChild(marker);
+function renderProgressMarkers() {
+    const container = document.getElementById('progress-markers-container');
+    container.innerHTML = '';
+    
+    if (!window.ttHideTimer) window.ttHideTimer = null;
+
+    currentBook.chapters.forEach((ch, i) => {
+        if (ch.level > 2) return;
+        
+        const pos = (i / currentBook.chapters.length) * 100;
+        const marker = document.createElement('div');
+        marker.className = `progress-marker`;
+        marker.style.left = `${pos}%`;
+        marker.innerHTML = ch.level === 1 ? `<div class="marker-h1-dot"></div>` : `<div class="marker-h2-line"></div>`;
+        
+        const tooltip = document.createElement('div');
+        tooltip.className = 'marker-tooltip condensed';
+        tooltip.innerText = stripHtml(ch.title);
+
+        if (pos < 15) tooltip.classList.add('edge-left');
+        else if (pos > 85) tooltip.classList.add('edge-right');
+
+        marker.appendChild(tooltip);
+
+        // --- LÓGICA DE MOSTRADO PERSISTENTE ---
+        const showTooltipForced = () => {
+            if (window.ttHideTimer) clearTimeout(window.ttHideTimer);
+            
+            // Limpiar todos los demás de forma inmediata
+            document.querySelectorAll('.marker-tooltip').forEach(t => {
+                t.classList.remove('force-show');
             });
-        }
+            
+            tooltip.classList.add('force-show');
+        };
+
+        // --- EVENTOS ESPECÍFICOS ---
+
+        // Móvil: Toque inicial
+        marker.addEventListener('touchstart', (e) => {
+            // Evitamos que el navegador haga "hover" por su cuenta
+            showTooltipForced();
+            
+            // Se quedará 4 segundos, dándole tiempo de sobra al usuario para leer
+            window.ttHideTimer = setTimeout(() => {
+                tooltip.classList.remove('force-show');
+            }, 4000);
+        }, { passive: true });
+
+        // Escritorio: Mouse
+        marker.addEventListener('mouseenter', showTooltipForced);
+        marker.addEventListener('mouseleave', () => {
+            if (window.ttHideTimer) clearTimeout(window.ttHideTimer);
+            window.ttHideTimer = setTimeout(() => {
+                tooltip.classList.remove('force-show');
+            }, 1000); // 1 segundo de cortesía en escritorio
+        });
+
+        // Click: Navegación (Funciona en ambos)
+        marker.onclick = (e) => { 
+            e.stopPropagation(); 
+            // Si hace click, quitamos el tooltip y saltamos
+            tooltip.classList.remove('force-show');
+            if (window.ttHideTimer) clearTimeout(window.ttHideTimer);
+            jumpToChapter(i); 
+        };
+        
+        container.appendChild(marker);
+    });
+}
 		
         function openSidebar() { 
     document.getElementById('reader-sidebar').classList.add('open'); 
