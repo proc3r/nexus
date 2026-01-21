@@ -93,12 +93,12 @@
                     </button>
                     <div class="flex items-center gap-2 md:gap-4">
                         <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[11px] font-bold border border-white/5">
-                            <button onclick="changeFontSize(-2)" class="hover:text-[#ffcc00]">A-</button>
+                            <button onclick="changeFontSize(-2)" class="hover:text-[#ffcc00]" title="Disminuir Fuente">A-</button>
                             <span id="font-size-val">25</span>
-                            <button onclick="changeFontSize(2)" class="hover:text-[#ffcc00]">A+</button>
+                            <button onclick="changeFontSize(2)" class="hover:text-[#ffcc00]" title="Aumentar Fuente">A+</button>
                         </div>
                         <div class="settings-dropdown-container">
-                            <button onclick="toggleDropdown('font-dropdown')" class="flex items-center gap-1 px-3 py-0.5 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5">
+                            <button onclick="toggleDropdown('font-dropdown')" class="flex items-center gap-1 px-3 py-0.5 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5" title="Cambiar Fuente">
                                 <span id="current-font-label" class="text-[11px] font-bold uppercase condensed tracking-wider w-11 truncate sm:inline">Merriweather</span>
                                 <svg class="w-2.5 h-2.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </button>
@@ -163,19 +163,19 @@
                         </div>
                     </div>
                 </div>
-                <footer class="flex-shrink-0 px-4 py-2 border-t border-white/10 bg-black/15">
+                <footer class="flex-shrink-0 px-4 py-1 border-t border-white/10 bg-black/15">
                     <div class="max-w-4xl mx-auto">
                         <div class="flex justify-between text-[14px] uppercase font-bold opacity-70 mb-2 condensed tracking-widest">
                             <span id="time-remaining" class="text-[19px] font-bold italic opacity-100" style="letter-spacing: 0.5px;">Calculando tiempo...</span>
-                            <span style="letter-spacing: 0.2px; font-size: 19px;">Bloque <span id="current-p-num">0</span> / <span id="total-p-num">0</span> — <span id="progress-percent">0%</span></span>
+                            <span style="letter-spacing: 0.2px; font-size: 19px;"><span id="current-p-num">0</span> / <span id="total-p-num">0</span> — <span id="progress-percent">0%</span></span>
                         </div>
                         <div class="progress-bar-container mb-3">
                             <div id="reading-progress-bar"></div>
                             <div id="progress-markers-container"></div>
                         </div>
 						
-                        <div class="flex justify-between items-center pb-4 px-4">
-    <button onclick="prevChunk()" class="bg-[#ffcc00] text-black px-6 py-2 rounded-full font-black uppercase tracking-widest text-[15px] shadow-md hover:bg-[#2196f3] transition-colors condensed">◀ BACK</button>
+                        <div class="flex justify-between items-center pb-2.5 px-1">
+    <button onclick="prevChunk()" class="bg-[#ffcc00] text-black px-3 py-2 rounded-full font-black uppercase tracking-widest text-[15px] shadow-md hover:bg-[#2196f3] transition-colors condensed">◀ BACK</button>
     
     <div class="relative">
         <div id="reader-speed-menu" class="speed-menu-up hidden">
@@ -189,13 +189,11 @@
         </button>
     </div>
 
-    <button id="next-btn" onclick="nextChunk()" class="bg-[#ffcc00] text-black px-6 py-2 rounded-full font-black uppercase tracking-widest text-[15px] shadow-md hover:bg-[#ff4444] transition-colors condensed">NEXT ▶</button>
+    <button id="next-btn" onclick="nextChunk()" class="bg-[#ffcc00] text-black px-3 py-2 rounded-full font-black uppercase tracking-widest text-[15px] shadow-md hover:bg-[#ff4444] transition-colors condensed">NEXT ▶</button>
 </div>
 
 <div class="reader-controls-wrapper">
-    <button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
-        <span class="mi-round">&#xef71;</span>
-    </button>
+    
 
     <div class="main-audio-trigger">
         <button id="tts-btn" onclick="startSpeech()" class="btn-float-red">
@@ -207,6 +205,9 @@
             <span id="pause-icon" class="mi-round">&#xe1a2;</span>
         </button>
     </div>
+	<button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
+        <span class="mi-round">&#xef71;</span>
+    </button>
 </div>
 
                     </div>
@@ -220,7 +221,7 @@
         
         <div class="synopsis-header px-4">
             <h2 class="synopsis-title text-[#ffcc00] font-black uppercase condensed italic italic">Sinopsis</h2>
-            <button onclick="closeSynopsis()" class="text-white/40 hover:text-red-500 flex items-center gap-1 uppercase text-[11px] font-bold tracking-tighter">
+            <button onclick="closeSynopsis()" class="text-white/40 hover:text-red-500 flex items-center gap-1 uppercase text-[11px] font-bold tracking-tighter" title="Cerrar Sinopsis">>
                 cerrar <span class="mi-round text-xl" style="color: #ff4444;font-size: 26px;
 ">close</span>
             </button>
@@ -232,7 +233,7 @@
         <div class="audio-float-control">
     
 
-    <button id="btn-synopsis-tts" onclick="startSynopsisTTS()" class="btn-float-sinopsis">
+    <button id="btn-synopsis-tts" onclick="startSynopsisTTS()" class="btn-float-sinopsis" title="Leer Sinopsis">
         <span class="mi-round text-3xl text-black"></span>
     </button>
     <button id="btn-synopsis-stop" onclick="stopSynopsisTTS()" class="btn-float-stop-sinopsis hidden">
@@ -245,14 +246,14 @@
             <button onclick="setSynopsisSpeed(1.1)">1.1x</button>
             <button onclick="setSynopsisSpeed(1.2)">1.2x</button>
         </div>
-        <button id="btn-synopsis-speed" onclick="toggleSynopsisSpeedMenu()" class="btn-speed-sinopsis">
+        <button id="btn-synopsis-speed" onclick="toggleSynopsisSpeedMenu()" class="btn-speed-sinopsis" title="Cambiar Velocidad">
             <span class="text-[13px] font-bold" id="current-speed-label">1.1x</span>
         </button>
     </div>
 </div>
 
         <div class="p-1 pt-4 flex justify-center">
-            <button id="btn-synopsis-read" class="btn-synopsis2">
+            <button id="btn-synopsis-read" class="btn-synopsis2" title="Entrar al Libro">
                 Leer el Libro
             </button>
         </div>

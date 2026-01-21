@@ -78,7 +78,7 @@ html, body {
         --reader-font-size: 19px;
         --reader-font-family: 'Merriweather', serif;
         --reader-text-align: center;
-        --reader-line-height: 1.2;
+        --reader-line-height: 1.3;
     }
 }
 
@@ -120,10 +120,10 @@ html, body {
 
 #reader-sidebar:not(.open) { transform: translateX(-100%); }
 #reader-sidebar.open { transform: translateX(0); background-color: var(--sidebar-blur);}
-#reader-sidebar.pinned { position: relative; transform: translateX(0); }
+#reader-sidebar.pinned { position: relative; transform: translateX(0); box-shadow: 0 4px 13px rgb(0 0 0 / 20%); }
 
 @media (min-width: 769px) {
-    #reader-sidebar { width: 380px; padding: 0; }
+    #reader-sidebar { width: 380px; padding: 0; box-shadow: 8px 10px 10px rgb(0 0 0 / 23%); }
     .sidebar-header { padding: 0.8rem 0.8rem 1rem 0.8rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
     #chapter-list { padding: 1rem; background: rgb(167 145 39 / 8%); }
 }
@@ -183,6 +183,8 @@ html, body {
     background: rgba(0, 0, 0, 0.04);
     border-radius: 0 8px 8px 0;
     font-style: italic;
+	box-shadow: 9px 7px 13px rgb(0 0 0 / 20%);
+	animation: ease-in-out;
 }
 
 #reading-container-fixed {
@@ -470,7 +472,7 @@ html, body {
     #reading-container-fixed > .content-wrapper { padding-top: 5px; padding-bottom: 20px; }
     #image-timer { top: 65px; font-size: 11px; padding: 6px 14px; gap: 8px; }
     .nav-icon-btn { width: 24px; height: 24px; }
-    #resume-card { bottom: 0.5rem; max-width: 320px; width: 100%; right: 10px;}
+    #resume-card { bottom: 0.5rem; max-width: 320px; width: 100%; right: 15px;}
     .settings-dropdown { left: auto; right: 0; transform: none; }
     .font-dropdown { left: 0; transform: none; }                                            
 }
@@ -955,7 +957,7 @@ html, body {
 
 /* Botón Pausa (Amarillo por defecto) */
 .btn-float-pause {
-    background-color: rgb(255 204 0 / 0.5);
+    background-color: rgb(255 204 0 / 0.6);
 }
 
 /* Clase que se aplica por JS cuando se pausa (Verde) */
@@ -1082,7 +1084,7 @@ html, body {
     left: 50% !important;
     right: auto !important;
     transform: translateX(-50%) !important;
-    bottom: 107px; /* Altura para móvil */
+    bottom: 80px; /* Altura para móvil */
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -1141,3 +1143,19 @@ html, body {
         left: 50% !important;
     }
 }
+
+@keyframes latido {
+  0% {
+    transform: scale(1); /* Estado normal */
+    box-shadow: 7px 7px 13px rgb(0 0 0 / 20%); /* Sombra suave */
+  }
+  50% {
+    transform: scale(1.01); /* Crece un poco */
+    box-shadow: 7px 7px 13px rgb(0 0 0 / 20%); /* Sombra se expande y desaparece */
+  }
+  100% {
+    transform: scale(1); /* Vuelve a su tamaño */
+    box-shadow: 7px 7px 13px rgb(0 0 0 / 20%);
+  }
+}
+

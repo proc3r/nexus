@@ -855,9 +855,9 @@ function stopSpeech() {
             }
             const mins = remainingWords / 180;
             const timeEl = document.getElementById('time-remaining');
-            if (mins < 1) timeEl.innerText = "Menos de 1 min restante";
-            else if (mins < 60) timeEl.innerText = `${Math.ceil(mins)} min restantes`;
-            else timeEl.innerText = `${Math.floor(mins/60)}h ${Math.ceil(mins%60)}m restantes`;
+            if (mins < 1) timeEl.innerText = "Falta menos de 1 min";
+            else if (mins < 60) timeEl.innerText = `Faltan ${Math.ceil(mins)} min`;
+            else timeEl.innerText = `Faltan ${Math.floor(mins/60)}h ${Math.ceil(mins%60)}m`;
         }
 
         function renderTOC() {
