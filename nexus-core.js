@@ -960,6 +960,7 @@ function startSynopsisTTS() {
 
     // 1. LIMPIEZA TOTAL PREVIA para evitar leer libros anteriores
     window.speechSynthesis.cancel();
+	synth.cancel();
     synopsisSubChunks = [];
     currentSynopsisIdx = 0;
 
