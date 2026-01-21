@@ -951,20 +951,37 @@ let synopsisSubChunks = [];
 let currentSynopsisIdx = 0;
 
 function startSynopsisTTS() {
-    const text = document.getElementById('synopsis-body').innerText;
-    
-    // Cambiamos estado de botones
-    document.getElementById('btn-synopsis-tts').classList.add('hidden');
-    document.getElementById('btn-synopsis-stop').classList.remove('hidden');
-    
-    window.speechSynthesis.cancel(); // Limpiar cualquier lectura previa
+    const body = document.getElementById('synopsis-body');
+    if (!body) return;
 
-    // REUTILIZAMOS TU LÓGICA CORE: splitTextSmartly a 140 caracteres
-    synopsisSubChunks = splitTextSmartly(text, 140);
+    // 1. LIMPIEZA TOTAL PREVIA para evitar leer libros anteriores
+    window.speechSynthesis.cancel();
+    synopsisSubChunks = [];
     currentSynopsisIdx = 0;
 
-    function speakNextSynopsisChunk() {
-        // Verificamos si el modal sigue abierto antes de procesar el siguiente fragmento
+    // 2. OBTENER TEXTO Y APLICAR FILTRO INTELIGENTE
+    let textToRead = body.innerText;
+
+    // REGLA A: Guiones de lista (inicio de línea o tras blockquote) -> Reemplazar por pausa (.)
+    textToRead = textToRead.replace(/^>\s*-\s*/gm, "… ");
+    textToRead = textToRead.replace(/^-\s+/gm, "… ");
+
+    // REGLA B: Guion entre letras o palabras (ej: "hardware - orgánico") -> Reemplazar por pausa (.)
+    // Buscamos guiones que NO tengan números a ambos lados
+    textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ])\s*-\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1 … $2");
+
+    // NOTA: Los guiones entre números (ej: "3 - 3") NO son tocados por estas reglas, 
+    // así que el motor los seguirá leyendo como "menos".
+
+    // 3. CAMBIAR INTERFAZ
+    document.getElementById('btn-synopsis-tts').classList.add('hidden');
+    document.getElementById('btn-synopsis-stop').classList.remove('hidden');
+
+    // 4. GENERAR CHUNKS (Usando tu función core splitTextSmartly)
+    synopsisSubChunks = splitTextSmartly(textToRead, 140);
+
+    function speakNextSynopsis() {
+        // Verificamos si el modal sigue abierto
         const modalVisible = !document.getElementById('synopsis-modal').classList.contains('hidden');
         
         if (!modalVisible || currentSynopsisIdx >= synopsisSubChunks.length) {
@@ -972,39 +989,36 @@ function startSynopsisTTS() {
             return;
         }
 
-        const textToRead = synopsisSubChunks[currentSynopsisIdx].trim();
-        if (textToRead.length === 0) {
+        const currentText = synopsisSubChunks[currentSynopsisIdx].trim();
+        if (currentText.length === 0) {
             currentSynopsisIdx++;
-            speakNextSynopsisChunk();
+            speakNextSynopsis();
             return;
         }
 
-        const utter = new SpeechSynthesisUtterance(textToRead);
+        const utter = new SpeechSynthesisUtterance(currentText);
         utter.lang = 'es-ES';
         utter.rate = 1.0;
 
         utter.onend = () => {
             currentSynopsisIdx++;
-            speakNextSynopsisChunk();
+            speakNextSynopsis();
         };
 
-        utter.onerror = (e) => {
-            console.error("Error TTS Sinopsis:", e);
-            stopSynopsisTTS();
-        };
+        utter.onerror = () => stopSynopsisTTS();
 
         window.speechSynthesis.speak(utter);
     }
 
-    speakNextSynopsisChunk();
+    speakNextSynopsis();
 }
 
 function stopSynopsisTTS() {
-    isSynopsisReading = false; // Por seguridad
     window.speechSynthesis.cancel();
+    synopsisSubChunks = [];
+    currentSynopsisIdx = 0;
     document.getElementById('btn-synopsis-stop').classList.add('hidden');
     document.getElementById('btn-synopsis-tts').classList.remove('hidden');
-    synopsisSubChunks = []; // Limpiamos la cola
 }
 
 function closeSynopsis() {
