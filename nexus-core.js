@@ -655,9 +655,9 @@ function loadChapter(idx) {
 																				   
             let textToRead = document.getElementById('book-content').innerText;
             if(!textToRead.trim()) return;
-			textToRead = textToRead.replace(/^>\s*-\s*/gm, "2 ");
-			textToRead = textToRead.replace(/^-\s+/gm, "2 ");
-			textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ0-9])\s*-\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1 2 $2");
+			textToRead = textToRead.replace(/^>\s*-\s*/gm, "… ");
+			textToRead = textToRead.replace(/^-\s+/gm, "… ");
+			textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ0-9])\s*-\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1 … $2");
             // MEJORA: Convertimos a minúsculas solo para el motor de voz para evitar que deletree títulos
             textToRead = textToRead.toLowerCase(); 
             textToRead = filterTextForVoice(textToRead);
