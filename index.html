@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Nexus Avatar</title>
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Barlow+Condensed:ital,wght@0,300;0,400;1,300;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700&family=Lora:ital,wght@0,400;0,700&family=Libre+Baskerville:ital,wght@0,400;0,700&family=Source+Sans+3:wght@400;700&family=IBM+Plex+Sans:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Round" rel="stylesheet">
@@ -186,9 +187,9 @@
 			<button onclick="setReaderSpeed(1.3)">1.3x</button>
 			<button onclick="setReaderSpeed(1.4)">1.4x</button>
         </div>
-        <button onclick="toggleReaderSpeedMenu()" class="btn-speed">
-            <span id="reader-speed-label" class="btn-speed">1.0x</span>
-        </button>
+        <button id="btn-reader-speed" onclick="toggleReaderSpeedMenu(event)" class="btn-speed">
+    <span id="reader-speed-label">1.0x</span>
+</button>
     </div>
 
     <button id="next-btn" onclick="nextChunk()" class="bg-[#ffcc00] text-black px-3 py-2 rounded-full font-black uppercase tracking-widest text-[15px] shadow-md hover:bg-[#ff4444] transition-colors condensed">NEXT ▶</button>

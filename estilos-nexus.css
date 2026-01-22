@@ -747,7 +747,7 @@ html, body {
 /* Reducción drástica de espacios en el Modal */
 #synopsis-modal .modal-container {
     padding: 0.5rem 0.5rem 1rem 0.5rem !important;
-	
+	box-shadow: 0 0 18px rgb(63 219 17 / 81%);
     background: rgba(15, 17, 21, 0.8);
 }
 
@@ -889,7 +889,7 @@ html, body {
     bottom: 44px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
     padding: 3px 0px 3px 0px;
@@ -1201,7 +1201,7 @@ html, body {
   50% {
     transform: scale(1.02); /* Crece un poco */
     box-shadow: 0px 0px 15px rgb(56 90 255 / 81%);
-	background: rgb(56 90 255 / 60%);/* Sombra se expande y desaparece */
+	background: rgb(36 50 215 / 60%);/* Sombra se expande y desaparece */
   }
   100% {
     transform: scale(1); /* Vuelve a su tamaño */
@@ -1211,7 +1211,12 @@ html, body {
 
 @media (min-width: 1023px) {
 #synopsis-modal .modal-container {
-    padding: 2rem 2rem 2rem 2rem !important;
+    padding: 2rem 1rem 2rem 1rem !important;
     background: rgba(15, 17, 21, 0.8);
 }
+}
+
+#speed-dropdown {
+    max-height: 300px;
+    overflow-y: auto;
 }

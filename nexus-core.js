@@ -52,16 +52,30 @@ let library = [];
 }
 
 
-		function setReaderSpeed(rate) {
-			readerSpeechRate = rate;
-			const label = document.getElementById('reader-speed-label');
-			if (label) label.innerText = rate + 'x';
+	function setReaderSpeed(rate) {
+    // 1. Actualizamos ambas variables globales para asegurar consistencia
+    readerSpeechRate = rate;
+    synopsisSpeechRate = rate;
+
+    // 2. Actualizamos la etiqueta visual del lector principal
+    const label = document.getElementById('reader-speed-label');
+    if (label) label.innerText = rate + 'x';
+
+    // 3. Actualizamos la etiqueta visual de la sinopsis (si existe)
+    const labelSynopsis = document.getElementById('current-speed-label');
+    if (labelSynopsis) labelSynopsis.innerText = rate + 'x';
     
-    // Ocultar el menú tras seleccionar
-    document.getElementById('reader-speed-menu').classList.add('hidden');
+    // 4. Ocultamos los menús de selección
+    const speedMenu = document.getElementById('reader-speed-menu');
+    if (speedMenu) speedMenu.classList.add('hidden');
     
-    // Si se cambia la velocidad mientras está hablando, se aplicará en el próximo fragmento
-}	
+    const speedMenuSynopsis = document.getElementById('synopsis-speed-menu');
+    if (speedMenuSynopsis) speedMenuSynopsis.classList.add('hidden');
+
+    // NOTA: No aplicamos synth.cancel(). 
+    // La nueva velocidad se tomará automáticamente en la siguiente llamada a:
+    // new SpeechSynthesisUtterance() en el próximo fragmento.
+}
         
 
         window.onload = () => {
@@ -1236,6 +1250,7 @@ function closeSynopsis() {
 // Cerrar menús de velocidad al tocar fuera de ellos
 document.addEventListener('click', function(event) {
     const speedMenuReader = document.getElementById('reader-speed-menu');
+    // Referencia al botón usando la clase que tiene en tu HTML
     const speedBtnReader = document.querySelector('.speed-btn-center');
     
     const speedMenuSynopsis = document.getElementById('synopsis-speed-menu');
@@ -1243,16 +1258,21 @@ document.addEventListener('click', function(event) {
 
     // Lógica para el Lector Principal
     if (speedMenuReader && !speedMenuReader.classList.contains('hidden')) {
-        // Si el clic NO fue en el menú ni en el botón que lo abre
-        if (!speedMenuReader.contains(event.target) && !speedBtnReader.contains(event.target)) {
+        // Usamos .closest('.speed-btn-center') para detectar el botón correctamente
+        const isClickInsideMenu = speedMenuReader.contains(event.target);
+        const isClickOnButton = event.target.closest('.speed-btn-center');
+
+        if (!isClickInsideMenu && !isClickOnButton) {
             speedMenuReader.classList.add('hidden');
         }
     }
 
     // Lógica para la Sinopsis
     if (speedMenuSynopsis && !speedMenuSynopsis.classList.contains('hidden')) {
-        // Si el clic NO fue en el menú ni en el botón que lo abre
-        if (!speedMenuSynopsis.contains(event.target) && !speedBtnSynopsis.contains(event.target)) {
+        const isClickInsideMenu = speedMenuSynopsis.contains(event.target);
+        const isClickOnButton = event.target.closest('#btn-synopsis-speed');
+
+        if (!isClickInsideMenu && !isClickOnButton) {
             speedMenuSynopsis.classList.add('hidden');
         }
     }
