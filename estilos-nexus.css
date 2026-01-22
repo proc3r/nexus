@@ -1401,7 +1401,7 @@ html, body {
     cursor: zoom-out;
     animation: fadeIn 0.5s ease;
 }
-
+/*
 .modal-content-wrapper {
     position: relative;
     max-width: 95%;
@@ -1418,6 +1418,28 @@ html, body {
     border-radius: 8px;
     
     cursor: default;
+	box-shadow: 0px 0px 10px rgb(235 148 14 / 88);
+}*/
+
+.modal-content-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Importante para que el zoom no se salga */
+    touch-action: none; /* Desactiva el zoom nativo del navegador en este elemento */
+}
+
+#modal-image {
+    transition: transform 0.1s ease-out; /* Suavidad al escalar */
+    transform-origin: center;
+    will-change: transform;
+    max-width: 95%;
+    max-height: 90vh;
+    user-select: none;
+    -webkit-user-drag: none;
 	box-shadow: 0px 0px 10px rgb(235 148 14 / 88);
 }
 

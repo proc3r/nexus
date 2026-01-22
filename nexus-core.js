@@ -1315,18 +1315,25 @@ window.addEventListener('resize', () => {
     }
 });
 
-// Función para abrir el modal con la imagen original
 function openImageModal(url, caption) {
     const modal = document.getElementById('image-modal');
     const modalImg = document.getElementById('modal-image');
-    const modalCap = document.getElementById('modal-caption');
-
-    modalImg.src = url;
-    modalCap.innerText = caption.replace(/_/g, ' '); // Limpia el nombre del archivo
-    modal.classList.remove('hidden');
+	
     
-    // Bloquear scroll del fondo mientras está abierto
+    // Resetear escala cada vez que se abre
+    currentScale = 1;
+    modalImg.style.transform = `scale(1)`;
+    
+    modalImg.src = url;
+    document.getElementById('modal-caption').innerText = caption.replace(/_/g, ' ');
+    modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+
+    // Inicializar los escuchas de eventos solo una vez
+    if (!modal.dataset.zoomInit) {
+        initZoomHandlers();
+        modal.dataset.zoomInit = "true";
+    }
 }
 
 // Función para cerrar el modal
@@ -1345,3 +1352,50 @@ function closeImageModal() {
 document.addEventListener('keydown', (e) => {
     if (e.key === "Escape") closeImageModal();
 });
+
+
+let currentScale = 1;
+let initialDistance = 0;
+
+function initZoomHandlers() {
+    const modalImg = document.getElementById('modal-image');
+    const wrapper = document.querySelector('.modal-content-wrapper');
+
+    // --- LÓGICA MOBILE (TOUCH) ---
+    wrapper.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+            // Calculamos distancia inicial entre dos dedos
+            initialDistance = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX,
+                e.touches[0].pageY - e.touches[1].pageY
+            );
+        }
+    }, { passive: false });
+
+    wrapper.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2) {
+            e.preventDefault(); // Evita el zoom nativo de la página
+            
+            const currentDistance = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX,
+                e.touches[0].pageY - e.touches[1].pageY
+            );
+
+            // Factor de sensibilidad
+            const delta = currentDistance / initialDistance;
+            let newScale = currentScale * delta;
+
+            // Límites de zoom (mínimo 1x, máximo 4x)
+            newScale = Math.min(Math.max(1, newScale), 4);
+            
+            modalImg.style.transform = `scale(${newScale})`;
+        }
+    }, { passive: false });
+
+    wrapper.addEventListener('touchend', (e) => {
+        // Guardamos la escala actual al soltar para que el siguiente zoom parta de ahí
+        const transform = window.getComputedStyle(modalImg).getPropertyValue('transform');
+        const matrix = new DOMMatrix(transform);
+        currentScale = matrix.a; 
+    });
+}
