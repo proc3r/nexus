@@ -237,14 +237,21 @@ html, body {
     left: 50%;
 	border-radius: 4px;
 	padding: 4px 8px;
-	background: rgb(55 58 55 / 85%);
+	background: rgb(0 215 23 / 25%);
+	backdrop-filter: blur(4px);
     transform: translateX(-50%);
     opacity: 0;
+	text-transform: uppercase;
+	weight: 600;
     visibility: hidden;
     Transition: opacity 0.3s ease, visibility 0.1s ease;
     pointer-events: none;
     white-space: nowrap;
     z-index: 10001;
+	 border: 1px solid rgb(246 248 249 / 30%);
+	box-shadow: 0px 0px 6px rgb(0 255 0 / 88%);
+	
+	 color: white;
 }
 
 /* Forzar mostrado desde JS */
@@ -337,15 +344,59 @@ html, body {
 #sidebar-trigger:hover { width: 20px; }
 
 /* 6. IMÁGENES Y LIBRERÍA */
+
+	/* Estilos para imágenes optimizadas y zoom */
+.reader-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 3px 2px 13px rgb(0 0 0 / 50);
+    transition: transform 0.2s ease;
+}
+
+.cursor-zoom-in {
+    cursor: zoom-in;
+}
+
+.reader-image:active {
+    transform: scale(0.98); /* Efecto de pulsación al hacer clic */
+}
+
+/* Mejora la carga progresiva 
+.reader-image-container {
+        min-height: 200px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}*/
+
+.reader-text {
+    font-family: 'Barlow Condensed';
+    text-transform: uppercase;
+    font-style: italic;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 50%);
+    margin-top: 0.5rem;
+	font-size: 17px;
+	text-align: center;
+}
+}
+
 .reader-image-container {
     width: 100%; display: flex; justify-content: center; margin: 2rem 0;
     flex-direction: column; align-items: center; position: relative;
 }
+/*
 .reader-image {
     max-width: 100%; max-height: 85vh; border-radius: 0.75rem;
-   /* box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);*/
+   
     object-fit: contain;
-}
+}*/
+
+
+
+
+
 /*
 .book-card-cover {
     width: 100%; height: 180px; border-radius: 2.5rem 2.5rem 0rem 0rem; margin-bottom: 0.3rem;
@@ -422,39 +473,79 @@ html, body {
 .book-card:hover .book-card-cover img { transform: scale(1.1); }
 
 #image-timer {
-    position: absolute; top: 72px; left: 50%; transform: translateX(-50%);
-    z-index: 50; background: rgba(0, 0, 0, 0.6); padding: 8px 16px;
-    border-radius: 30px; font-size: 14px; font-weight: bold; color: #ffcc00;
-    display: flex; align-items: center; justify-content: center; gap: 12px;
-    border: 1px solid rgba(255, 204, 0, 0.4); backdrop-filter: blur(12px);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.6); white-space: nowrap;
-    transition: opacity 0.3s ease; width: max-content; max-width: 95%;
+    position: absolute;
+    top: 117px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 19px;
+    /* font-weight: bold; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    backdrop-filter: blur(12px);
+    white-space: nowrap;
+    transition: opacity 0.3s ease;
+    width: max-content;
+    max-width: 95%;
+    box-shadow: 0px 0px 8px rgb(0 255 0 / 81%);
+	background-color: rgb(52 243 12 / 20%);
+    border: 1px solid rgb(52 243 12 / 30%);
+    font-family: 'Barlow Condensed';
+}
+
+.timer-text {
+    font-size: 16px;
+    /*text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 800;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    box-shadow: 0px 0px 6px #ffeb3b;
+    background: rgb(88 82 24);
+    border: 1px solid rgb(235 148 14 / 30%);*/
 }
 
 .timer-pause-btn {
-    font-size: 11px; text-transform: uppercase; background: #ffcc00; color: #000;
-    padding: 3px 10px; border-radius: 12px; cursor: pointer; font-weight: 800;
-    transition: all 0.2s; flex-shrink: 0;
+    font-size: 16px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 800;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    box-shadow: 0px 0px 6px #ffeb3b;
+    background: rgb(231 214 56 / 48%);
+    border: 1px solid rgb(235 148 14 / 30%);
 }
-.timer-pause-btn:hover { background: #fff; transform: scale(1.05); }
 
+.timer-pause-btn:hover { background-color: rgb(52 243 12 / 70%); box-shadow: 0px 0px 8px rgb(0 255 0 / 81%); transform: scale(1.05); }
+
+
+	
 /* 7. DROPDOWNS Y AJUSTES */
 .settings-dropdown-container { position: relative; } 
 .settings-dropdown {
     position: absolute; top: 110%; left: 50%;
     transform: translateX(-50%);
     min-width: 140px; background: var(--dropdown-bg);
-    backdrop-filter: blur(12px);
+    /*backdrop-filter: blur(12px);*/
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.4);
     z-index: 200; display: none; padding: 4px 0; color: inherit;
 }
 .settings-dropdown.show { display: block; }
 
-.font-dropdown { width: 140px; max-height: 300px; }
+.font-dropdown { width: 170px; max-height: 320px; }
 
 .setting-option {
-    padding: 8px 14px; cursor: pointer; font-size: 13px;
+    padding: 8px 14px; cursor: pointer; font-size: 18px;
     transition: all 0.2s; display: flex; align-items: center; gap: 8px;
     line-height: 1; 
 }
@@ -519,7 +610,7 @@ html, body {
 @media (max-width: 768px) {
     #reading-container-fixed {padding-right: 20px;  padding-left: 20px;}
     #reading-container-fixed > .content-wrapper { padding-top: 5px; padding-bottom: 20px; }
-    #image-timer { top: 65px; font-size: 11px; padding: 6px 14px; gap: 8px; }
+    #image-timer { top: 90px; font-size: 17px; padding: 6px 14px; gap: 8px; }
     .nav-icon-btn { width: 24px; height: 24px; }
     #resume-card { bottom: 0.5rem; max-width: 320px; width: 100%; right: 15px;}
     .settings-dropdown { left: auto; right: 0; transform: none; }
@@ -971,20 +1062,25 @@ html, body {
     justify-content: center;
     /*border: 4px solid #141517;*/
     box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-    cursor: pointer;
+	cursor: pointer;
     transition: transform 0.2s, background-color 0.3s;
 }
 
 .btn-float-red span, .btn-float-pause span {
     font-size: 35px;
     color: black;
+	
 }
 
 /* Botón Rojo (Persona hablando) */
 .btn-float-red {
-    background-color: rgb(247 46 6 / 56%);
-	box-shadow: 0 0px 5px rgb(249 11 11 / 95%);
+    
+	/*box-shadow: 0 0px 5px rgb(249 11 11 / 95%);*/
+	
     backdrop-filter: blur(1px);
+	background-color: rgb(52 243 12 / 70%) !important;
+	transition: transform 0.5s, background-color 0.3s;
+	box-shadow: 0px 0px 8px rgb(0 255 0  / 81%);
 }
 
 
@@ -998,22 +1094,30 @@ html, body {
     align-items: center;
     justify-content: center;
     background-color: rgb(0 229 34 / 76%);
-        cursor: pointer;
-    transition: transform 0.2s, background-color 0.3s;
-	box-shadow: 0 0px 5px rgb(11 249 62 / 95%);
+    cursor: pointer;
+    transition: transform 0.5s, background-color 0.3s;
+	box-shadow: 0 0px 5px rgb(11 249 62 / 55%);
+	
 }
 
 
 /* Botón Pausa (Amarillo por defecto) */
 .btn-float-pause {
     background-color: rgb(255 204 0 / 0.6);
+    /*box-shadow: 3px 3px 12px rgb(24 24 24 / 55%);*/
+	box-shadow: 0px 0px 8px rgb(0 255 0  / 81%);
+	
 }
 
 /* Clase que se aplica por JS cuando se pausa (Verde) */
 .btn-float-pause.bg-pause-active {
     background-color: rgb(52 243 12 / 70%) !important;
-	box-shadow: 0 0px 5px rgb(30 189 24 / 90%);
+	/*box-shadow: 3px 3px 12px rgb(24 24 24 / 55%);*/
+	transition: transform 0.5s, background-color 0.3s;
+	box-shadow: 0px 0px 8px rgb(0 255 0  / 81%);
 }
+
+
 
 /* Botón Stop (El pequeño que aparece arriba) */
 .btn-float-stop {
@@ -1030,6 +1134,8 @@ html, body {
     cursor: pointer;
     transition: all 0.3s;
 	box-shadow: 0 0px 5px rgb(249 11 11 / 95%);
+	/*box-shadow: 3px 3px 12px rgb(24 24 24 / 55%);*/
+	transition: transform 0.5s, background-color 0.3s;
 	
 }
 
@@ -1064,7 +1170,7 @@ html, body {
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 0px 5px rgb(249 11 11 / 95%);
+    box-shadow: 0 0px 5px rgb(190 11 249 / 95%);
 }
 
 .btn-speed-sinopsis {
@@ -1080,7 +1186,7 @@ html, body {
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 0px 5px rgb(249 11 11 / 95%);
+    box-shadow: 0 0px 5px rgb(190 11 249 / 95%);
 }
 
 .btn-float-stop:hover {
@@ -1220,3 +1326,134 @@ html, body {
     max-height: 300px;
     overflow-y: auto;
 }
+
+/* --- ESTILO BASE PARA BOTONES DE NAVEGACIÓN --- */
+.btn-nav {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-family: 'Barlow Condensed', sans-serif;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* --- BOTÓN NEXT (ROJO NEÓN) --- */
+.btn-next {
+    background: rgba(255, 68, 68, 0.26); /* Rojo muy transparente */
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    color: #ff4444;
+    box-shadow: 0px 0px 8px rgba(255, 68, 68, 0.6);
+	border-radius: 0.8rem;
+}
+
+.btn-next:hover {
+    background: rgba(255, 68, 68, 0.5); /* Efecto cristal más sólido */
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    font-size: 17px;
+    box-shadow: 0px 0px 15px rgba(255, 68, 68, 0.9);
+    transform: scale(1.1);
+}
+
+/* --- BOTÓN BACK (AZUL NEÓN) --- */
+.btn-back {
+    background: rgba(33, 150, 243, 0.26); /* Azul muy transparente */
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    color: #2196f3;
+    box-shadow: 0px 0px 8px rgba(33, 150, 243, 0.6);
+	border-radius: 0.8rem;
+}
+
+.btn-back:hover {
+    background: rgba(33, 150, 243, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    font-size: 17px;
+    box-shadow: 0px 0px 15px rgba(33, 150, 243, 0.9);
+    transform: scale(1.1);
+}
+
+/* Ajuste para que no se muevan otros elementos al crecer el botón */
+.flex.justify-between.items-center {
+    gap: 10px;
+    min-height: 50px; /* Evita que la barra salte al hacer hover */
+}
+
+
+
+/* --- ESTILOS DEL MODAL DE IMAGEN --- */
+.image-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000; /* Por encima de todo */
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+    animation: fadeIn 0.5s ease;
+}
+
+.modal-content-wrapper {
+    position: relative;
+    max-width: 95%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#modal-image {
+    max-width: 100%;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 8px;
+    
+    cursor: default;
+	box-shadow: 0px 0px 10px rgb(235 148 14 / 88);
+}
+
+.close-modal-btn {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: var(--primary-accent);
+    font-size: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 2100;
+}
+
+.modal-caption {
+    margin-top: 3px;
+    padding: 1px 7px 1px 7px;
+    color: white;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 15px;
+    box-shadow: 0px 0px 6px rgb(235 148 14 / 88%);
+    background: rgb(235 148 14 / 10%);
+    /* border: 1px solid rgb(235 148 14 / 30%); */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Ajustes según dispositivo */
+@media (min-width: 1024px) {
+    .modal-content-wrapper {
+        max-width: 85%; /* En escritorio no ocupa el 100% para que se vea flotante */
+    }
+}
+

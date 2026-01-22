@@ -27,7 +27,12 @@ let library = [];
 		  
 			
 	 
-   
+   // Función para optimizar imágenes mediante wsrv.nl
+function getOptimizedImageUrl(url, width = 800) {
+    if (!url || url === DEFAULT_COVER) return url;
+    // wsrv.nl permite redimensionar, comprimir (output=webp) y ajustar calidad
+    return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&output=webp&q=75`;
+}
 					   
 	
 
@@ -50,6 +55,7 @@ let library = [];
 			const menu = document.getElementById('reader-speed-menu');
 			menu.classList.toggle('hidden');
 }
+
 
 
 	function setReaderSpeed(rate) {
@@ -203,7 +209,8 @@ let library = [];
                         if (coverMatch) {
    
                             let fileName = coverMatch[1].split('|')[0].trim();
-                            coverUrl = repo.raw + encodeURIComponent(fileName);
+                            let rawCoverUrl = repo.raw + encodeURIComponent(fileName);
+							coverUrl = getOptimizedImageUrl(rawCoverUrl, 500); // 500px es suficiente para portadas
                         }
 
                         library.push({
@@ -592,8 +599,18 @@ function loadChapter(idx) {
                 isImage = true;
    
 	  
-                const imageUrl = currentBook.rawBase + encodeURIComponent(embedMatch[1].split('|')[0].trim());
-                finalHtml = `<div class="reader-image-container"><img src="${imageUrl}" class="reader-image" alt="${fileName}"></div>`;
+                const rawImageUrl = currentBook.rawBase + encodeURIComponent(embedMatch[1].split('|')[0].trim());
+				const optimizedUrl = getOptimizedImageUrl(rawImageUrl, 1000); // 1000px para lectura interna
+
+finalHtml = `
+    <div class="reader-image-container">
+        <img src="${optimizedUrl}" 
+             class="reader-image cursor-zoom-in" 
+             alt="${fileName}" 
+             onclick="openImageModal('${rawImageUrl}', '${fileName}')">
+        <p class="reader-text">Click para ampliar</p>
+    </div>`;
+	
             } else if (rawText.trim().startsWith('#')) {
 				// Aquí el título del libro en la zona de lectura conserva su HTML original (colores)																					   
                 finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
@@ -1296,4 +1313,35 @@ window.addEventListener('resize', () => {
         
         console.log("Reseteo automático: Pantalla pequeña detectada.");
     }
+});
+
+// Función para abrir el modal con la imagen original
+function openImageModal(url, caption) {
+    const modal = document.getElementById('image-modal');
+    const modalImg = document.getElementById('modal-image');
+    const modalCap = document.getElementById('modal-caption');
+
+    modalImg.src = url;
+    modalCap.innerText = caption.replace(/_/g, ' '); // Limpia el nombre del archivo
+    modal.classList.remove('hidden');
+    
+    // Bloquear scroll del fondo mientras está abierto
+    document.body.style.overflow = 'hidden';
+}
+
+// Función para cerrar el modal
+function closeImageModal() {
+    const modal = document.getElementById('image-modal');
+    modal.classList.add('hidden');
+    
+    // Restaurar scroll
+    document.body.style.overflow = '';
+    
+    // Limpiar src para liberar memoria
+    document.getElementById('modal-image').src = "";
+}
+
+// Soporte para cerrar con la tecla Escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === "Escape") closeImageModal();
 });
