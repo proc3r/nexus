@@ -1209,3 +1209,9 @@ html, body {
   }
 }
 
+@media (min-width: 1023px) {
+#synopsis-modal .modal-container {
+    padding: 2rem 2rem 2rem 2rem !important;
+    background: rgba(15, 17, 21, 0.8);
+}
+}
