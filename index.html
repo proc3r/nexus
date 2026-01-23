@@ -11,8 +11,8 @@
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">-->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-   <!--  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/proc3r/nexus@main/estilos-nexus.css?v=1.3">-->
-	<link rel="stylesheet" href="estilos-nexus.css"> <!-- ATENCION NO BORRAR USADO PARA TEST LOCAL  -->
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/proc3r/nexus@main/estilos-nexus.css">
+	<!--<link rel="stylesheet" href="estilos-nexus.css">  ATENCION NO BORRAR USADO PARA TEST LOCAL  -->
     <link rel="dns-prefetch" href="https://wsrv.nl">
 	<link rel="preconnect" href="https://wsrv.nl">
 
@@ -40,8 +40,6 @@
 </header>
 			<div id="book-shelf" class="shelf-container"></div>
 <div class="shelf-divider"></div>
-			
-			
             <main class="px-2 md:px-10 pb-[3em] pt-2md:py-8 max-w-7xl mx-auto">
                 <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8 pb-20"></div>
             </main>
@@ -89,38 +87,38 @@
     
     <div id="chapter-list" class="sidebar-content custom-scrollbar" style="text-shadow: 0.5px 0.5px 1px rgb(103 106 105);"></div>
 </aside>
-            <main class="reader-main-layout">
-                <div id="image-timer" class="hidden">
-                    <span id="timer-text" class="image-timer text-[#ffffff]">La lectura se reanudará en 5s</span>
-                    <button onclick="togglePauseImageTimer()" class="timer-pause-btn text-[#ffffff]">Pausar</button>
-                </div>
-                <nav class="h-8 flex-shrink-0 flex items-center justify-between px-4 border-b-4 border-blue-500 bg-black/20 backdrop-blur-md relative z-50">
-                    <button onclick="closeReader()" class="text-[#ffcc00] font-bold uppercase text-[18px] tracking-[0.02em] condensed flex items-center gap-1 hover:text-white transition-colors" style="text-shadow: -1px 1px 5px rgb(0 0 0 / 79%);">
-                        <span class="mi-round text-sm"></span>NEXUS
-                    </button>
-                    <div class="flex items-center gap-2 md:gap-4">
-                        <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[11px] font-bold border border-white/5">
-                            <button onclick="changeFontSize(-2)" class="hover:text-[#ffcc00]" title="Disminuir Fuente">A-</button>
-                            <span id="font-size-val">25</span>
-                            <button onclick="changeFontSize(2)" class="hover:text-[#ffcc00]" title="Aumentar Fuente">A+</button>
-                        </div>
-                        <div class="settings-dropdown-container">
-                            <button onclick="toggleDropdown('font-dropdown')" class="flex items-center gap-1 px-3 py-0.5 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5" title="Cambiar Fuente">
-                                <span id="current-font-label" class="text-[11px] font-bold uppercase condensed tracking-wider w-11 truncate sm:inline">Merriweather</span>
-                                <svg class="w-2.5 h-2.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </button>
-                            <div id="font-dropdown" class="settings-dropdown font-dropdown custom-scrollbar">
-                                <div class="setting-option" style="font-family: 'Merriweather'" onclick="changeFontFamily('Merriweather')">Merriweather</div>
-                                <div class="setting-option" style="font-family: 'EB Garamond'" onclick="changeFontFamily('EB Garamond')">EB Garamond</div>
-                                <div class="setting-option" style="font-family: 'Playfair Display'" onclick="changeFontFamily('Playfair Display')">Playfair Display</div>
-                                <div class="setting-option" style="font-family: 'Lora'" onclick="changeFontFamily('Lora')">Lora</div>
-                                <div class="setting-option" style="font-family: 'Libre Baskerville'" onclick="changeFontFamily('Libre Baskerville')">Baskerville</div>
-                                <div class="setting-option" style="font-family: 'Inter'" onclick="changeFontFamily('Inter')">Inter</div>
-                                <div class="setting-option" style="font-family: 'IBM Plex Sans'" onclick="changeFontFamily('IBM Plex Sans')">IBM Plex Sans</div>
-                                <div class="setting-option" style="font-family: 'Montserrat'" onclick="changeFontFamily('Montserrat')">Montserrat</div>
-                                <div class="setting-option" style="font-family: 'Atkinson Hyperlegible'" onclick="changeFontFamily('Atkinson Hyperlegible')">Hyperlegible</div>
-                            </div>
-                        </div>
+	<main class="reader-main-layout">
+		<div id="image-timer" class="hidden">
+			<span id="timer-text" class="image-timer text-[#ffffff]">La lectura se reanudará en 5s</span>
+			<button onclick="togglePauseImageTimer()" class="timer-pause-btn text-[#ffffff]">Pausar</button>
+		</div>
+		<nav class="h-8 flex-shrink-0 flex items-center justify-between px-4 border-b-4 border-blue-500 bg-black/20 backdrop-blur-md relative z-50">
+			<button onclick="closeReader()" class="text-[#ffcc00] font-bold uppercase text-[18px] tracking-[0.02em] condensed flex items-center gap-1 hover:text-white transition-colors" style="text-shadow: -1px 1px 5px rgb(0 0 0 / 79%);">
+				<span class="mi-round text-sm"></span>NEXUS
+			</button>
+			<div class="flex items-center gap-2 md:gap-4">
+				<div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[11px] font-bold border border-white/5">
+					<button onclick="changeFontSize(-2)" class="hover:text-[#ffcc00]" title="Disminuir Fuente">A-</button>
+					<span id="font-size-val">25</span>
+					<button onclick="changeFontSize(2)" class="hover:text-[#ffcc00]" title="Aumentar Fuente">A+</button>
+				</div>
+				<div class="settings-dropdown-container">
+					<button onclick="toggleDropdown('font-dropdown')" class="flex items-center gap-1 px-3 py-0.5 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5" title="Cambiar Fuente">
+						<span id="current-font-label" class="text-[11px] font-bold uppercase condensed tracking-wider w-11 truncate sm:inline">Merriweather</span>
+						<svg class="w-2.5 h-2.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					</button>
+					<div id="font-dropdown" class="settings-dropdown font-dropdown custom-scrollbar">
+						<div class="setting-option" style="font-family: 'Merriweather'" onclick="changeFontFamily('Merriweather')">Merriweather</div>
+						<div class="setting-option" style="font-family: 'EB Garamond'" onclick="changeFontFamily('EB Garamond')">EB Garamond</div>
+						<div class="setting-option" style="font-family: 'Playfair Display'" onclick="changeFontFamily('Playfair Display')">Playfair Display</div>
+						<div class="setting-option" style="font-family: 'Lora'" onclick="changeFontFamily('Lora')">Lora</div>
+						<div class="setting-option" style="font-family: 'Libre Baskerville'" onclick="changeFontFamily('Libre Baskerville')">Baskerville</div>
+						<div class="setting-option" style="font-family: 'Inter'" onclick="changeFontFamily('Inter')">Inter</div>
+						<div class="setting-option" style="font-family: 'IBM Plex Sans'" onclick="changeFontFamily('IBM Plex Sans')">IBM Plex Sans</div>
+						<div class="setting-option" style="font-family: 'Montserrat'" onclick="changeFontFamily('Montserrat')">Montserrat</div>
+						<div class="setting-option" style="font-family: 'Atkinson Hyperlegible'" onclick="changeFontFamily('Atkinson Hyperlegible')">Hyperlegible</div>
+					</div>
+				</div>
                         
 						<div class="settings-dropdown-container">
     <button onclick="toggleDropdown('align-dropdown')" class="nav-icon-btn" title="Alineación">
@@ -156,29 +154,29 @@
     </div>
 </div>
 
-                        <button onclick="toggleDarkMode()" class="nav-icon-btn" title="Modo Color">🌓</button>
-                    </div>
-                </nav>
-                <div class="flex-shrink-0 flex justify-center w-full pointer-events-none z-10 -mt-0.5">
-                    <div id="chapter-indicator" class="text-[23px] text-[#ff4444] font-bold italic opacity-100 uppercase tracking-[0.03em] truncate max-w-[95%] condensed px-2 py-1 ">Capítulo</div>
-                </div>
-                <div id="reading-container-fixed" class="custom-scrollbar">
-                    <div class="content-wrapper">
-                        <div class="max-w-3xl mx-auto w-full">
-                            <div id="book-content"></div>
-                        </div>
-                    </div>
-                </div>
-                <footer class="flex-shrink-0 px-4 py-1 border-t border-white/10 bg-black/15">
-                    <div class="max-w-4xl mx-auto">
-                        <div class="flex justify-between text-[14px] uppercase font-bold opacity-70 mb-2 condensed tracking-widest">
-                            <span id="time-remaining" class="text-[19px] font-bold italic opacity-100" style="letter-spacing: 0.5px;">Calculando tiempo...</span>
-                            <span style="letter-spacing: 0.2px; font-style: italic;font-size: 19px;">Parrafo <span id="current-p-num">0</span> / <span id="total-p-num">0</span> • <span id="progress-percent">0%</span></span>
-                        </div>
-                        <div class="progress-bar-container mb-3">
-                            <div id="reading-progress-bar"></div>
-                            <div id="progress-markers-container"></div>
-                        </div>
+			<button onclick="toggleDarkMode()" class="nav-icon-btn" title="Modo Color">🌓</button>
+		</div>
+	</nav>
+	<div class="flex-shrink-0 flex justify-center w-full pointer-events-none z-10 -mt-0.5">
+		<div id="chapter-indicator" class="text-[23px] text-[#ff4444] font-bold italic opacity-100 uppercase tracking-[0.03em] truncate max-w-[95%] condensed px-2 py-1 ">Capítulo</div>
+	</div>
+	<div id="reading-container-fixed" class="custom-scrollbar">
+		<div class="content-wrapper">
+			<div class="max-w-3xl mx-auto w-full">
+				<div id="book-content"></div>
+			</div>
+		</div>
+	</div>
+	<footer class="flex-shrink-0 px-4 py-1 border-t border-white/10 bg-black/15">
+		<div class="max-w-4xl mx-auto">
+			<div class="flex justify-between text-[14px] uppercase font-bold opacity-70 mb-2 condensed tracking-widest">
+				<span id="time-remaining" class="text-[19px] font-bold italic opacity-100" style="letter-spacing: 0.5px;">Calculando tiempo...</span>
+				<span style="letter-spacing: 0.2px; font-style: italic;font-size: 19px;">Parrafo <span id="current-p-num">0</span> / <span id="total-p-num">0</span> • <span id="progress-percent">0%</span></span>
+			</div>
+			<div class="progress-bar-container mb-3">
+				<div id="reading-progress-bar"></div>
+				<div id="progress-markers-container"></div>
+			</div>
 						
                         <div class="flex justify-between items-center pb-2.5 px-1">
     <button onclick="prevChunk()" class="btn-nav btn-back">
@@ -210,24 +208,23 @@
     </button>
 </div>
 
-<div class="reader-controls-wrapper">
-    <button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
-        <span class="mi-round">&#xef71;</span>
-    </button>
+	<div class="reader-controls-wrapper">
+		<button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
+			<span class="mi-round">&#xef71;</span>
+		</button>
 
-    <div class="main-audio-trigger">
-        <button id="tts-btn" onclick="startSpeech()" class="btn-float-red">
-            <span class="mi-round">&#xe91f;</span>
-        </button>
+		<div class="main-audio-trigger">
+			<button id="tts-btn" onclick="startSpeech()" class="btn-float-red">
+				<span class="mi-round">&#xe91f;</span>
+			</button>
 
-        <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden"
-		title="Si la lectura no reanuda, presione STOP y luego PLAY nuevamente">
-            <span id="pause-icon" class="mi-round">&#xe1a2;</span>
-        </button>
-    </div>
-	
-</div>
-
+			<button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden"
+			title="Si la lectura no reanuda, presione STOP y luego PLAY nuevamente">
+				<span id="pause-icon" class="mi-round">&#xe1a2;</span>
+			</button>
+		</div>
+		
+	</div>
                     </div>
                 </footer>
             </main>
@@ -249,8 +246,6 @@
             </div>
 
         <div class="audio-float-control">
-    
-
     <button id="btn-synopsis-tts" onclick="startSynopsisTTS()" class="btn-float-sinopsis" title="Leer Sinopsis">
         <span class="mi-round text-3xl text-black"></span>
     </button>
@@ -271,7 +266,6 @@
         </button>
     </div>
 </div>
-
         <div class="p-1 pt-4 flex justify-center">
             <button id="btn-synopsis-read" class="btn-synopsis2" title="Entrar al Libro">
                 Leer el Libro
@@ -281,9 +275,7 @@
 </div>
     </div>
 </div>
-
 <!--  PANTALLA PARA COMPARTIR -->
-
 <div id="image-modal" class="image-modal hidden" onclick="closeImageModal()">
     <span class="close-modal-btn">&times;</span>
     <div class="modal-content-wrapper" onclick="event.stopPropagation()">
@@ -298,54 +290,35 @@
         <div class="share-header">
             <img id="share-book-img" src="" alt="Portada">
             <div class="share-header-gradient"></div>
-            
-            
-
             <div class="share-title-container">
-			
-                
                 <div class="share-grid">
                 <button onclick="executeShare('whatsapp')" class="share-icon-item group" title="WhatsApp">
                     <div class="icon-wrapper wa-bg"><i class="fab fa-whatsapp"></i></div>
-                    
                 </button>
-
                 <button onclick="executeShare('x')" class="share-icon-item group" title="Twitter">
                     <div class="icon-wrapper x-bg"><i class="fa-brands fa-x-twitter"></i> </div>
-                    
                 </button>
-
                 <button onclick="executeShare('telegram')" class="share-icon-item group" title="Telegram">
                     <div class="icon-wrapper tg-bg"><i class="fab fa-telegram-plane"></i></div>
-             
                 </button>
-
                 <button onclick="executeShare('linkedin')" class="share-icon-item group"title="LinkedIn">
                     <div class="icon-wrapper in-bg"><i class="fab fa-linkedin-in"></i></div>
-                 
                 </button>
-
                 <button onclick="executeShare('email')" class="share-icon-item group"title="Email">
                     <div class="icon-wrapper mail-bg"><span class="material-icons-round">email</span></div>
-               
                 </button>
-
                 <button onclick="executeShare('copy')" class="share-icon-item group"title="Link">
                     <div class="icon-wrapper link-bg"><span class="material-icons-round">link</span></div>
-                    
                 </button>
 				<button onclick="executeShare('facebook')" class="share-icon-item group" title="Facebook">
 					<div class="icon-wrapper fb-bg"><i class="fab fa-facebook-f"></i></div>
 				</button>
-
 				<button onclick="executeShare('reddit')" class="share-icon-item group" title="Reddit">
 					<div class="icon-wrapper reddit-bg"><i class="fab fa-reddit-alien"></i></div>
 				</button>
-				
             </div>
             </div>
         </div>
-		
 <div class="share-preview-container">
     <h4 id="share-book-title">Título del Libro</h4>
     <p class="share-subtitle">Compartir en Redes</p>
@@ -361,92 +334,17 @@
         </div>
     </div>
 </div>
-	
-	 <script src="nexus-core.js" defer></script>    <!-- ATENCION NO BORRAR USADO PARA TEST LOCAL  -->
-   <!--  <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-core.js" defer></script>-->
-	
-	<!-- Configuración de Callouts (Obsidian Style) -->
-	<!-- <script src="js/callouts-config.js" defer></script>-->  <!-- ATENCION NO BORRAR USADO PARA TEST LOCAL  -->
-    <!--<script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@main/callouts-config.js" defer></script> -->
-    <script>
-	
-
-		// Función para limpiar etiquetas de callouts del contenido cargado
-        function cleanCalloutTags() {
-            const content = document.getElementById('book-content');
-            if (!content) return;
-            
-            // Buscamos patrones del tipo [!nombre] o [!nombre]+ etc.
-            const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
-            let node;
-            const nodesToReplace = [];
-            
-            while(node = walker.nextNode()) {
-                if (node.nodeValue.includes('[!')) {
-                    nodesToReplace.push(node);
-                }
-            }
-            
-            nodesToReplace.forEach(textNode => {
-                // Regex para capturar [!cualquiercosa] seguido opcionalmente de espacio
-                const newValue = textNode.nodeValue.replace(/\[\![^\]\n]+\][\+\-]?\s?/g, '');
-                textNode.nodeValue = newValue;
-            });
-        }
-
-        // Observer para ejecutar la limpieza cuando el contenido cambie (al cargar capítulos)
-        const observer = new MutationObserver((mutations) => {
-            cleanCalloutTags();
-        });
-
-        window.addEventListener('load', () => {
-            const target = document.getElementById('book-content');
-            if (target) {
-                observer.observe(target, { childList: true, subtree: true });
-            }
-        });
-		
-        function toggleDropdown(id) {
-            const el = document.getElementById(id);
-            const isShown = el.classList.contains('show');
-            document.querySelectorAll('.settings-dropdown').forEach(d => d.classList.remove('show'));
-            if(!isShown) el.classList.add('show');
-        }
-        function changeFontFamily(f) {
-            document.documentElement.style.setProperty('--reader-font-family', f);
-            document.getElementById('current-font-label').innerText = f;
-            document.getElementById('font-dropdown').classList.remove('show');
-            document.querySelectorAll('#font-dropdown .setting-option').forEach(opt => {
-                opt.classList.toggle('selected', opt.style.fontFamily.replace(/['"]/g, '') === f);
-            });
-        }
-        function changeAlignment(align) {
-            document.documentElement.style.setProperty('--reader-text-align', align);
-            document.getElementById('align-dropdown').classList.remove('show');
-            document.querySelectorAll('#align-dropdown .setting-option').forEach(opt => {
-                opt.classList.toggle('selected', opt.getAttribute('onclick').includes(align));
-            });
-        }
-        function changeLineHeight(h) {
-            document.documentElement.style.setProperty('--reader-line-height', h);
-            document.getElementById('spacing-dropdown').classList.remove('show');
-            document.querySelectorAll('#spacing-dropdown .setting-option').forEach(opt => {
-                opt.classList.toggle('selected', opt.getAttribute('onclick').includes(h));
-            });
-        }
-        function changeFontSize(d) { 
-            const val = document.getElementById('font-size-val'); 
-            let s = Math.max(12, Math.min(60, parseInt(val.innerText) + d)); 
-            val.innerText = s; 
-            document.documentElement.style.setProperty('--reader-font-size', s + 'px');
-        }
-        function toggleDarkMode() { 
-            isDarkMode = !isDarkMode; 
-            const v = document.getElementById('reader-view'); 
-            v.classList.toggle('dark-mode', isDarkMode); 
-            v.classList.toggle('light-mode', !isDarkMode); 
-        }
-    </script>
+	 
+  <!--   <script src="nexus-core.js" defer></script>  -->  <!-- ATENCION NO BORRAR USADO PARA TEST LOCAL  -->
+  <!--   <script src="nexus-synopsis.js" defer></script>-->
+  <!--   <script src="nexus-voice.js" defer></script>-->
+  <!--   <script src="nexus-function.js" defer></script>-->
+   <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-core.js" defer></script>
+   <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/function.js.js" defer></script>
+   <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-voice.js" defer></script>
+   <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-synopsis.js" defer></script>
+	<script>
+	</script>
 	
 	
 </body>
