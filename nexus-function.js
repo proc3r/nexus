@@ -364,20 +364,18 @@ function renderTOC() {
     const modal = document.getElementById('share-modal');
     const textSnippet = modal.dataset.fullContent || "";
     const bookTitle = document.getElementById('share-book-title').innerText;
-	
-	
-		const baseUrl = window.location.origin + window.location.pathname.replace('index.html', 'lector.html');
-    if (!baseUrl.includes('lector.html')) {
-        // Asegurarnos de que si estamos en la raíz, se agregue lector.html
-        var finalBase = baseUrl.endsWith('/') ? baseUrl + 'lector.html' : baseUrl + '/lector.html';
-    } else {
-        var finalBase = baseUrl;
-    }
+
+    // --- Versión Optimizada de la URL ---
+    // Obtenemos la ruta actual eliminando el nombre del archivo (index o lector)
+    const currentPath = window.location.pathname;
+    const directory = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+    const finalBase = window.location.origin + directory + "lector.html";
+    // ------------------------------------
 
     const shareUrl = `${finalBase}?repo=${currentBook.repoIdx}&book=${encodeURIComponent(currentBook.fileName)}&ch=${currentChapterIndex}&ck=${currentChunkIndex}`;
     
     const fullMessage = `📚 *${bookTitle}*\n\n"${textSnippet}"\n\n🔗 Sigue leyendo aquí: ${shareUrl}`;
- 
+
  
 		let finalUrl = "";
 		switch(platform) {
