@@ -22,6 +22,7 @@
 		return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&output=webp&q=75`;
 	}
 	
+	
 	window.onload = () => {
 		loadExternalDictionary().then(() => {
 			fetchBooks().then(() => {
