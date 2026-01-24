@@ -12,17 +12,19 @@
 		
 		
 		function saveProgress() {
-		if (!currentBook) return;
-		const progress = {
-			bookId: currentBook.id,
-			bookTitle: currentBook.title,
-			chapterIndex: currentChapterIndex,
-			chapterTitle: currentBook.chapters[currentChapterIndex].title,
-			chunk: currentChunkIndex,
-			timestamp: Date.now()
-		};
-		localStorage.setItem('nexus_last_session', JSON.stringify(progress));
-	}
+    if (!currentBook) return;
+    const progress = {
+        bookId: currentBook.id,
+        fileName: currentBook.fileName, // Guardamos el nombre del archivo
+        repoIdx: currentBook.repoIdx,   // Guardamos el índice del repo
+        bookTitle: currentBook.title,
+        chapterIndex: currentChapterIndex,
+        chapterTitle: currentBook.chapters[currentChapterIndex].title,
+        chunk: currentChunkIndex,
+        timestamp: Date.now()
+    };
+    localStorage.setItem('nexus_last_session', JSON.stringify(progress));
+}
 
 	function checkLastSession() {
 		const saved = localStorage.getItem('nexus_last_session');
@@ -35,17 +37,34 @@
 	}
 
 	function resumeLastSession() {
-		const saved = localStorage.getItem('nexus_last_session');
-		if (!saved) return;
-		const data = JSON.parse(saved);
-		openReader(data.bookId);
-		setTimeout(() => {
-			loadChapter(data.chapterIndex);
-			currentChunkIndex = data.chunk;
-			renderChunk();
-			document.getElementById('resume-card').classList.add('hidden');
-		}, 500);
-	}
+    const saved = localStorage.getItem('nexus_last_session');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+
+    // Intentamos encontrar el libro en la librería cargada
+    let book = library.find(b => b.fileName === data.fileName);
+
+    if (book) {
+        openReader(book.id);
+        setTimeout(() => {
+            loadChapter(data.chapterIndex);
+            currentChunkIndex = data.chunk;
+            renderChunk();
+            document.getElementById('resume-card').classList.add('hidden');
+        }, 500);
+    } else {
+        // Si no está en la librería (por ejemplo, en lector.html), 
+        // usamos la carga directa que creamos antes
+        const params = {
+            repo: data.repoIdx,
+            book: data.fileName,
+            ch: data.chapterIndex,
+            ck: data.chunk
+        };
+        loadDirectBook(params);
+        document.getElementById('resume-card').classList.add('hidden');
+    }
+}
 	
 	function startImageTimer() {
 		clearImageTimer();
@@ -81,7 +100,7 @@
 }				  
 
 	function updateProgress() {
-		if(!currentBook || currentBook.chapters.length === 0) return;
+    if(!currentBook || !currentBook.chapters || currentBook.chapters.length === 0) return;
 		const chapterWeight = 100 / currentBook.chapters.length;
 		const progressInChapter = chunks.length > 0 ? currentChunkIndex / chunks.length : 0;
 		const p = (currentChapterIndex * chapterWeight) + (progressInChapter * chapterWeight);
@@ -106,50 +125,61 @@
 		else timeEl.innerText = `Faltan ${Math.floor(mins/60)}h ${Math.ceil(mins%60)}m`;
 	}
 
-	function renderTOC() {
-		const list = document.getElementById('chapter-list');
-		list.innerHTML = '';
-		currentBook.chapters.forEach((ch, i) => {
-			const item = document.createElement('div');
-			item.className = `toc-item pr-[0.2em]`;
-			item.id = `toc-item-${i}`;
-			const hasChildren = (i < currentBook.chapters.length - 1 && currentBook.chapters[i+1].level > ch.level);
-			item.innerHTML = `
-				<div class="flex items-center group py-[1.5px]">
-					<span class="toc-toggle text-[10px] opacity-50" onclick="toggleTOCSection(${i}, event)">
-						${hasChildren ? '+' : '•'}
-					</span>
-					<span class="toc-text cursor-pointer hover:opacity-80 transition-opacity truncate font-normal flex-1 condensed uppercase tracking-[0.015em] text-[21px]" onclick="jumpToChapter(${i})">
-						${ch.title}
-					</span>
-				</div>
-				<div id="child-container-${i}" class="hidden mt-0 pl-3 border-l border-white/5"></div>`;
-			if (ch.level === 1) {
-				list.appendChild(item);
-			} else {
-				const parents = list.querySelectorAll('.toc-item');
-				for(let p = parents.length - 1; p >= 0; p--) {
-					const parentIdx = parseInt(parents[p].id.split('-').pop());
-					if (currentBook.chapters[parentIdx].level < ch.level) {
-						parents[p].querySelector(`[id^="child-container-"]`).appendChild(item);
-						break;
-					}
-				}
-			}
-		});
-	}
+function renderTOC() {
+    const list = document.getElementById('chapter-list');
+    if (!list || !currentBook || !currentBook.chapters) return; // Seguridad
+    
+    list.innerHTML = '';
+    currentBook.chapters.forEach((ch, i) => {
+        const item = document.createElement('div');
+        // Asegúrate de que el ID coincida con lo que busca loadChapter
+        item.id = `toc-item-${i}`; 
+        item.className = `toc-item pr-[0.2em] ${i === currentChapterIndex ? 'active' : ''}`;
+        
+        const hasChildren = (i < currentBook.chapters.length - 1 && currentBook.chapters[i+1].level > ch.level);
+        
+        item.innerHTML = `
+            <div class="flex items-center group py-[1.5px]">
+                <span class="toc-toggle text-[10px] opacity-50" onclick="toggleTOCSection(${i}, event)">
+                    ${hasChildren ? '+' : '•'}
+                </span>
+                <span class="toc-text cursor-pointer hover:opacity-80 transition-opacity truncate font-normal flex-1 condensed uppercase tracking-[0.015em] text-[21px]" onclick="jumpToChapter(${i})">
+                    ${ch.title}
+                </span>
+            </div>
+            <div id="child-container-${i}" class="hidden mt-0 pl-3 border-l border-white/5"></div>`;
+        
+        if (ch.level === 1) {
+            list.appendChild(item);
+        } else {
+            const parents = list.querySelectorAll('.toc-item');
+            for(let p = parents.length - 1; p >= 0; p--) {
+                const parentIdx = parseInt(parents[p].id.split('-').pop());
+                if (currentBook.chapters[parentIdx].level < ch.level) {
+                    const childContainer = parents[p].querySelector(`[id^="child-container-"]`);
+                    if(childContainer) childContainer.appendChild(item);
+                    break;
+                }
+            }
+        }
+    });
+
+    // Si entramos a un capítulo específico, expandir la jerarquía
+    expandActiveHierarchy(currentChapterIndex);
+}
 
 	function toggleTOCSection(idx, event) { if (event) event.stopPropagation(); const container = document.getElementById(`child-container-${idx}`); if (container) { container.classList.toggle('hidden'); event.target.innerText = container.classList.contains('hidden') ? '+' : '−'; } }
 	function toggleExpandMode() { allExpanded = !allExpanded; document.getElementById('expand-mode-btn').classList.toggle('text-[#ffcc00]', allExpanded); document.querySelectorAll('[id^="child-container-"]').forEach(c => c.classList.toggle('hidden', !allExpanded)); if (!allExpanded) expandActiveHierarchy(currentChapterIndex); }
 	function expandActiveHierarchy(idx) { if (!allExpanded) { let current = document.getElementById(`toc-item-${idx}`); while (current) { const container = current.parentElement; if (container && container.id.startsWith('child-container-')) { container.classList.remove('hidden'); const pIdx = container.id.replace('child-container-', ''); const t = document.querySelector(`#toc-item-${pIdx} .toc-toggle`); if(t) t.innerText = '−'; current = document.getElementById(`toc-item-${pIdx}`); } else current = null; } } }
 	
 	function renderProgressMarkers() {
-		const container = document.getElementById('progress-markers-container');
-		container.innerHTML = '';
-		if (!window.ttHideTimer) window.ttHideTimer = null;
-		currentBook.chapters.forEach((ch, i) => {
-			if (ch.level > 2) return;
-			const pos = (i / currentBook.chapters.length) * 100;
+    const container = document.getElementById('progress-markers-container');
+    if (!container || !currentBook || !currentBook.chapters) return;
+    
+    container.innerHTML = '';
+    currentBook.chapters.forEach((ch, i) => {
+        if (ch.level > 2) return;
+        const pos = (i / currentBook.chapters.length) * 100;
 			const marker = document.createElement('div');
 			marker.className = `progress-marker`;
 			marker.style.left = `${pos}%`;
@@ -330,12 +360,39 @@
 		document.body.style.overflow = 'hidden';
 	}
 
+	async function getShortUrl(longUrl) {
+    try {
+        // Usamos la API gratuita de TinyURL
+        const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
+        if (response.ok) {
+            return await response.text();
+        }
+        return longUrl; // Si falla, devolvemos la larga para no romper el flujo
+    } catch (e) {
+        console.error("Error acortando URL:", e);
+        return longUrl;
+    }
+}
+
 	function executeShare(platform) {
-		const modal = document.getElementById('share-modal');
-		const textSnippet = modal.dataset.fullContent || "";
-		const bookTitle = document.getElementById('share-book-title').innerText;
-		const shareUrl = `${window.location.origin}${window.location.pathname}?repo=${currentBook.repoIdx}&book=${encodeURIComponent(currentBook.path)}&ch=${currentChapterIndex}&ck=${currentChunkIndex}`;
-		const fullMessage = `📚 *${bookTitle}*\n\n"${textSnippet}"\n\n🔗 Sigue leyendo aquí: ${shareUrl}`;
+    const modal = document.getElementById('share-modal');
+    const textSnippet = modal.dataset.fullContent || "";
+    const bookTitle = document.getElementById('share-book-title').innerText;
+	
+	
+		const baseUrl = window.location.origin + window.location.pathname.replace('index.html', 'lector.html');
+    if (!baseUrl.includes('lector.html')) {
+        // Asegurarnos de que si estamos en la raíz, se agregue lector.html
+        var finalBase = baseUrl.endsWith('/') ? baseUrl + 'lector.html' : baseUrl + '/lector.html';
+    } else {
+        var finalBase = baseUrl;
+    }
+
+    const shareUrl = `${finalBase}?repo=${currentBook.repoIdx}&book=${encodeURIComponent(currentBook.fileName)}&ch=${currentChapterIndex}&ck=${currentChunkIndex}`;
+    
+    const fullMessage = `📚 *${bookTitle}*\n\n"${textSnippet}"\n\n🔗 Sigue leyendo aquí: ${shareUrl}`;
+ 
+ 
 		let finalUrl = "";
 		switch(platform) {
 			case 'facebook':

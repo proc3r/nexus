@@ -3,19 +3,30 @@
         let currentChapterIndex = 0;
         let currentChunkIndex = 0;
         let chunks = [];
-        
-        
         const REPOSITORIES = [
-            {
-                api: "https://api.github.com/repos/proc3r/005-DOCUMENTOS-PROC3R/contents/",
-                raw: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/"
-            },
-            {
-				api: "https://api.github.com/repos/proc3r/001-Publicados/contents/",
-                raw: "https://raw.githubusercontent.com/proc3r/001-Publicados/master/adjuntos/"  
-            }
-        ];
+    {
+        api: "https://api.github.com/repos/proc3r/005-DOCUMENTOS-PROC3R/contents/",
+        raw: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/refs/heads/master/",
+        adjuntos: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/"
+    },
+    {
+        api: "https://api.github.com/repos/proc3r/001-Publicados/contents/",
+        raw: "https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/",
+        adjuntos: "https://raw.githubusercontent.com/proc3r/001-Publicados/master/adjuntos/"
+    }
+];
         const DEFAULT_COVER = "https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg";
+
+
+	function getUrlParams() {
+		const params = new URLSearchParams(window.location.search);
+		return {
+			repo: params.get('repo'),
+			book: params.get('book'), // Nombre real del archivo .md
+			ch: parseInt(params.get('ch')) || 0,
+			ck: parseInt(params.get('ck')) || 0
+		};
+	}
 
 	function getOptimizedImageUrl(url, width = 800) {
 		if (!url || url === DEFAULT_COVER) return url;
@@ -24,15 +35,98 @@
 	
 	
 	window.onload = () => {
-		loadExternalDictionary().then(() => {
-			fetchBooks().then(() => {
-				checkLastSession();
-			});
-		});
-		initTouchEvents();
-		initPullToRefreshBlocker();
-		setTimeout(() => { window.scrollTo(0, 1); }, 300);
+    loadExternalDictionary().then(() => {
+        if (window.isLectorFijo) {
+            const params = getUrlParams();
+            loadDirectBook(params);
+        } else {
+            fetchBooks().then(() => {
+                checkLastSession();
+            });
+        }
+    });
+    initTouchEvents();
+    initPullToRefreshBlocker();
+    setTimeout(() => { window.scrollTo(0, 1); }, 300);
 	};
+
+
+async function loadDirectBook(params) {
+    const statusText = document.getElementById('status-text');
+    let repoIndex = (params.repo !== null && !isNaN(params.repo)) ? parseInt(params.repo) : 0;
+    
+    // Si no hay libro en el parámetro, usamos el "Modelo Nouménico" por defecto
+    let fileName = params.book ? decodeURIComponent(params.book) : "Modelo Nouménico.md";
+    
+    const repo = REPOSITORIES[repoIndex] || REPOSITORIES[0];
+    
+    // Construimos la URL: raw base (raíz del repo) + nombre del archivo .md
+    const fileUrl = repo.raw + encodeURIComponent(fileName);
+
+    try {
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error(`Error 404: No se encontró el archivo en ${fileUrl}`);
+        
+        const text = await response.text();
+        
+        // Lógica de Portada: Intentamos extraer la portada del texto antes de asignar la por defecto
+        const coverMatch = text.match(/!\[\[(.*?)\]\]/);
+        let coverUrl = DEFAULT_COVER;
+        if (coverMatch) {
+            let fileNameImg = coverMatch[1].split('|')[0].trim();
+            let rawCoverUrl = repo.adjuntos + encodeURIComponent(fileNameImg);
+            coverUrl = getOptimizedImageUrl(rawCoverUrl, 500); 
+        }
+
+        currentBook = {
+            id: 'direct-load',
+            fileName: fileName,
+            title: fileName.replace('.md', '').replace(/_/g, ' '),
+            cover: coverUrl,
+            chapters: parseMarkdown(text),
+            rawBase: repo.adjuntos, // Las imágenes internas se buscan en /adjuntos/
+            repoIdx: repoIndex
+        };
+
+        // --- CONFIGURACIÓN DE LA INTERFAZ (UI) ---
+        
+        // 1. Título e Imagen de fondo en el Sidebar
+        document.getElementById('reader-title').innerText = currentBook.title;
+        const coverPreview = document.getElementById('sidebar-cover-preview');
+        if (coverPreview) {
+            coverPreview.style.backgroundImage = `url('${currentBook.cover}')`;
+        }
+
+        // 2. Control de visibilidad de contenedores
+        const libContainer = document.getElementById('library-container');
+        if (libContainer) libContainer.classList.add('hidden');
+        document.getElementById('reader-view').classList.remove('hidden');
+        
+        // 3. Cargar posición y renderizar contenido
+        loadChapter(params.ch || 0);
+        currentChunkIndex = params.ck || 0;
+        renderChunk();
+        
+        // 4. INICIALIZAR NAVEGACIÓN (TOC y Marcadores)
+        // Estas llamadas activan el menú lateral y los puntos de la barra inferior
+        renderTOC();
+        renderProgressMarkers();
+        
+        // 5. Finalización
+        if(statusText) statusText.innerText = "Sincronizado";
+        
+        // Ocultar el spinner/loader de lector.html si existe
+        document.getElementById('auto-loader')?.classList.add('hidden');
+        document.getElementById('main-spinner')?.classList.add('hidden');
+
+    } catch (e) {
+        console.error("Error de carga en loadDirectBook:", e);
+        if(statusText) statusText.innerText = "Error: Archivo no encontrado";
+        // Si hay error, al menos ocultamos el loader para mostrar el mensaje
+        document.getElementById('auto-loader')?.classList.add('hidden');
+    }
+}
+
 
 	function stripHtml(html) {
 		const tmp = document.createElement("DIV");
@@ -40,6 +134,7 @@
 		return tmp.textContent || tmp.innerText || "";
 	}
 	
+
 
 	function initPullToRefreshBlocker() {
 		let touchStart = 0;
@@ -65,43 +160,56 @@
 		}
 	});
 
-	async function fetchBooks() {
-		const statusText = document.getElementById('status-text');
-		library = []; 
-		try {
-			for (const repo of REPOSITORIES) {
-				const response = await fetch(repo.api);
-				const files = await response.json();
-				if (!Array.isArray(files)) continue;
-				const mdFiles = files.filter(f => f.name.toLowerCase().endsWith('.md'));
-				for (const file of mdFiles) {
-					const res = await fetch(file.download_url);
-					const text = await res.text();
-					const hasIndexTag = /indexar:\s*true/.test(text.split('---')[1] || "");
-					if (!hasIndexTag) continue; 
-					const coverMatch = text.match(/!\[\[(.*?)\]\]/);
-					let coverUrl = DEFAULT_COVER;
-					if (coverMatch) {
-						let fileName = coverMatch[1].split('|')[0].trim();
-						let rawCoverUrl = repo.raw + encodeURIComponent(fileName);
-						coverUrl = getOptimizedImageUrl(rawCoverUrl, 500); // 500px es suficiente para portadas
-					}
-					library.push({
-						id: btoa(file.path + repo.api), 
-						title: file.name.replace('.md', '').replace(/_/g, ' '),
-						cover: coverUrl,
-						chapters: parseMarkdown(text),
-						rawBase: repo.raw 
-					});
-				}
-			}
-			statusText.innerText = "Sincronizado";
-			document.getElementById('main-spinner').classList.add('hidden');
-			renderLibrary();
-   
-		} catch (e) { statusText.innerText = "Fail"; }
+async function fetchBooks() {
+    const statusText = document.getElementById('status-text');
+    library = []; 
+    try {
+        for (const repo of REPOSITORIES) {
+            const response = await fetch(repo.api);
+            const files = await response.json();
+            if (!Array.isArray(files)) continue;
+            
+            const mdFiles = files.filter(f => f.name.toLowerCase().endsWith('.md'));
+            
+            for (const file of mdFiles) {
+                const res = await fetch(file.download_url);
+                const text = await res.text();
+                
+                // Extraer Frontmatter para verificar indexación
+                const hasIndexTag = /indexar:\s*true/.test(text.split('---')[1] || "");
+                if (!hasIndexTag) continue; 
 
-	}
+                // Lógica de Portada: Usar repo.adjuntos
+                const coverMatch = text.match(/!\[\[(.*?)\]\]/);
+                let coverUrl = DEFAULT_COVER;
+                if (coverMatch) {
+                    let fileNameImg = coverMatch[1].split('|')[0].trim();
+                    // IMPORTANTE: Aquí usamos repo.adjuntos para que la URL sea válida
+                    let rawCoverUrl = repo.adjuntos + encodeURIComponent(fileNameImg);
+                    coverUrl = getOptimizedImageUrl(rawCoverUrl, 500); 
+                }
+
+                library.push({
+                    id: btoa(file.path + repo.api), 
+                    fileName: file.name,
+                    title: file.name.replace('.md', '').replace(/_/g, ' '),
+                    cover: coverUrl,
+                    chapters: parseMarkdown(text),
+                    rawBase: repo.adjuntos, // Para que las imágenes internas del libro también carguen
+                    repoIdx: REPOSITORIES.indexOf(repo)
+                });
+            }
+        }
+        
+        if (statusText) statusText.innerText = "Sincronizado";
+        document.getElementById('main-spinner')?.classList.add('hidden');
+        renderLibrary();
+   
+    } catch (e) { 
+        if (statusText) statusText.innerText = "Fail";
+        console.error("Error:", e);
+    }
+}
 
 	function parseMarkdown(text) {
 		const lines = text.split('\n');
@@ -207,13 +315,18 @@
 	}
 
 	function closeReader() { 
-		stopSpeech(); 
-		clearImageTimer(); 
-		document.getElementById('reader-view').classList.add('hidden'); 
-		document.getElementById('library-container').classList.remove('hidden'); 
-		checkLastSession(); 
-	}
+    stopSpeech(); 
+    clearImageTimer(); 
 
+    if (window.isLectorFijo) {
+        // En lugar de "index.html", usamos "./" para ir a la raíz de la carpeta actual
+        window.location.href = "./"; 
+    } else {
+        document.getElementById('reader-view').classList.add('hidden'); 
+        document.getElementById('library-container').classList.remove('hidden'); 
+        checkLastSession(); 
+    }
+}
 	function loadChapter(idx) {
 		currentChapterIndex = idx;
 		const chapter = currentBook.chapters[idx];
