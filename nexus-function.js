@@ -174,12 +174,12 @@ function renderTOC() {
 	
 	function renderProgressMarkers() {
     const container = document.getElementById('progress-markers-container');
-    if (!container || !currentBook || !currentBook.chapters) return;
-    
+    if (!container || !currentBook) return; // Validación de seguridad
     container.innerHTML = '';
-    currentBook.chapters.forEach((ch, i) => {
-        if (ch.level > 2) return;
-        const pos = (i / currentBook.chapters.length) * 100;
+		if (!window.ttHideTimer) window.ttHideTimer = null;
+		currentBook.chapters.forEach((ch, i) => {
+			if (ch.level > 2) return;
+			const pos = (i / currentBook.chapters.length) * 100;
 			const marker = document.createElement('div');
 			marker.className = `progress-marker`;
 			marker.style.left = `${pos}%`;
@@ -359,20 +359,6 @@ function renderTOC() {
 		setTimeout(() => modal.classList.add('show'), 10);
 		document.body.style.overflow = 'hidden';
 	}
-
-	async function getShortUrl(longUrl) {
-    try {
-        // Usamos la API gratuita de TinyURL
-        const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
-        if (response.ok) {
-            return await response.text();
-        }
-        return longUrl; // Si falla, devolvemos la larga para no romper el flujo
-    } catch (e) {
-        console.error("Error acortando URL:", e);
-        return longUrl;
-    }
-}
 
 	function executeShare(platform) {
     const modal = document.getElementById('share-modal');

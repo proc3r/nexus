@@ -78,15 +78,16 @@ async function loadDirectBook(params) {
             coverUrl = getOptimizedImageUrl(rawCoverUrl, 500); 
         }
 
-        currentBook = {
-            id: 'direct-load',
-            fileName: fileName,
-            title: fileName.replace('.md', '').replace(/_/g, ' '),
-            cover: coverUrl,
-            chapters: parseMarkdown(text),
-            rawBase: repo.adjuntos, // Las imágenes internas se buscan en /adjuntos/
-            repoIdx: repoIndex
-        };
+        // Dentro de loadDirectBook en nexus-core.js
+currentBook = {
+    id: 'direct-load',
+    fileName: fileName, // <--- ESTE NOMBRE ES CRUCIAL
+    title: fileName.replace('.md', '').replace(/_/g, ' '),
+    cover: coverUrl,
+    chapters: parseMarkdown(text),
+    rawBase: repo.adjuntos,
+    repoIdx: repoIndex   // <--- ESTE ÍNDICE ES CRUCIAL
+};
 
         // --- CONFIGURACIÓN DE LA INTERFAZ (UI) ---
         
@@ -164,7 +165,8 @@ async function fetchBooks() {
     const statusText = document.getElementById('status-text');
     library = []; 
     try {
-        for (const repo of REPOSITORIES) {
+        for (let i = 0; i < REPOSITORIES.length; i++) {
+            const repo = REPOSITORIES[i];
             const response = await fetch(repo.api);
             const files = await response.json();
             if (!Array.isArray(files)) continue;
@@ -175,28 +177,25 @@ async function fetchBooks() {
                 const res = await fetch(file.download_url);
                 const text = await res.text();
                 
-                // Extraer Frontmatter para verificar indexación
                 const hasIndexTag = /indexar:\s*true/.test(text.split('---')[1] || "");
                 if (!hasIndexTag) continue; 
 
-                // Lógica de Portada: Usar repo.adjuntos
                 const coverMatch = text.match(/!\[\[(.*?)\]\]/);
                 let coverUrl = DEFAULT_COVER;
                 if (coverMatch) {
                     let fileNameImg = coverMatch[1].split('|')[0].trim();
-                    // IMPORTANTE: Aquí usamos repo.adjuntos para que la URL sea válida
                     let rawCoverUrl = repo.adjuntos + encodeURIComponent(fileNameImg);
                     coverUrl = getOptimizedImageUrl(rawCoverUrl, 500); 
                 }
 
                 library.push({
                     id: btoa(file.path + repo.api), 
-                    fileName: file.name,
+                    fileName: file.name, // <-- CRUCIAL: Guardar nombre real
                     title: file.name.replace('.md', '').replace(/_/g, ' '),
                     cover: coverUrl,
                     chapters: parseMarkdown(text),
-                    rawBase: repo.adjuntos, // Para que las imágenes internas del libro también carguen
-                    repoIdx: REPOSITORIES.indexOf(repo)
+                    rawBase: repo.adjuntos,
+                    repoIdx: i // <-- CRUCIAL: Guardar índice del repo
                 });
             }
         }
@@ -204,7 +203,6 @@ async function fetchBooks() {
         if (statusText) statusText.innerText = "Sincronizado";
         document.getElementById('main-spinner')?.classList.add('hidden');
         renderLibrary();
-   
     } catch (e) { 
         if (statusText) statusText.innerText = "Fail";
         console.error("Error:", e);
@@ -292,27 +290,40 @@ async function fetchBooks() {
 		});
 	}
 	
-	function openReader(id) {
-		currentBook = library.find(b => b.id === id);
-		document.getElementById('reader-title').innerText = currentBook.title;
-		const coverPreview = document.getElementById('sidebar-cover-preview');
-		if (coverPreview) {
-			coverPreview.style.backgroundImage = `url('${currentBook.cover}')`;
-		}
-		renderTOC();
-		renderProgressMarkers();
-		document.getElementById('library-container').classList.add('hidden');
-		document.getElementById('reader-view').classList.remove('hidden');
-		document.getElementById('resume-card').classList.add('hidden');
-		const isMobile = window.innerWidth <= 768;
-		const defFontSize = isMobile ? 23 : 25;
-		const defFontName = isMobile ? 'Atkinson Hyperlegible' : 'Merriweather';
-		document.getElementById('font-size-val').innerText = defFontSize;
-		document.getElementById('current-font-label').innerText = defFontName;
-		document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
-		document.documentElement.style.setProperty('--reader-font-family', defFontName);
-		loadChapter(0);
-	}
+function openReader(id) {
+    const book = library.find(b => b.id === id);
+    if (!book) return;
+    
+    currentBook = book;
+    
+    // Asegurar datos para el compartir
+    if (currentBook.repoIdx === undefined) currentBook.repoIdx = 0;
+    if (!currentBook.fileName) currentBook.fileName = currentBook.title + ".md";
+
+    document.getElementById('reader-title').innerText = currentBook.title;
+    const coverPreview = document.getElementById('sidebar-cover-preview');
+    if (coverPreview) {
+        coverPreview.style.backgroundImage = `url('${currentBook.cover}')`;
+    }
+    
+    renderTOC();
+    renderProgressMarkers();
+    
+    document.getElementById('library-container')?.classList.add('hidden');
+    document.getElementById('reader-view').classList.remove('hidden');
+    document.getElementById('resume-card')?.classList.add('hidden');
+    
+    // Tipografía
+    const isMobile = window.innerWidth <= 768;
+    const defFontSize = isMobile ? 23 : 25;
+    const defFontName = isMobile ? 'Atkinson Hyperlegible' : 'Merriweather';
+    document.getElementById('font-size-val').innerText = defFontSize;
+    document.getElementById('current-font-label').innerText = defFontName;
+    document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
+    document.documentElement.style.setProperty('--reader-font-family', defFontName);
+    
+    loadChapter(0);
+}
 
 	function closeReader() { 
     stopSpeech(); 
