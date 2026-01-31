@@ -101,7 +101,7 @@ function startSpeech() {
 						if (window.isPaused) {
 							stopSpeech(); // Restablece botones físicamente a estado inicial
 						}
-					}, 10000); 
+					}, 15000); 
 				} else if (isPaused) {
 					resumeSpeech(); 
 				}

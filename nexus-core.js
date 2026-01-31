@@ -165,59 +165,59 @@ async function fetchBooks() {
     const statusText = document.getElementById('status-text');
     library = []; 
     try {
-        // 1. Procesamos todos los REPOSITORIES en paralelo
-        await Promise.all(REPOSITORIES.map(async (repo, i) => {
+        for (const repo of REPOSITORIES) {
             const response = await fetch(repo.api);
-            const files = await response.json();
-            if (!Array.isArray(files)) return;
+            if (!response.ok) continue; // Si GitHub bloquea un repo, saltamos al siguiente
             
-            // 2. FILTRO DE NOMBRES: Solo .md y descartamos README o archivos auxiliares
+            const files = await response.json();
+            if (!Array.isArray(files)) continue;
+
             const mdFiles = files.filter(f => 
                 f.name.toLowerCase().endsWith('.md') && 
                 !f.name.toLowerCase().includes('readme')
             );
-            
-            // 3. CARGA SIMULTÁNEA: Pedimos todos los contenidos del repo a la vez
-            await Promise.all(mdFiles.map(async (file) => {
-                try {
-                    const res = await fetch(file.download_url);
-                    const text = await res.text();
-                    
-                    // Comprobamos el tag de indexación en el frontmatter
-                    const hasIndexTag = /indexar:\s*true/.test(text.split('---')[1] || "");
-                    if (!hasIndexTag) return; 
 
-                    // Lógica de portada (Mantenemos tu lógica original)
-                    const coverMatch = text.match(/!\[\[(.*?)\]\]/);
-                    let coverUrl = DEFAULT_COVER;
-                    if (coverMatch) {
-                        let fileNameImg = coverMatch[1].split('|')[0].trim();
-                        let rawCoverUrl = repo.adjuntos + encodeURIComponent(fileNameImg);
-                        coverUrl = getOptimizedImageUrl(rawCoverUrl, 400); 
-                    }
+            // OPTIMIZACIÓN SEGURO PARA MÓVIL:
+            // En lugar de Promise.all puro, procesamos en grupos pequeños (Batches)
+            // Esto evita el bloqueo 403 de GitHub
+            for (let i = 0; i < mdFiles.length; i += 5) {
+                const batch = mdFiles.slice(i, i + 5);
+                await Promise.all(batch.map(async (file) => {
+                    try {
+                        const res = await fetch(file.download_url);
+                        if (!res.ok) return;
+                        const text = await res.text();
+                        
+                        const hasIndexTag = /indexar:\s*true/.test(text.split('---')[1] || "");
+                        if (!hasIndexTag) return; 
 
-                    // Guardamos en la biblioteca
-                    library.push({
-                        id: btoa(file.path + repo.api), 
-                        fileName: file.name,
-                        title: file.name.replace('.md', '').replace(/_/g, ' '),
-                        cover: coverUrl,
-                        chapters: parseMarkdown(text),
-                        rawBase: repo.adjuntos,
-                        repoIdx: i 
-                    });
-                } catch (e) {
-                    console.error("Error procesando archivo individual:", file.name, e);
-                }
-            }));
-        }));
+                        const coverMatch = text.match(/!\[\[(.*?)\]\]/);
+                        let coverUrl = DEFAULT_COVER;
+                        if (coverMatch) {
+                            let fileNameImg = coverMatch[1].split('|')[0].trim();
+                            coverUrl = getOptimizedImageUrl(repo.adjuntos + encodeURIComponent(fileNameImg), 400); 
+                        }
+
+                        library.push({
+                            id: btoa(file.path + repo.api), 
+                            fileName: file.name,
+                            title: file.name.replace('.md', '').replace(/_/g, ' '),
+                            cover: coverUrl,
+                            chapters: parseMarkdown(text),
+                            rawBase: repo.adjuntos,
+                            repoIdx: REPOSITORIES.indexOf(repo)
+                        });
+                    } catch (e) { console.error("Error en archivo", e); }
+                }));
+            }
+        }
         
         if (statusText) statusText.innerText = "Sincronizado";
         document.getElementById('main-spinner')?.classList.add('hidden');
-        renderLibrary(); // Llamamos a tu función de renderizado original
+        renderLibrary();
     } catch (e) { 
-        if (statusText) statusText.innerText = "Fail";
-        console.error("Error en fetchBooks:", e);
+        if (statusText) statusText.innerText = "Error API";
+        console.error("Error crítico:", e);
     }
 }
 
