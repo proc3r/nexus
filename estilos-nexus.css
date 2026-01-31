@@ -1,3 +1,13 @@
+html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* Evita que el texto se mueva mientras carga la fuente */
+body {
+    font-display: optional;
+}
+
 :root {
     --primary-accent: #ffcc00;
     --dark-bg: #0f1115;
@@ -164,10 +174,49 @@ html, body {
     text-align: var(--reader-text-align);
     line-height: var(--reader-line-height);
 	padding-bottom: 23px;
+	
+/*  width: 100%;*/
 }
 
-									   
-					  
+/* --- ANIMACIONES MÓVILES (Barrido Lateral) --- */
+@media (max-width: 768px) {
+    .slide-in-right {
+        animation: mobileRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+    .slide-in-left {
+        animation: mobileLeft 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+}
+
+@keyframes mobileRight {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes mobileLeft {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* --- ANIMACIONES ESCRITORIO (Emerger + Difuminar) --- */
+@media (min-width: 769px) {
+    .desktop-fade {
+        animation: desktopReveal 0.4s ease-out forwards;
+    }
+}
+
+@keyframes desktopReveal {
+    from { 
+        opacity: 0; 
+        transform: translateY(0px) scale(0.96); 
+        filter: blur(3px);
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+        filter: blur(0);
+    }
+}			  
 					
  
 
@@ -455,11 +504,21 @@ html, body {
 /* Forzamos que la tarjeta no tenga barras grises externas */
 .book-card {
     background: transparent !important;
+	backface-visibility: hidden;
+    transform: translateZ(0); /* Fuerza aceleración de hardware sin mover el objeto */
+}
+
+.book-card * {
+    transition: none !important; /* Desactiva transiciones en elementos internos durante la carga */
 }
 
 /* El overlay ahora ocupa toda la imagen para el degradado */
 .book-card-overlay {
     transition: all 0.3s ease;
+}
+
+.book-card:hover {
+    transition: border-color 0.3s ease !important; /* Solo permite transición al pasar el mouse */
 }
 
 .book-card:hover .book-card-overlay {
@@ -744,7 +803,7 @@ html, body {
     font-size: 16px;
     font-weight: bold;
     text-transform: uppercase;
-    transition: all 0.2s;
+    /*transition: all 0.2s;*/
     font-family: 'Barlow Condensed';
     box-shadow: 0px 0px 6px rgb(0 255 0 / 88%);
 }
@@ -1865,4 +1924,22 @@ html, body {
 .share-text-content::-webkit-scrollbar-thumb {
     background: rgba(255, 204, 0, 0.3);
 }
+
+/* Bloqueo de transiciones iniciales */
+.book-card, .reader-section-title, .custom-blockquote, .reader-image-container {
+    transition: none !important; 
+}
+
+/* Solo permitimos transiciones en estados específicos */
+.book-card:hover {
+    transition: transform 0.3s ease, border-color 0.3s ease !important;
+}
+
+/* Asegurar que el contenedor de lectura no herede animaciones extrañas */
+#reading-container-fixed {
+    scroll-behavior: auto !important; /* Evita saltos suaves al resetear el scroll */
+	touch-action: pan-y; 
+    overscroll-behavior-x: none;
+}
+
 

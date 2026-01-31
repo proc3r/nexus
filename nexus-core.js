@@ -351,7 +351,10 @@ function openReader(id) {
     }
 }
 	function loadChapter(idx) {
-		currentChapterIndex = idx;
+		if (idx < 0 || idx >= currentBook.chapters.length) return;
+    window.navDirection = 'next'; // Los capítulos siempre entran desde la derecha
+	
+	currentChapterIndex = idx;
 		const chapter = currentBook.chapters[idx];
 		document.getElementById('chapter-indicator').innerText = stripHtml(chapter.title);
 		chunks = chapter.content;
@@ -371,50 +374,80 @@ function openReader(id) {
             return str.replace(/\[\![^\]\n]+\][\+\-]?\s?/g, '').replace(/\^[a-zA-Z0-9-]+(?:\s|$)/g, '').replace(/\[\[([^\]]+)\]\]/g, (match, p1) => p1.includes('|') ? p1.split('|')[1].trim() : p1.trim());
         }
 	 
-        function renderChunk() {
-            clearImageTimer();
-            const content = document.getElementById('book-content');
-            let rawText = chunks[currentChunkIndex] || "";
-            if (rawText.trim() === ">") { if (window.navDirection === 'prev') prevChunk(); else nextChunk(); return; }
-            let finalHtml = "";
-            let isImage = false;
-            const embedMatch = rawText.match(/!\[\[(.*?)\]\]/);
-            if (embedMatch) {
-                const fileName = embedMatch[1].split('|')[0].trim().toLowerCase();
-                const isAudio = fileName.endsWith('.m4a') || fileName.endsWith('.mp3') || fileName.endsWith('.wav') || fileName.endsWith('.ogg');
-                const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.webm') || fileName.endsWith('.mkv');
-                if (isAudio || isVideo) { if (window.navDirection === 'prev') prevChunk(); else nextChunk(); return; }
-                isImage = true;
-                const rawImageUrl = currentBook.rawBase + encodeURIComponent(embedMatch[1].split('|')[0].trim());
-				const optimizedUrl = getOptimizedImageUrl(rawImageUrl, 700); // 1000px para lectura interna
-			finalHtml = `
-				<div class="reader-image-container">
-					<img src="${optimizedUrl}" 
-						 class="reader-image cursor-zoom-in" 
-						 alt="${fileName}" 
-						 onclick="openImageModal('${rawImageUrl}', '${fileName}')">
-					<p class="reader-text">Click para ampliar</p>
-				</div>`;
-            } else if (rawText.trim().startsWith('#')) {
-				// Aquí el título del libro en la zona de lectura conserva su HTML original (colores)																					   
-                finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
-            } else if (rawText.trim().startsWith('>')) {
-                // Modificación para Callouts: Procesamos múltiples líneas si están presentes (unidas por \n)
-                let lines = rawText.split('\n');
-                let processedLines = lines.map(l => cleanMarkdown(l.trim().replace(/^>\s?/, ''))).join('<span style="display: block;opacity: 70%;border-bottom: 2px dotted; margin-bottom: 10px;"></span>');
-                finalHtml = `<div class="custom-blockquote">${processFormatting(processedLines)}</div>`;
-            } else {
- 
-                finalHtml = processFormatting(cleanMarkdown(rawText));
-													   
-            }
-            content.innerHTML = finalHtml;
-            document.getElementById('reading-container-fixed').scrollTop = 0;
-            updateProgress();
-            saveProgress();
-            document.getElementById('next-btn').innerHTML = (currentChunkIndex === chunks.length - 1 && currentChapterIndex === currentBook.chapters.length - 1) ? "FIN" : "NEXT ▶";
-            if (isSpeaking) { if (isImage) startImageTimer(); else prepareAndStartSpeech(); }
-        }
+
+function renderChunk() {
+    clearImageTimer();
+    const content = document.getElementById('book-content');
+    if (!content) return;
+
+    // 1. LIMPIEZA TOTAL DE CLASES
+    content.classList.remove('slide-in-right', 'slide-in-left', 'desktop-fade');
+
+    let rawText = chunks[currentChunkIndex] || "";
+    
+    if (rawText.trim() === ">") { 
+        if (window.navDirection === 'prev') prevChunk(); 
+        else nextChunk(); 
+        return; 
+    }
+
+    let finalHtml = "";
+    let isImage = false;
+    const embedMatch = rawText.match(/!\[\[(.*?)\]\]/);
+
+    if (embedMatch) {
+        // ... (Tu lógica existente de multimedia e imágenes se mantiene igual) ...
+        const fileName = embedMatch[1].split('|')[0].trim().toLowerCase();
+        const isAudio = fileName.endsWith('.m4a') || fileName.endsWith('.mp3') || fileName.endsWith('.wav') || fileName.endsWith('.ogg');
+        const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.webm') || fileName.endsWith('.mkv');
+        if (isAudio || isVideo) { if (window.navDirection === 'prev') prevChunk(); else nextChunk(); return; }
+        isImage = true;
+        const rawImageUrl = currentBook.rawBase + encodeURIComponent(embedMatch[1].split('|')[0].trim());
+        const optimizedUrl = getOptimizedImageUrl(rawImageUrl, 700); 
+        finalHtml = `<div class="reader-image-container"><img src="${optimizedUrl}" class="reader-image cursor-zoom-in" alt="${fileName}" onclick="openImageModal('${rawImageUrl}', '${fileName}')"><p class="reader-text">Click para ampliar</p></div>`;
+    } else if (rawText.trim().startsWith('#')) {
+        finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
+    } else if (rawText.trim().startsWith('>')) {
+        let lines = rawText.split('\n');
+        let processedLines = lines.map(l => cleanMarkdown(l.trim().replace(/^>\s?/, ''))).join('<span style="display: block;opacity: 70%;border-bottom: 2px dotted; margin-bottom: 10px;"></span>');
+        finalHtml = `<div class="custom-blockquote">${processFormatting(processedLines)}</div>`;
+    } else {
+        finalHtml = processFormatting(cleanMarkdown(rawText));
+    }
+
+    // 2. INSERCIÓN DE CONTENIDO
+    content.innerHTML = finalHtml;
+
+    // 3. DISPARAR ANIMACIÓN SEGÚN DISPOSITIVO
+    void content.offsetWidth; // Forzar reflow
+
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
+        // Efecto Barrido Lateral para Móvil
+        if (window.navDirection === 'next') content.classList.add('slide-in-right');
+        else if (window.navDirection === 'prev') content.classList.add('slide-in-left');
+    } else {
+        // Efecto "Emerger y Difuminar" para Escritorio
+        content.classList.add('desktop-fade');
+    }
+
+    // 4. FINALIZACIÓN
+    document.getElementById('reading-container-fixed').scrollTop = 0;
+    updateProgress();
+    saveProgress();
+
+    const nextBtn = document.getElementById('next-btn');
+    if (nextBtn) {
+        nextBtn.innerHTML = (currentChunkIndex === chunks.length - 1 && currentChapterIndex === currentBook.chapters.length - 1) ? "FIN" : "NEXT ▶";
+    }
+
+    if (isSpeaking) { 
+        if (isImage) startImageTimer(); 
+        else prepareAndStartSpeech(); 
+    }
+}
+
 	
 	function splitTextSmartly(text, limit) {
 		const result = [];
@@ -455,5 +488,38 @@ function openReader(id) {
 	}
 
     
+// --- LÓGICA DE GESTOS TÁCTILES (SWIPE) ---
+let touchstartX = 0;
+let touchendX = 0;
 
+// Registramos el evento en el contenedor principal de lectura
+const gestureZone = document.getElementById('reading-container-fixed');
+
+gestureZone.addEventListener('touchstart', e => {
+    touchstartX = e.changedTouches[0].screenX;
+}, {passive: true});
+
+gestureZone.addEventListener('touchend', e => {
+    touchendX = e.changedTouches[0].screenX;
+    handleGesture();
+}, {passive: true});
+
+function handleGesture() {
+    const swipeThreshold = 50; // Distancia mínima en píxeles para detectar el deslizamiento
+    
+    // Si el usuario desliza hacia la IZQUIERDA (Siguiente)
+    if (touchstartX - touchendX > swipeThreshold) {
+        // Solo si no hay un modal abierto (opcional)
+        if (document.getElementById('synopsis-modal').classList.contains('hidden')) {
+            nextChunk();
+        }
+    }
+    
+    // Si el usuario desliza hacia la DERECHA (Anterior)
+    if (touchendX - touchstartX > swipeThreshold) {
+        if (document.getElementById('synopsis-modal').classList.contains('hidden')) {
+            prevChunk();
+        }
+    }
+}
      

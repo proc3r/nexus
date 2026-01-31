@@ -36,7 +36,7 @@ function renderLibrary() {
 			const totalMins = Math.ceil(totalWords / 185);
 			const timeStr = totalMins >= 60 ? `${Math.floor(totalMins/60)}h ${totalMins%60}m` : `${totalMins} min`;
 			const card = document.createElement('div');
-			card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[0.5rem] hover:border-[#ffcc00] transition-all cursor-pointer text-center overflow-hidden';
+			card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[0.5rem] hover:border-[#ffcc00] cursor-pointer text-center overflow-hidden';
 			card.onclick = (e) => {
 				if (!e.target.closest('.btn-synopsis')) {
 					openReader(book.id);
