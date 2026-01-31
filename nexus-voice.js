@@ -10,6 +10,7 @@ window.speechSubChunks = [];
 window.currentSubChunkIndex = 0;
 window.currentUtterance = null;
 window.synth = window.speechSynthesis;
+window.pauseTimer = null;
 window.VOICE_REPLACEMENTS = {};
 const DICTIONARY_URL = "https://raw.githubusercontent.com/proc3r/nexus/master/voice-dictionary.json";
 
@@ -76,57 +77,92 @@ function startSpeech() {
 		if (isImage) startImageTimer(); else prepareAndStartSpeech();
 	}
 
-	function pauseSpeech() { 
-		if (synth.speaking && !isPaused) { 
-			synth.pause(); 
-			isPaused = true; 
-			updatePauseUI(true); // Cambia a icono Play y color Verde
-		} else if (isPaused) {
-			resumeSpeech(); 
-		}
-		if (imageTimer) isImageTimerPaused = true; 
-}
+			function pauseSpeech() { 
+				if (!isSpeaking) return;
 
-	function resumeSpeech() { 
-		synth.resume(); 
-		isPaused = false; 
-		updatePauseUI(false); // Vuelve a icono Pausa y color Amarillo
-		if ((chunks[currentChunkIndex] || "").match(/!\[\[(.*?)\]\]/)) { 
-			isImageTimerPaused = false; 
-			if (!imageTimer) startImageTimer(); 
-		} 
-	}
+				// DETECCIÓN DE MÓVIL
+				const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+				
+				if (isMobile) {
+					// En móvil, la pausa ejecuta un STOP directo y restablece botones
+					stopSpeech();
+					return;
+				}
 
-	function updatePauseUI(paused) { 
-		const icon = document.getElementById('pause-icon'); 
-		const pauseBtn = document.getElementById('pause-btn');
-		if (icon) {
-			// Si está pausado, ponemos el icono de Play (&#xe037;), si no, el de Pausa (&#xe1a2;)
-			icon.innerHTML = paused ? '&#xe037;' : '&#xe1a2;'; 
-		}
-		if (pauseBtn) {
-			if (paused) {
-				// APLICAR COLOR VERDE
-				pauseBtn.classList.add('bg-pause-active');
-			} else {
-				// VOLVER A COLOR AMARILLO
-				pauseBtn.classList.remove('bg-pause-active');
+				// LÓGICA PARA ESCRITORIO
+				if (synth.speaking && !isPaused) { 
+					synth.pause(); 
+					isPaused = true; 
+					updatePauseUI(true); // Cambia a Play Verde
+
+					// Iniciar temporizador: si pasan 10s en pausa, ejecuta STOP automático
+					clearTimeout(window.pauseTimer);
+					window.pauseTimer = setTimeout(() => {
+						if (window.isPaused) {
+							stopSpeech(); // Restablece botones físicamente a estado inicial
+						}
+					}, 10000); 
+				} else if (isPaused) {
+					resumeSpeech(); 
+				}
+				if (imageTimer) isImageTimerPaused = true; 
 			}
-		}
-	}
 
-	function stopSpeech() { 
-		synth.cancel(); 
-		isSpeaking = false; 
-		isPaused = false; 
-		clearImageTimer(); 
-		document.getElementById('tts-btn').classList.remove('hidden'); 
-		document.getElementById('pause-btn').classList.add('hidden'); 
-		document.getElementById('stop-btn').classList.add('hidden'); 
-		const pauseBtn = document.getElementById('pause-btn');
-		if (pauseBtn) pauseBtn.classList.remove('bg-pause-active');
-		updatePauseUI(false); 
-	}					  
+				function resumeSpeech() { 
+				clearTimeout(window.pauseTimer);
+				synth.resume(); 
+				isPaused = false; 
+				updatePauseUI(false); 
+				
+				// Quitamos el mensaje de ayuda al reanudar
+				const pauseBtn = document.getElementById('pause-btn');
+				if (pauseBtn) pauseBtn.title = "";
+
+				if ((chunks[currentChunkIndex] || "").match(/!\[\[(.*?)\]\]/)) { 
+					isImageTimerPaused = false; 
+					if (!imageTimer) startImageTimer(); 
+				} 
+			}
+
+				function updatePauseUI(paused) { 
+				const icon = document.getElementById('pause-icon'); 
+				const pauseBtn = document.getElementById('pause-btn');
+				
+				if (icon) {
+					icon.innerHTML = paused ? '&#xe037;' : '&#xe1a2;'; 
+				}
+				
+				if (pauseBtn) {
+					if (paused) {
+						pauseBtn.classList.add('bg-pause-active');
+						// Agregamos la sugerencia solo al pasar el ratón (tooltip nativo)
+						pauseBtn.title = "Si no reanuda, presione STOP y luego PLAY";
+					} else {
+						pauseBtn.classList.remove('bg-pause-active');
+						pauseBtn.title = "";
+					}
+				}
+			}
+
+			function stopSpeech() { 
+				clearTimeout(window.pauseTimer); // Cancelar cualquier cierre pendiente
+				synth.cancel(); 
+				isSpeaking = false; 
+				isPaused = false; 
+				clearImageTimer(); 
+				
+				// Físicamente volvemos al estado inicial:
+				document.getElementById('tts-btn').classList.remove('hidden'); // Botón Play principal
+				document.getElementById('pause-btn').classList.add('hidden'); // Ocultar pausa
+				document.getElementById('stop-btn').classList.add('hidden');  // Ocultar stop
+				
+				const pauseBtn = document.getElementById('pause-btn');
+				if (pauseBtn) {
+					pauseBtn.classList.remove('bg-pause-active');
+					pauseBtn.title = "";
+				}
+				updatePauseUI(false); 
+			}				  
 
 	function prepareAndStartSpeech() {
 		if (isPaused) synth.resume(); 

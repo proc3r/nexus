@@ -28,7 +28,7 @@
 		};
 	}
 
-	function getOptimizedImageUrl(url, width = 800) {
+	function getOptimizedImageUrl(url, width = 400) {
 		if (!url || url === DEFAULT_COVER) return url;
 		return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&output=webp&q=75`;
 	}
@@ -75,18 +75,18 @@ async function loadDirectBook(params) {
         if (coverMatch) {
             let fileNameImg = coverMatch[1].split('|')[0].trim();
             let rawCoverUrl = repo.adjuntos + encodeURIComponent(fileNameImg);
-            coverUrl = getOptimizedImageUrl(rawCoverUrl, 500); 
+            coverUrl = getOptimizedImageUrl(rawCoverUrl, 400); 
         }
 
         // Dentro de loadDirectBook en nexus-core.js
-currentBook = {
-    id: 'direct-load',
-    fileName: fileName, // <--- ESTE NOMBRE ES CRUCIAL
-    title: fileName.replace('.md', '').replace(/_/g, ' '),
-    cover: coverUrl,
-    chapters: parseMarkdown(text),
-    rawBase: repo.adjuntos,
-    repoIdx: repoIndex   // <--- ESTE ÍNDICE ES CRUCIAL
+		currentBook = {
+		id: 'direct-load',
+		fileName: fileName, // <--- ESTE NOMBRE ES CRUCIAL
+		title: fileName.replace('.md', '').replace(/_/g, ' '),
+		cover: coverUrl,
+		chapters: parseMarkdown(text),
+		rawBase: repo.adjuntos,
+		repoIdx: repoIndex   // <--- ESTE ÍNDICE ES CRUCIAL
 };
 
         // --- CONFIGURACIÓN DE LA INTERFAZ (UI) ---
@@ -165,47 +165,59 @@ async function fetchBooks() {
     const statusText = document.getElementById('status-text');
     library = []; 
     try {
-        for (let i = 0; i < REPOSITORIES.length; i++) {
-            const repo = REPOSITORIES[i];
+        // 1. Procesamos todos los REPOSITORIES en paralelo
+        await Promise.all(REPOSITORIES.map(async (repo, i) => {
             const response = await fetch(repo.api);
             const files = await response.json();
-            if (!Array.isArray(files)) continue;
+            if (!Array.isArray(files)) return;
             
-            const mdFiles = files.filter(f => f.name.toLowerCase().endsWith('.md'));
+            // 2. FILTRO DE NOMBRES: Solo .md y descartamos README o archivos auxiliares
+            const mdFiles = files.filter(f => 
+                f.name.toLowerCase().endsWith('.md') && 
+                !f.name.toLowerCase().includes('readme')
+            );
             
-            for (const file of mdFiles) {
-                const res = await fetch(file.download_url);
-                const text = await res.text();
-                
-                const hasIndexTag = /indexar:\s*true/.test(text.split('---')[1] || "");
-                if (!hasIndexTag) continue; 
+            // 3. CARGA SIMULTÁNEA: Pedimos todos los contenidos del repo a la vez
+            await Promise.all(mdFiles.map(async (file) => {
+                try {
+                    const res = await fetch(file.download_url);
+                    const text = await res.text();
+                    
+                    // Comprobamos el tag de indexación en el frontmatter
+                    const hasIndexTag = /indexar:\s*true/.test(text.split('---')[1] || "");
+                    if (!hasIndexTag) return; 
 
-                const coverMatch = text.match(/!\[\[(.*?)\]\]/);
-                let coverUrl = DEFAULT_COVER;
-                if (coverMatch) {
-                    let fileNameImg = coverMatch[1].split('|')[0].trim();
-                    let rawCoverUrl = repo.adjuntos + encodeURIComponent(fileNameImg);
-                    coverUrl = getOptimizedImageUrl(rawCoverUrl, 500); 
+                    // Lógica de portada (Mantenemos tu lógica original)
+                    const coverMatch = text.match(/!\[\[(.*?)\]\]/);
+                    let coverUrl = DEFAULT_COVER;
+                    if (coverMatch) {
+                        let fileNameImg = coverMatch[1].split('|')[0].trim();
+                        let rawCoverUrl = repo.adjuntos + encodeURIComponent(fileNameImg);
+                        coverUrl = getOptimizedImageUrl(rawCoverUrl, 400); 
+                    }
+
+                    // Guardamos en la biblioteca
+                    library.push({
+                        id: btoa(file.path + repo.api), 
+                        fileName: file.name,
+                        title: file.name.replace('.md', '').replace(/_/g, ' '),
+                        cover: coverUrl,
+                        chapters: parseMarkdown(text),
+                        rawBase: repo.adjuntos,
+                        repoIdx: i 
+                    });
+                } catch (e) {
+                    console.error("Error procesando archivo individual:", file.name, e);
                 }
-
-                library.push({
-                    id: btoa(file.path + repo.api), 
-                    fileName: file.name, // <-- CRUCIAL: Guardar nombre real
-                    title: file.name.replace('.md', '').replace(/_/g, ' '),
-                    cover: coverUrl,
-                    chapters: parseMarkdown(text),
-                    rawBase: repo.adjuntos,
-                    repoIdx: i // <-- CRUCIAL: Guardar índice del repo
-                });
-            }
-        }
+            }));
+        }));
         
         if (statusText) statusText.innerText = "Sincronizado";
         document.getElementById('main-spinner')?.classList.add('hidden');
-        renderLibrary();
+        renderLibrary(); // Llamamos a tu función de renderizado original
     } catch (e) { 
         if (statusText) statusText.innerText = "Fail";
-        console.error("Error:", e);
+        console.error("Error en fetchBooks:", e);
     }
 }
 
@@ -374,7 +386,7 @@ function openReader(id) {
                 if (isAudio || isVideo) { if (window.navDirection === 'prev') prevChunk(); else nextChunk(); return; }
                 isImage = true;
                 const rawImageUrl = currentBook.rawBase + encodeURIComponent(embedMatch[1].split('|')[0].trim());
-				const optimizedUrl = getOptimizedImageUrl(rawImageUrl, 1000); // 1000px para lectura interna
+				const optimizedUrl = getOptimizedImageUrl(rawImageUrl, 700); // 1000px para lectura interna
 			finalHtml = `
 				<div class="reader-image-container">
 					<img src="${optimizedUrl}" 
