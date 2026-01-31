@@ -389,7 +389,7 @@ function openReader(id) {
             } else if (rawText.trim().startsWith('>')) {
                 // Modificación para Callouts: Procesamos múltiples líneas si están presentes (unidas por \n)
                 let lines = rawText.split('\n');
-                let processedLines = lines.map(l => cleanMarkdown(l.trim().replace(/^>\s?/, ''))).join('<br><hr>');
+                let processedLines = lines.map(l => cleanMarkdown(l.trim().replace(/^>\s?/, ''))).join('<span style="display: block;opacity: 70%;border-bottom: 2px dotted; margin-bottom: 10px;"></span>');
                 finalHtml = `<div class="custom-blockquote">${processFormatting(processedLines)}</div>`;
             } else {
  

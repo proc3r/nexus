@@ -1445,6 +1445,9 @@ html, body {
     box-shadow: 0px 0px 6px rgb(235 148 14 / 88%);
     background: rgb(235 148 14 / 10%);
     /* border: 1px solid rgb(235 148 14 / 30%); */
+	display: none;
+	
+	
 }
 
 @keyframes fadeIn {
