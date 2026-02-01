@@ -13,60 +13,75 @@ let currentSynopsisIdx = 0;
 
 // --- RENDERIZADO DE BIBLIOTECA (INDEX) ---
 
+
 function renderLibrary() {
-		const grid = document.getElementById('library-grid');
-		grid.innerHTML = library.length ? '' : '<div class="col-span-full py-32 text-center opacity-20 italic text-white">No hay libros disponibles.</div>';
-		
-		library.forEach(book => {
-			let chapterCount = 0;
-			book.chapters.forEach(ch => {
-				if (ch.content) {
-					const hasH1 = ch.content.some(text => (text || "").trim().startsWith('# '));
-					if (hasH1) chapterCount++;
-				}
-			});
-			const displayChapters = chapterCount > 0 ? chapterCount : book.chapters.length;
-			const hasSynopsis = book.chapters.some(ch => 
-				ch.content && ch.content.some(text => (text || "").trim().startsWith('# Sinopsis'))
-			);
-			let totalWords = 0;
-			book.chapters.forEach(ch => ch.content.forEach(text => { 
-				totalWords += (text || "").split(/\s+/).filter(w => w.length > 0).length; 
-			}));
-			const totalMins = Math.ceil(totalWords / 185);
-			const timeStr = totalMins >= 60 ? `${Math.floor(totalMins/60)}h ${totalMins%60}m` : `${totalMins} min`;
-			const card = document.createElement('div');
-			card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[0.5rem] hover:border-[#ffcc00] cursor-pointer text-center overflow-hidden';
-			card.onclick = (e) => {
-				if (!e.target.closest('.btn-synopsis')) {
-					openReader(book.id);
-				}
-			};
-			card.innerHTML = `
-				<div class="book-card-cover relative w-full aspect-[2/3]">
-					<img src="${book.cover}" alt="Cover" loading="lazy" class="w-full h-full object-cover">
-					<div class="book-card-overlay absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black/95 via-black/20 to-transparent">
-						<h3 class="book-card-title-internal text-left text-white font-bold leading-[1em] uppercase condensed text-[1.3rem] mb-[0.2em]">
-							${book.title}
-						</h3>
-						<div class="flex items-center justify-between h-[25%] w-full pt-2 border-t border-white/10">
-							<p class="text-[15px] text-white/70 font-[500] uppercase tracking-[0.01em] condensed">
-								${displayChapters} SECCIONES
-							</p>
-							<div id="synopsis-slot-${book.id}" class="flex-1 flex justify-center">
-								${hasSynopsis ? `<button class="btn-synopsis" onclick="event.stopPropagation(); showSynopsis('${book.id}')">SINOPSIS</button>` : ''}
-							</div>
-							<p class="text-[18px] text-[#ffcc00] font-bold uppercase condensed italic">
-								<span class="mi-round text-[18px] align-middle mr-1">schedule</span>${timeStr}
-							</p>
-						</div>
-					</div>
-				</div>
-			`;
-			grid.appendChild(card);
-		});
-		renderShelf();
-	}	
+    const grid = document.getElementById('library-grid');
+    grid.innerHTML = library.length ? '' : '<div class="col-span-full py-32 text-center opacity-20 italic text-white">No hay libros disponibles.</div>';
+    
+    library.forEach(book => {
+        let chapterCount = 0;
+        book.chapters.forEach(ch => {
+            if (ch.content) {
+                const hasH1 = ch.content.some(text => (text || "").trim().startsWith('# '));
+                if (hasH1) chapterCount++;
+            }
+        });
+        const displayChapters = chapterCount > 0 ? chapterCount : book.chapters.length;
+        const hasSynopsis = book.chapters.some(ch => 
+            ch.content && ch.content.some(text => (text || "").trim().startsWith('# Sinopsis'))
+        );
+        let totalWords = 0;
+        book.chapters.forEach(ch => ch.content.forEach(text => { 
+            totalWords += (text || "").split(/\s+/).filter(w => w.length > 0).length; 
+        }));
+        const totalMins = Math.ceil(totalWords / 185);
+        const timeStr = totalMins >= 60 ? `${Math.floor(totalMins/60)}h ${totalMins%60}m` : `${totalMins} min`;
+        
+        const card = document.createElement('div');
+        card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[0.5rem] hover:border-[#ffcc00] cursor-pointer text-center overflow-hidden';
+        card.onclick = (e) => {
+            // Evitamos que se abra el lector si se hace clic en Sinopsis o Podcast
+            if (!e.target.closest('.btn-synopsis') && !e.target.closest('.podcast-badge-btn')) {
+                openReader(book.id);
+            }
+        };
+
+        card.innerHTML = `
+            <div class="book-card-cover relative w-full aspect-[2/3]">
+                <img src="${book.cover}" alt="Cover" loading="lazy" class="w-full h-full object-cover">
+                
+                ${book.podcastUrl ? `
+                    <div id="pod-btn-${book.id}" class="podcast-badge-btn" onclick="event.stopPropagation(); initPodcast('${book.id}')">
+                        <span class="pod-label">PODCAST</span>
+                        <div class="pod-icon-circle">
+                            <span class="material-icons">headset</span>
+                        </div>
+                    </div>
+                ` : ''}
+
+                <div class="book-card-overlay absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black/95 via-black/20 to-transparent">
+                    <h3 class="book-card-title-internal text-left text-white font-bold leading-[1em] uppercase condensed text-[1.3rem] mb-[0.2em]">
+                        ${book.title}
+                    </h3>
+                    <div class="flex items-center justify-between h-[25%] w-full pt-2 border-t border-white/10">
+                        <p class="text-[15px] text-white/70 font-[500] uppercase tracking-[0.01em] condensed">
+                            ${displayChapters} SECCIONES
+                        </p>
+                        <div id="synopsis-slot-${book.id}" class="flex-1 flex justify-center">
+                            ${hasSynopsis ? `<button class="btn-synopsis" onclick="event.stopPropagation(); showSynopsis('${book.id}')">SINOPSIS</button>` : ''}
+                        </div>
+                        <p class="text-[18px] text-[#ffcc00] font-bold uppercase condensed italic">
+                            <span class="mi-round text-[18px] align-middle mr-1">schedule</span>${timeStr}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+    renderShelf();
+}
+
 
 // --- GESTIÓN DE MODAL DE SINOPSIS ---
 

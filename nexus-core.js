@@ -17,6 +17,15 @@
 ];
         const DEFAULT_COVER = "https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg";
 
+	const AUDIO_BASE_URL = "https://raw.githubusercontent.com/proc3r/Audios/master/";
+
+		function extractPodcast(content) {
+			const match = content.match(/!\[\[(.*?\.mp3)\]\]/);
+			if (match) {
+				return AUDIO_BASE_URL + encodeURIComponent(match[1].trim());
+			}
+			return null;
+		}
 
 	function getUrlParams() {
 		const params = new URLSearchParams(window.location.search);
@@ -172,7 +181,7 @@ async function fetchBooks() {
         if (statusText) statusText.innerText = "Sincronizado (Cache)";
         document.getElementById('main-spinner')?.classList.add('hidden');
         renderLibrary();
-        checkAutoLoad(); // Procesa parámetros de URL si existen
+        checkAutoLoad(); 
         return; 
     }
 
@@ -182,7 +191,6 @@ async function fetchBooks() {
         for (const repo of REPOSITORIES) {
             const response = await fetch(repo.api);
             
-            // Manejo de límites de GitHub (Rate Limit)
             if (!response.ok) {
                 if (response.status === 403) throw new Error("API Rate Limit");
                 continue;
@@ -196,7 +204,6 @@ async function fetchBooks() {
                 !f.name.toLowerCase().includes('readme')
             );
 
-            // OPTIMIZACIÓN: Procesamos archivos en grupos de 5 para no saturar la API
             for (let i = 0; i < mdFiles.length; i += 5) {
                 const batch = mdFiles.slice(i, i + 5);
                 await Promise.all(batch.map(async (file) => {
@@ -205,15 +212,32 @@ async function fetchBooks() {
                         if (!res.ok) return;
                         const text = await res.text();
                         
-                        // Solo indexamos si tiene el tag indexar: true en el frontmatter
                         const hasIndexTag = /indexar:\s*true/.test(text.split('---')[1] || "");
                         if (!hasIndexTag) return; 
 
+                        // --- DETECTOR DE PODCAST (NUEVO) ---
+                        const podcastMatch = text.match(/!\[\[(.*?\.mp3)\]\]/);
+                        let podcastUrl = null;
+                        if (podcastMatch) {
+                            podcastUrl = AUDIO_BASE_URL + encodeURIComponent(podcastMatch[1].trim());
+                        }
+
+                        // --- DETECTOR DE PORTADA ---
                         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
                         let coverUrl = DEFAULT_COVER;
                         if (coverMatch) {
+                            // Si el primer match es el mp3, buscamos otro para la imagen o usamos el default
                             let fileNameImg = coverMatch[1].split('|')[0].trim();
-                            coverUrl = getOptimizedImageUrl(repo.adjuntos + encodeURIComponent(fileNameImg), 400); 
+                            if (fileNameImg.toLowerCase().endsWith('.mp3')) {
+                                // Buscamos un segundo match que no sea mp3
+                                const allMatches = [...text.matchAll(/!\[\[(.*?)\]\]/g)];
+                                const imgMatch = allMatches.find(m => !m[1].toLowerCase().endsWith('.mp3'));
+                                if (imgMatch) fileNameImg = imgMatch[1].split('|')[0].trim();
+                            }
+                            
+                            if (!fileNameImg.toLowerCase().endsWith('.mp3')) {
+                                coverUrl = getOptimizedImageUrl(repo.adjuntos + encodeURIComponent(fileNameImg), 400); 
+                            }
                         }
 
                         library.push({
@@ -221,6 +245,7 @@ async function fetchBooks() {
                             fileName: file.name,
                             title: file.name.replace('.md', '').replace(/_/g, ' '),
                             cover: coverUrl,
+                            podcastUrl: podcastUrl, // Guardamos la URL del audio
                             chapters: parseMarkdown(text),
                             rawBase: repo.adjuntos,
                             repoIdx: REPOSITORIES.indexOf(repo)
@@ -230,7 +255,6 @@ async function fetchBooks() {
             }
         }
         
-        // 3. GUARDAR EN CACHE SI LA CARGA FUE EXITOSA
         if (library.length > 0) {
             sessionStorage.setItem('nexus_library_cache', JSON.stringify(library));
         }
@@ -239,7 +263,7 @@ async function fetchBooks() {
         document.getElementById('main-spinner')?.classList.add('hidden');
         
         renderLibrary();
-        checkAutoLoad(); // Ejecutar después de renderizar para abrir libros desde URL
+        checkAutoLoad(); 
 
     } catch (e) { 
         if (statusText) {
@@ -248,6 +272,8 @@ async function fetchBooks() {
         console.error("Error crítico:", e);
     }
 }
+
+
 
 	function parseMarkdown(text) {
 		const lines = text.split('\n');
@@ -331,6 +357,15 @@ async function fetchBooks() {
 	}
 	
 function openReader(id) {
+	
+	 // OCULTAR HEADER AL ENTRAR AL LECTOR
+    const globalHeader = document.getElementById('nexus-header-global');
+    if (globalHeader) globalHeader.classList.add('header-hidden');
+    // --- INTEGRACIÓN PODCAST: Detener audio al entrar al lector ---
+    if (typeof window.stopAndHidePodcast === 'function') {
+        window.stopAndHidePodcast();
+    }
+
     const book = library.find(b => b.id === id);
     if (!book) return;
     
@@ -358,48 +393,69 @@ function openReader(id) {
     document.getElementById('resume-card')?.classList.add('hidden');
     
     // --- LÓGICA DE PREFERENCIAS (MEMORIA SEPARADA) ---
-		const isMobile = window.innerWidth <= 768;
-		const deviceSuffix = isMobile ? '-mobile' : '-desktop';
+    const isMobile = window.innerWidth <= 768;
+    const deviceSuffix = isMobile ? '-mobile' : '-desktop';
 
-		// 1. Tamaño: Recuperar específico del dispositivo o usar default inteligente
-		const savedSize = localStorage.getItem('reader-font-size' + deviceSuffix);
-		const defFontSize = savedSize ? parseInt(savedSize) : (isMobile ? 23 : 25);
-		document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
-		document.getElementById('font-size-val').innerText = defFontSize;
+    // 1. Tamaño: Recuperar específico del dispositivo o usar default inteligente
+    const savedSize = localStorage.getItem('reader-font-size' + deviceSuffix);
+    const defFontSize = savedSize ? parseInt(savedSize) : (isMobile ? 23 : 25);
+    document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
+    document.getElementById('font-size-val').innerText = defFontSize;
 
-		// 2. Fuente: Recuperar o usar default por dispositivo
-		const savedFont = localStorage.getItem('reader-font-family' + deviceSuffix);
-		const defFontName = savedFont || (isMobile ? 'Atkinson Hyperlegible' : 'Merriweather');
-		document.documentElement.style.setProperty('--reader-font-family', defFontName);
+    // 2. Fuente: Recuperar o usar default por dispositivo
+    const savedFont = localStorage.getItem('reader-font-family' + deviceSuffix);
+    const defFontName = savedFont || (isMobile ? 'Atkinson Hyperlegible' : 'Merriweather');
+    document.documentElement.style.setProperty('--reader-font-family', defFontName);
 
-		// 3. Alineación e Interlineado: Si no existen, el CSS :root ya tiene los suyos
-		const savedAlign = localStorage.getItem('reader-text-align' + deviceSuffix);
-		if (savedAlign) {
-			document.documentElement.style.setProperty('--reader-text-align', savedAlign);
-		}
+    // 3. Alineación e Interlineado: Si no existen, el CSS :root ya tiene los suyos
+    const savedAlign = localStorage.getItem('reader-text-align' + deviceSuffix);
+    if (savedAlign) {
+        document.documentElement.style.setProperty('--reader-text-align', savedAlign);
+    }
 
-		const savedHeight = localStorage.getItem('reader-line-height' + deviceSuffix);
-		if (savedHeight) {
-			document.documentElement.style.setProperty('--reader-line-height', savedHeight);
-		}
+    const savedHeight = localStorage.getItem('reader-line-height' + deviceSuffix);
+    if (savedHeight) {
+        document.documentElement.style.setProperty('--reader-line-height', savedHeight);
+    }
 
-		// Sincronizar marcas visuales (amarillo)
-		syncVisualSettings();
+    // Sincronizar marcas visuales (amarillo)
+    syncVisualSettings();
 
     loadChapter(0);
 }
+function closeReader() { 
+    // 1. Limpieza de procesos activos (Voz y Timers)
+    if (typeof stopSpeech === 'function') stopSpeech(); 
+    if (typeof clearImageTimer === 'function') clearImageTimer(); 
 
-	function closeReader() { 
-    stopSpeech(); 
-    clearImageTimer(); 
-
+    // 2. Manejo de navegación según el modo de lectura
     if (window.isLectorFijo) {
-        // En lugar de "index.html", usamos "./" para ir a la raíz de la carpeta actual
+        // Si el lector es una página independiente, volvemos a la raíz
         window.location.href = "./"; 
     } else {
-        document.getElementById('reader-view').classList.add('hidden'); 
-        document.getElementById('library-container').classList.remove('hidden'); 
-        checkLastSession(); 
+        // Ocultar Lector y Mostrar Biblioteca
+        const readerView = document.getElementById('reader-view');
+        const libraryContainer = document.getElementById('library-container');
+        const globalHeader = document.getElementById('nexus-header-global');
+
+        if (readerView) readerView.classList.add('hidden'); 
+        if (libraryContainer) libraryContainer.classList.remove('hidden'); 
+
+        // 3. RESTABLECER HEADER GLOBAL:
+        // Quitamos la clase de ocultación y forzamos su posición inicial
+        if (globalHeader) {
+            globalHeader.classList.remove('header-hidden');
+            globalHeader.style.transform = "translateY(0)";
+        }
+
+        // 4. RESET DE SCROLL:
+        // Volvemos arriba para que el usuario vea la biblioteca desde el inicio
+        // y para que la lógica de scroll del header se reinicie limpiamente
+        window.scrollTo(0, 0);
+        lastScrollTop = 0;
+
+        // 5. Verificar sesión para mostrar la tarjeta de "Continuar leyendo" si aplica
+        if (typeof checkLastSession === 'function') checkLastSession(); 
     }
 }
 	function loadChapter(idx) {
@@ -620,4 +676,48 @@ function checkAutoLoad() {
         }
     }
 }
+// --- LÓGICA DE NAVEGACIÓN GLOBAL (HEADER + PODCAST) ---
+(function() {
+    let lastScrollTop = 0;
 
+    // Usamos 'true' para capturar scroll incluso en contenedores internos
+    document.addEventListener('scroll', function(e) {
+        const header = document.getElementById('nexus-header-global');
+        const podcast = document.getElementById('podcast-player-container');
+        const readerView = document.getElementById('reader-view');
+
+        // 1. Si el lector está abierto o no hay header, no hacemos nada
+        if (readerView && !readerView.classList.contains('hidden')) return;
+        if (!header) return;
+
+        // 2. Obtención robusta del valor de scroll
+        let st = window.pageYOffset || document.documentElement.scrollTop;
+        if (st === 0 && e.target.scrollTop) {
+            st = e.target.scrollTop;
+        }
+
+        // 3. Umbral de seguridad
+        if (Math.abs(lastScrollTop - st) <= 5) return;
+
+        // 4. Lógica de movimiento sincronizado
+        if (st > lastScrollTop && st > 100) {
+            // --- BAJANDO: Ocultar elementos ---
+            header.classList.add('header-hidden');
+            
+            // Sincronizar Podcast en Mobile
+            if (podcast && window.innerWidth <= 768) {
+                podcast.classList.add('header-hidden-state');
+            }
+        } else {
+            // --- SUBIENDO: Mostrar elementos ---
+            header.classList.remove('header-hidden');
+            
+            // Sincronizar Podcast en Mobile
+            if (podcast && window.innerWidth <= 768) {
+                podcast.classList.remove('header-hidden-state');
+            }
+        }
+
+        lastScrollTop = st <= 0 ? 0 : st;
+    }, true); 
+})();

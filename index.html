@@ -40,28 +40,30 @@
 </head>
 <body>
     <div id="app">
-        <div id="library-container">
-            
-                <header class="pt-3 pb-3 px-3 md:px-10 border-b-4 border-blue-500 max-w-7xl mx-auto flex flex-row justify-between items-end">
-    <div>
-        <h1 class="text-3xl font-black tracking-tighter text-[#ffcc00]">NEXUS</h1>
-        <p class="text-[13px] text-gray-200 uppercase tracking-[0.18em] font-bold condensed">Guia Avatárica</p>
-    </div>
-    
-    <div id="status-indicator" class="flex flex-col items-end pb-1">
-        <div class="flex items-center gap-2">
-            <div class="w-3 h-3 border-2 border-t-[#ffcc00] border-white/10 rounded-full animate-spin" id="main-spinner"></div>
-            <div id="sync-led-visual" class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] hidden"></div>
-            <span class="text-[11px] font-bold uppercase tracking-widest text-gray-500 condensed" id="status-text">Sincronizando</span>
+      
+   <header id="nexus-header-global">
+    <div class="header-inner">
+        <div class="brand-zone">
+            <h1 class="logo-text">NEXUS</h1>
+            <p class="tagline-text">Guía Avatárica</p>
+        </div>
+        <div id="status-indicator" class="status-zone">
+            <div class="status-flex">
+                <div id="main-spinner" class="spinner"></div>
+                <div id="sync-led-visual" class="led hidden"></div>
+                <span id="status-text" class="status-label">Sincronizando</span>
+            </div>
         </div>
     </div>
 </header>
-			<div id="book-shelf" class="shelf-container"></div>
-<div class="shelf-divider"></div>
-            <main class="px-2 md:px-10 pb-[3em] pt-2md:py-8 max-w-7xl mx-auto">
-                <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8 pb-20"></div>
-            </main>
-        </div>
+
+    <div id="library-container">
+        <div id="book-shelf" class="shelf-container"></div>
+        <div class="shelf-divider"></div>
+        <main class="px-2 md:px-10 pb-[3em] pt-2 md:py-8 max-w-7xl mx-auto">
+            <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8 pb-20"></div>
+        </main>
+    </div>
         <div id="resume-card" class="hidden" onclick="resumeLastSession()">
             <div class="resume-icon-box">
                 <span class="mi-round text-2xl text-black">history</span>
@@ -347,11 +349,88 @@
         </div>
     </div>
 </div>
+
+	
+	<div id="podcast-player-container" class="podcast-floating-bar hidden">
+    <div class="pod-row-top">
+        <span id="podcast-book-title">Título del Podcast</span>
+        <button onclick="closePodcast()" class="pod-close"><span class="material-icons">close</span></button>
+    </div>
+	<div class="pod-row-bottom">
+        <input type="range" id="pod-progress" min="0" value="0" step="1" oninput="seekAudio(this.value)">
+    </div>
+    <div class="pod-row-mid">
+        <div class="pod-controls">
+            <button onclick="rewindAudio()" class="pod-btn"><span class="material-icons">replay_10</span></button>
+            <button id="pod-play-pause" onclick="togglePodcastPlay()" class="pod-btn-main"><span class="material-icons">play_arrow</span></button>
+            <button onclick="forwardAudio()" class="pod-btn"><span class="material-icons">forward_30</span></button>
+        </div>
+        <span id="pod-time">00:00 / 00:00</span>
+    </div>
+
+    
+    <audio id="main-podcast-audio" preload="none"></audio>
+</div>
+
+
+<div id="nexus-portal-container" class="portal-overlay hidden">
+    <div class="portal-window portal-pulse">
+        
+        <div class="portal-header">
+            <img id="portal-cover-img" src="" alt="Portada">
+            <div class="portal-header-overlay"></div>
+            <div class="portal-title-box">
+                <h3 id="portal-title-text">MODELO NOUMÉNICO</h3>
+                <p class="portal-subtitle">¿Cómo deseas continuar tu tránsito?</p>
+            </div>
+        </div>
+
+        <div class="portal-body">
+            <div class="portal-action-grid">
+                
+                <button id="btn-portal-read" class="portal-action-item">
+                    <div class="portal-icon-circle color-read">
+                        <span class="material-icons">auto_stories</span>
+                    </div>
+                    <span>Leer Libro</span>
+                </button>
+
+                <button id="btn-portal-synopsis" class="portal-action-item">
+                    <div class="portal-icon-circle color-synopsis">
+                        <span class="material-icons">summarize</span>
+                    </div>
+                    <span>Sinopsis</span>
+                </button>
+
+                <button id="btn-portal-replay" class="portal-action-item">
+                    <div class="portal-icon-circle color-replay">
+                        <span class="material-icons">replay</span>
+                    </div>
+                    <span>Repetir</span>
+                </button>
+
+                <button class="portal-action-item disabled">
+                    <div class="portal-icon-circle color-ia">
+                        <span class="material-icons">psychology</span>
+                    </div>
+                    <span>Chat IA</span>
+                </button>
+
+            </div>
+        </div>
+
+        <button onclick="closePodcastEndPortal()" class="portal-btn-close">
+            <span class="material-icons">close</span>
+        </button>
+    </div>
+</div>
+	
 	 
 <script src="nexus-core.js" defer></script>    <!-- ATENCION NO BORRAR USADO PARA TEST LOCAL  -->
  <script src="nexus-synopsis.js" defer></script>
  <script src="nexus-voice.js" defer></script>
 <script src="nexus-function.js" defer></script>
+<script src="nexus-podcast.js" defer></script>
   <!-- <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-core.js" defer></script>-->
   <!-- <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-function.js" defer></script>-->
  <!--  <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-voice.js" defer></script>-->

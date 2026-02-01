@@ -24,6 +24,118 @@ body {
     --reader-line-height: 1.8;
 }
 
+
+/* --- HEADER GLOBAL (REPLICA TAILWIND) --- */
+#nexus-header-global {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    
+    background-color: #020202ad;
+    border-bottom: 4px solid #3b82f6;
+    z-index: 2000;
+    backdrop-filter: blur(5px);
+    /* CRÍTICO: Esto permite que la barra se mueva suavemente */
+    transition: transform 0.5s ease-in-out;
+    transform: translateY(0); 
+    will-change: transform;
+}
+
+/* Esta es la clase que usaremos para ocultar manualmente desde JS */
+.header-hidden {
+    transform: translateY(-100%) !important;
+}
+.header-inner {
+    max-width: 80rem; /* max-w-7xl */
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0.5rem 0.75rem; /* pt-3 pb-3 px-3 */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+/* Escritorio: ajuste de padding lateral */
+@media (min-width: 768px) {
+    .header-inner {
+        padding-left: 2.5rem; /* md:px-10 */
+        padding-right: 2.5rem;
+    }
+}
+
+.logo-text {
+    font-size: 25px; /* text-3xl */
+    line-height: 2.25rem;
+    font-weight: 900; /* font-black */
+    letter-spacing: -0.05em; /* tracking-tighter */
+    color: #ffcc00;
+}
+
+.tagline-text {
+    font-size: 13px; /* text-[13px] */
+    color: #e5e7eb; /* text-gray-200 */
+    text-transform: uppercase;
+    letter-spacing: 0.1097em;
+    font-weight: 700;
+    font-family: 'Barlow Condensed', sans-serif;
+}
+
+.status-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding-bottom: 0.25rem; /* pb-1 */
+}
+
+.status-flex {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* gap-2 */
+}
+
+/* Spinner exacto a Tailwind animate-spin */
+.spinner {
+    width: 0.75rem; /* w-3 */
+    height: 0.75rem; /* h-3 */
+    border-radius: 9999px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #ffcc00;
+    animation: spin-nexus 1s linear infinite;
+}
+
+@keyframes spin-nexus {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* LED Visual */
+.led {
+    width: 0.625rem; /* w-2.5 */
+    height: 0.625rem; /* h-2.5 */
+    border-radius: 9999px;
+    background-color: #22c55e; /* bg-green-500 */
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+}
+
+.status-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em; /* tracking-widest */
+    color: #6b7280; /* text-gray-500 */
+    font-family: 'Barlow Condensed', sans-serif;
+}
+
+/* Ajuste necesario para que el contenido no se oculte bajo el header fijo */
+#library-container {
+    padding-top: 77px; /* Altura del header */
+}
+
+.hidden { display: none; }
+
+
 /* 1. ELIMINACIÓN GLOBAL DE LA BARRA GRIS DEL SISTEMA */
 * {
     scrollbar-width: thin !important;
@@ -657,7 +769,7 @@ html, body {
 #resume-card {
     position: fixed; bottom: 2rem; right: 2rem; z-index: 1000;
     border: 1px solid rgba(255, 204, 0, 0.3);
-    padding: 11px 12px; border-radius: 17px;
+    padding: 3px 12px; border-radius: 12px;
     
    /* animation: slideInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);*/
     cursor: pointer; display: flex; align-items: center; gap: 9px;
@@ -683,8 +795,8 @@ html, body {
 
 .resume-info { display: flex; flex-direction: column; overflow: hidden; }
 
-.resume-main-text { font-weight: 800; color: #fff; text-transform: uppercase; font-size: 13px; letter-spacing: 0.02em; text-shadow: -6px 4px 8px rgb(0 0 0 / 80%); }
-.resume-chapter-name { color: rgba(255,255,255,0.8); text-transform: capitalize; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0; }
+.resume-main-text { font-weight: 600; color: #fff; text-transform: uppercase; font-size: 13px; letter-spacing: 0.02em; text-shadow: -6px 4px 8px rgb(0 0 0 / 80%); }
+.resume-chapter-name { color: rgba(255,255,255,0.8); text-transform: capitalize; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 .resume-book-title { 
     font-family: 'Barlow Condensed', sans-serif; font-style: italic; 
     color: var(--primary-accent); font-size: 18px; font-weight: 700; text-transform: uppercase;
@@ -1994,4 +2106,453 @@ html, body {
     #resume-card { bottom: 0.5rem; max-width: 320px; width: 100%; right: 15px;}
     .settings-dropdown { left: auto; right: 0; transform: none; }
     .font-dropdown { left: auto; transform: none; }                                            
+}
+
+/* =========================================
+   REPRODUCTOR PODCAST (CONSOLIDADO)
+   ========================================= */
+
+/* Contenedor Principal Flotante 
+.podcast-floating-bar {
+    position: fixed;
+    top: 42px; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 800px;
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 204, 0, 0.2);
+    border-radius: 12px;
+    z-index: 1000;
+    box-shadow: 0 0 7px rgb(251 0 0 / 80%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    padding: 3px 15px;
+}*/
+
+/* REPRODUCTOR BASE */
+.podcast-floating-bar {
+    position: fixed;
+    background: rgba(10, 10, 10, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 204, 0, 0.2);
+    border-radius: 12px;
+    z-index: 1000;
+    box-shadow: 0 0 7px rgb(251 0 0 / 80%);
+    transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    padding: 3px 15px;
+}
+
+
+/* MODO MOBILE: Barra superior dinámica */
+@media (max-width: 768px) {
+    .podcast-floating-bar {
+        top: 77px; /* Posición cuando el header es visible */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 93%;
+        border-radius: 12px;
+        position: fixed;
+        z-index: 1500; /* Por debajo del header global que tiene 2000+ */
+        
+        /* Mantenemos tu transición suave */
+        transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                    width 0.3s ease, 
+                    border-radius 0.3s ease;
+    }
+
+    /* ESTADO SINCRONIZADO: Cuando el header se oculta */
+    .podcast-floating-bar.header-hidden-state {
+        top: 4px !important; /* Se pega arriba cuando la barra desaparece */
+    }
+}
+
+/* MODO ESCRITORIO: Tarjeta abajo a la izquierda */
+@media (min-width: 769px) {
+    .podcast-floating-bar {
+        bottom: 2rem;
+        left: 2rem;
+        top: auto; /* Anulamos el top */
+        transform: none;
+        width: 350px;
+        border-radius: 12px;
+    }
+    /* En escritorio no necesitamos que suba al techo */
+    .podcast-floating-bar.sticky-top {
+        top: auto !important;
+        bottom: 20px !important;
+    }
+	.pod-row-bottom {
+    width: 100%;
+    padding: 4px 0;
+	}
+}
+
+
+/* Estado Pegado al Techo (Scroll) */
+.podcast-floating-bar.sticky-top {
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    border-left: none;
+    border-right: none;
+    background: rgba(5, 5, 5, 0.98);
+}
+
+/* FILA 1: Título y Botón Cerrar */
+.pod-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 13px;
+    padding-top: 12px;
+}
+
+#podcast-book-title {
+    color: #ffcc00;
+    font-weight: 800;
+    font-size: 17px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 85%;
+	font-family: 'Barlow Condensed';
+}
+
+.pod-close {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+}
+.pod-close:hover { color: #ef4444; }
+
+/* FILA 2: Controles Centrales y Tiempo */
+.pod-row-mid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    height: 30px;
+    padding-top: 4px;
+}
+
+.pod-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.pod-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+.pod-btn:hover { opacity: 1; }
+
+.pod-btn-main {
+    background: none;
+    border: none;
+    color: #ffcc00;
+    cursor: pointer;
+    transform: scale(1);
+    transition: transform 0.2s;
+}
+.pod-btn-main:hover { transform: scale(1.1); }
+.pod-btn-main .material-icons { font-size: 38px; }
+
+#pod-time {
+    position: absolute;
+    right: 0;
+    font-size: 13px;
+    color: rgba(255,255,255,1);
+    font-family: 'Inter', monospace;
+}
+
+/* FILA 3: Barra de Progreso */
+.pod-row-bottom {
+    width: 100%;
+    padding-top: 1px;
+}
+
+#pod-progress {
+    width: 100%;
+    height: 4px;
+    accent-color: var(--marker-h1);
+    cursor: pointer;
+    outline: none;
+    box-shadow: 0 0 4px rgb(255 68 68 / 55%);
+    border: 1px solid rgba(0,0,0,0.2);
+}
+
+/* BOTÓN EN LA CARD DEL LIBRO (BIBLIOTECA) */
+.podcast-badge-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 3px 3px 3px 12px;
+    border-radius: 30px;
+    border: 1.5px solid #3b82f6; /* Azul inicial */
+    cursor: pointer;
+    transition: all 0.3s ease;
+	box-shadow: 0 0 11px rgb(26 44 229 / 61%);
+}
+
+.podcast-badge-btn.active {
+    border-color: #ef4444;
+    background: rgb(155 27 27 / 78%);
+    box-shadow: 0 0 8px rgb(239 68 68 / 57%);
+}
+
+.pod-label {
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    font-family: 'Barlow Condensed';
+}
+
+.pod-icon-circle {
+    width: 26px;
+    height: 26px;
+    background: #3b82f6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+}
+
+.podcast-badge-btn.active .pod-icon-circle {
+    background: #ef4444;
+}
+
+.pod-icon-circle .material-icons {
+    font-size: 16px;
+    color: white;
+}
+
+
+
+/* --- PORTAL DE RESONANCIA: SISTEMA INDEPENDIENTE --- */
+
+.portal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(1px);
+    display: none; /* Se activa con .flex en JS */
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: portalFadeIn 0.4s ease;
+}
+
+.portal-overlay.flex { display: flex; }
+
+.portal-window {
+    background: rgba(0, 0, 0, 0.8);
+    width: 100%;
+    max-width: 400px;
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(156, 39, 176, 0.4);
+    box-shadow: 0 0 25px rgb(0 0 0 / 50%);
+    backdrop-filter: blur(10px);
+}
+
+/* Efecto Latido Púrpura */
+.portal-pulse { animation: portalPulseAnim 3s infinite ease-in-out; }
+@keyframes portalPulseAnim {
+    0%, 100% { box-shadow: 0 0 15px rgba(156, 39, 176, 0.5); }
+    50% { box-shadow: 0 0 35px rgba(211, 71, 235, 0.8); }
+}
+
+/* Cabecera con Imagen */
+.portal-header {
+    position: relative;
+    height: 180px;
+    width: 100%;
+}
+
+#portal-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 1;
+}
+
+.portal-header-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, #0f1115 10%, transparent 100%);
+}
+
+.portal-title-box {
+    position: absolute;
+    bottom: 15px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 0 20px;
+}
+
+#portal-title-text {
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    font-family: 'Barlow Condensed', sans-serif;
+    text-transform: uppercase;
+    font-style: italic;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.portal-subtitle {
+    color: #ffcc00;
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-family: 'Barlow Condensed', sans-serif;
+    margin: 5px 0 0 0;
+}
+
+/* Grid de Acciones */
+.portal-body {
+    padding: 30px 20px 100px 20px;
+}
+
+.portal-action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+}
+
+.portal-action-item {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.2s ease;
+}
+
+.portal-action-item:hover { transform: scale(1.1); }
+.portal-action-item.disabled { opacity: 0.3; cursor: default; }
+
+.portal-icon-circle {
+    width: 65px;
+    height: 65px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-width: 2px;
+    border-style: solid;
+    backdrop-filter: blur(5px);
+}
+
+.portal-icon-circle span { font-size: 32px; }
+
+.portal-action-item span:not(.material-icons) {
+    color: white;
+    font-family: 'Barlow Condensed', sans-serif;
+    text-transform: uppercase;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+/* Colores de Iconos (Estilo Neón) */
+.color-read { background: rgb(154 157 11 / 46%);
+    color: #ffffff;
+    border-color: #e9db23;
+    box-shadow: 0px 0px 11px rgb(234 237 33 / 66%);
+    backdrop-filter: blur(3px);
+    border: 2px solid #babb18; }
+	
+.color-synopsis { 
+    background: rgb(37 211 102 / 42%);
+    color: #13ff6b;
+    border-color: rgba(37, 211, 102, 0.6);
+    box-shadow: 0px 0px 3px rgb(0 255 0 / 84%);
+    backdrop-filter: blur(3px);
+    border: 2px solid rgb(0 255 0 / 84%);
+}
+.color-replay {background: rgb(82 82 82 / 42%);
+    color: #ffffff;
+    border-color: rgb(255 255 255 / 36%);
+    box-shadow: 0px 0px 10px rgb(255 255 255 / 86%);
+    backdrop-filter: blur(3px);
+    border: 2px solid rgb(255 255 255 / 56%);}
+.color-ia { 
+    background: rgb(24 119 242 / 43%);
+    color: #ffffff;
+    border-color: rgb(24 119 242 / 80%);
+    box-shadow: 0 0 12px rgb(24 119 242 / 50%);
+    backdrop-filter: blur(3px);
+    border: 2px solid rgb(24 119 242 / 80%); 
+}
+
+/* Botón de Cierre Circular Inferior */
+.portal-btn-close {
+      position: fixed !important;
+    bottom: 19px;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 9999;
+    padding: 4px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+	font-size: 18px;
+    transition: all 0.3s ease;
+    background: rgba(255, 68, 68, 0.5);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    color: #fffdfd;
+    box-shadow: 0px 0px 20px rgb(255 68 68 / 68%);
+    border-radius: 2rem;
+    font-size: 20px;
+    backdrop-filter: blur(2px);
+}
+
+.portal-btn-close:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+/* Animación Entrada */
+@keyframes portalFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Adaptabilidad Escritorio */
+@media (min-width: 1024px) {
+    .portal-window { max-width: 550px; }
+    .portal-action-grid { grid-template-columns: repeat(4, 1fr); }
+    .portal-header { height: 110px; }
 }
