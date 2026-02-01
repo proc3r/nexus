@@ -163,11 +163,30 @@ async function loadDirectBook(params) {
 
 async function fetchBooks() {
     const statusText = document.getElementById('status-text');
+    
+    // 1. INTENTAR CARGAR DESDE CACHE (sessionStorage)
+    const cachedLibrary = sessionStorage.getItem('nexus_library_cache');
+    if (cachedLibrary) {
+        library = JSON.parse(cachedLibrary);
+        console.log("Cargado desde cache para ahorrar cuota de GitHub");
+        if (statusText) statusText.innerText = "Sincronizado (Cache)";
+        document.getElementById('main-spinner')?.classList.add('hidden');
+        renderLibrary();
+        checkAutoLoad(); // Procesa parámetros de URL si existen
+        return; 
+    }
+
+    // 2. SI NO HAY CACHE, PROCEDER CON LA CARGA NORMAL
     library = []; 
     try {
         for (const repo of REPOSITORIES) {
             const response = await fetch(repo.api);
-            if (!response.ok) continue; // Si GitHub bloquea un repo, saltamos al siguiente
+            
+            // Manejo de límites de GitHub (Rate Limit)
+            if (!response.ok) {
+                if (response.status === 403) throw new Error("API Rate Limit");
+                continue;
+            }
             
             const files = await response.json();
             if (!Array.isArray(files)) continue;
@@ -177,9 +196,7 @@ async function fetchBooks() {
                 !f.name.toLowerCase().includes('readme')
             );
 
-            // OPTIMIZACIÓN SEGURO PARA MÓVIL:
-            // En lugar de Promise.all puro, procesamos en grupos pequeños (Batches)
-            // Esto evita el bloqueo 403 de GitHub
+            // OPTIMIZACIÓN: Procesamos archivos en grupos de 5 para no saturar la API
             for (let i = 0; i < mdFiles.length; i += 5) {
                 const batch = mdFiles.slice(i, i + 5);
                 await Promise.all(batch.map(async (file) => {
@@ -188,6 +205,7 @@ async function fetchBooks() {
                         if (!res.ok) return;
                         const text = await res.text();
                         
+                        // Solo indexamos si tiene el tag indexar: true en el frontmatter
                         const hasIndexTag = /indexar:\s*true/.test(text.split('---')[1] || "");
                         if (!hasIndexTag) return; 
 
@@ -212,11 +230,21 @@ async function fetchBooks() {
             }
         }
         
+        // 3. GUARDAR EN CACHE SI LA CARGA FUE EXITOSA
+        if (library.length > 0) {
+            sessionStorage.setItem('nexus_library_cache', JSON.stringify(library));
+        }
+
         if (statusText) statusText.innerText = "Sincronizado";
         document.getElementById('main-spinner')?.classList.add('hidden');
+        
         renderLibrary();
+        checkAutoLoad(); // Ejecutar después de renderizar para abrir libros desde URL
+
     } catch (e) { 
-        if (statusText) statusText.innerText = "Error API";
+        if (statusText) {
+            statusText.innerText = e.message === "API Rate Limit" ? "Límite GitHub excedido" : "Error API";
+        }
         console.error("Error crítico:", e);
     }
 }
@@ -308,6 +336,10 @@ function openReader(id) {
     
     currentBook = book;
     
+    // SOLUCIÓN AL POSICIONAMIENTO: Reiniciamos siempre a 0 al abrir un libro nuevo
+    currentChapterIndex = 0;
+    currentChunkIndex = 0;
+    
     // Asegurar datos para el compartir
     if (currentBook.repoIdx === undefined) currentBook.repoIdx = 0;
     if (!currentBook.fileName) currentBook.fileName = currentBook.title + ".md";
@@ -325,15 +357,35 @@ function openReader(id) {
     document.getElementById('reader-view').classList.remove('hidden');
     document.getElementById('resume-card')?.classList.add('hidden');
     
-    // Tipografía
-    const isMobile = window.innerWidth <= 768;
-    const defFontSize = isMobile ? 23 : 25;
-    const defFontName = isMobile ? 'Atkinson Hyperlegible' : 'Merriweather';
-    document.getElementById('font-size-val').innerText = defFontSize;
-    document.getElementById('current-font-label').innerText = defFontName;
-    document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
-    document.documentElement.style.setProperty('--reader-font-family', defFontName);
-    
+    // --- LÓGICA DE PREFERENCIAS (MEMORIA SEPARADA) ---
+		const isMobile = window.innerWidth <= 768;
+		const deviceSuffix = isMobile ? '-mobile' : '-desktop';
+
+		// 1. Tamaño: Recuperar específico del dispositivo o usar default inteligente
+		const savedSize = localStorage.getItem('reader-font-size' + deviceSuffix);
+		const defFontSize = savedSize ? parseInt(savedSize) : (isMobile ? 23 : 25);
+		document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
+		document.getElementById('font-size-val').innerText = defFontSize;
+
+		// 2. Fuente: Recuperar o usar default por dispositivo
+		const savedFont = localStorage.getItem('reader-font-family' + deviceSuffix);
+		const defFontName = savedFont || (isMobile ? 'Atkinson Hyperlegible' : 'Merriweather');
+		document.documentElement.style.setProperty('--reader-font-family', defFontName);
+
+		// 3. Alineación e Interlineado: Si no existen, el CSS :root ya tiene los suyos
+		const savedAlign = localStorage.getItem('reader-text-align' + deviceSuffix);
+		if (savedAlign) {
+			document.documentElement.style.setProperty('--reader-text-align', savedAlign);
+		}
+
+		const savedHeight = localStorage.getItem('reader-line-height' + deviceSuffix);
+		if (savedHeight) {
+			document.documentElement.style.setProperty('--reader-line-height', savedHeight);
+		}
+
+		// Sincronizar marcas visuales (amarillo)
+		syncVisualSettings();
+
     loadChapter(0);
 }
 
@@ -351,23 +403,30 @@ function openReader(id) {
     }
 }
 	function loadChapter(idx) {
-		if (idx < 0 || idx >= currentBook.chapters.length) return;
-    window.navDirection = 'next'; // Los capítulos siempre entran desde la derecha
-	
-	currentChapterIndex = idx;
-		const chapter = currentBook.chapters[idx];
-		document.getElementById('chapter-indicator').innerText = stripHtml(chapter.title);
-		chunks = chapter.content;
-		currentChunkIndex = 0;
-		document.querySelectorAll('.toc-item').forEach(el => el.classList.remove('active'));
-		const activeItem = document.getElementById(`toc-item-${idx}`);
-		if (activeItem) {
-			activeItem.classList.add('active');
-			if (!allExpanded) expandActiveHierarchy(idx);
-			activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-		}
-		renderChunk();
-	}
+    if (idx < 0 || idx >= currentBook.chapters.length) return;
+
+    // CAMBIO: Si ya es 'prev' (porque viene de prevChunk), no lo sobrescribas
+    if (window.navDirection !== 'prev') {
+        window.navDirection = 'next';
+    }
+    
+    currentChapterIndex = idx;
+    const chapter = currentBook.chapters[idx];
+    document.getElementById('chapter-indicator').innerText = stripHtml(chapter.title);
+    
+    // IMPORTANTE: Esta línea debe estar aquí para que el texto exista
+    chunks = chapter.content; 
+    
+    currentChunkIndex = 0;
+    document.querySelectorAll('.toc-item').forEach(el => el.classList.remove('active'));
+    const activeItem = document.getElementById(`toc-item-${idx}`);
+    if (activeItem) {
+        activeItem.classList.add('active');
+        if (!allExpanded) expandActiveHierarchy(idx);
+        activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    renderChunk();
+}
 
         function cleanMarkdown(str) {
             if (!str) return "";
@@ -478,48 +537,87 @@ function renderChunk() {
         }
 
 	function prevChunk() { 
-		window.navDirection = 'prev'; 
-		clearImageTimer(); 
-		if (isSpeaking && isPaused) { synth.resume(); isPaused = false; updatePauseUI(false); }
-		if (isSpeaking) synth.cancel(); 
+    window.navDirection = 'prev'; // Seteamos dirección atrás
+    clearImageTimer(); 
+    if (isSpeaking && isPaused) { synth.resume(); isPaused = false; updatePauseUI(false); }
+    if (isSpeaking) synth.cancel(); 
 
-		if (currentChunkIndex > 0) { currentChunkIndex--; renderChunk(); }
-		else if (currentChapterIndex > 0) { currentChapterIndex--; loadChapter(currentChapterIndex); currentChunkIndex = chunks.length - 1; renderChunk(); } 
-	}
+    if (currentChunkIndex > 0) { 
+        currentChunkIndex--; 
+        renderChunk(); 
+    } else if (currentChapterIndex > 0) { 
+        // 1. Retrocedemos el índice del capítulo
+        currentChapterIndex--; 
+        
+        // 2. Cargamos los datos del nuevo capítulo manualmente para no perder el control
+        const chapter = currentBook.chapters[currentChapterIndex];
+        chunks = chapter.content; // Actualizamos los pedazos de texto
+        currentChunkIndex = chunks.length - 1; // Vamos al final del capítulo
+        
+        // 3. Actualizamos la interfaz
+        document.getElementById('chapter-indicator').innerText = stripHtml(chapter.title);
+        document.querySelectorAll('.toc-item').forEach(el => el.classList.remove('active'));
+        const activeItem = document.getElementById(`toc-item-${currentChapterIndex}`);
+        if (activeItem) activeItem.classList.add('active');
+
+        // 4. Renderizamos (usará la dirección 'prev' que pusimos arriba)
+        renderChunk(); 
+    } 
+}
 
     
-// --- LÓGICA DE GESTOS TÁCTILES (SWIPE) ---
+// --- LÓGICA DE SWIPE PARA MÓVIL ---
 let touchstartX = 0;
 let touchendX = 0;
 
-// Registramos el evento en el contenedor principal de lectura
-const gestureZone = document.getElementById('reading-container-fixed');
+function initTouchEvents() {
+    const readerZone = document.getElementById('reading-container-fixed');
+    if (!readerZone) return;
 
-gestureZone.addEventListener('touchstart', e => {
-    touchstartX = e.changedTouches[0].screenX;
-}, {passive: true});
+    readerZone.addEventListener('touchstart', e => {
+        touchstartX = e.changedTouches[0].screenX;
+    }, {passive: true});
 
-gestureZone.addEventListener('touchend', e => {
-    touchendX = e.changedTouches[0].screenX;
-    handleGesture();
-}, {passive: true});
+    readerZone.addEventListener('touchend', e => {
+        touchendX = e.changedTouches[0].screenX;
+        handleSwipeGesture();
+    }, {passive: true});
+}
 
-function handleGesture() {
-    const swipeThreshold = 50; // Distancia mínima en píxeles para detectar el deslizamiento
+function handleSwipeGesture() {
+    const swipeThreshold = 60; // Sensibilidad del deslizamiento
     
-    // Si el usuario desliza hacia la IZQUIERDA (Siguiente)
+    // Deslizar a la izquierda -> Siguiente Chunk
     if (touchstartX - touchendX > swipeThreshold) {
-        // Solo si no hay un modal abierto (opcional)
-        if (document.getElementById('synopsis-modal').classList.contains('hidden')) {
-            nextChunk();
-        }
+        nextChunk();
     }
     
-    // Si el usuario desliza hacia la DERECHA (Anterior)
+    // Deslizar a la derecha -> Chunk Anterior
     if (touchendX - touchstartX > swipeThreshold) {
-        if (document.getElementById('synopsis-modal').classList.contains('hidden')) {
-            prevChunk();
+        prevChunk();
+    }
+}
+
+// Llamamos a la inicialización (puedes poner esto dentro de tu window.onload)
+initTouchEvents();
+     
+	 
+function checkAutoLoad() {
+    const params = getUrlParams();
+    if (params.repo !== null && params.book) {
+        const repoIdx = parseInt(params.repo);
+        // Buscamos el libro en la librería cargada
+        const book = library.find(b => b.fileName === params.book && b.repoIdx === repoIdx);
+        if (book) {
+            // Abrimos el lector
+            openReader(book.id);
+            // Si la URL traía capítulo o fragmento específico, los aplicamos después de abrir
+            if (params.ch > 0) loadChapter(params.ch);
+            if (params.ck > 0) {
+                currentChunkIndex = params.ck;
+                renderChunk();
+            }
         }
     }
 }
-     
+

@@ -21,7 +21,7 @@ body {
     --reader-font-size: 25px;
     --reader-font-family: 'Merriweather', serif;
     --reader-text-align: justify;
-    --reader-line-height: 1.7;
+    --reader-line-height: 1.8;
 }
 
 /* 1. ELIMINACIÓN GLOBAL DE LA BARRA GRIS DEL SISTEMA */
@@ -173,9 +173,10 @@ html, body {
     font-size: var(--reader-font-size);
     text-align: var(--reader-text-align);
     line-height: var(--reader-line-height);
-	padding-bottom: 23px;
-	
-/*  width: 100%;*/
+	padding-bottom: 10px;
+	width: 100%;
+    position: relative;
+
 }
 
 /* --- ANIMACIONES MÓVILES (Barrido Lateral) --- */
@@ -198,10 +199,12 @@ html, body {
     to { opacity: 1; transform: translateX(0); }
 }
 
+
+
 /* --- ANIMACIONES ESCRITORIO (Emerger + Difuminar) --- */
 @media (min-width: 769px) {
     .desktop-fade {
-        animation: desktopReveal 0.4s ease-out forwards;
+        animation: desktopReveal 0.2s ease-out forwards;
     }
 }
 
@@ -209,7 +212,7 @@ html, body {
     from { 
         opacity: 0; 
         transform: translateY(0px) scale(0.96); 
-        filter: blur(3px);
+        filter: blur(1px);
     }
     to { 
         opacity: 1; 
@@ -236,18 +239,7 @@ html, body {
 	animation: ease-in-out;
 }
 
-#reading-container-fixed {
-    flex: 1; padding: 0 10%;
-    scroll-behavior: smooth; display: flex; flex-direction: column;
-									   
-    overscroll-behavior-y: contain;
-}
 
-#reading-container-fixed > .content-wrapper {
-    flex: 1; display: flex; flex-direction: column;
-    justify-content: center; min-height: min-content;
-    padding-top: 20px; padding-bottom: 40px;
-}
 
 /* 5. PROGRESO Y MARCADORES */
 .progress-bar-container {
@@ -508,9 +500,7 @@ html, body {
     transform: translateZ(0); /* Fuerza aceleración de hardware sin mover el objeto */
 }
 
-.book-card * {
-    transition: none !important; /* Desactiva transiciones en elementos internos durante la carga */
-}
+
 
 /* El overlay ahora ocupa toda la imagen para el degradado */
 .book-card-overlay {
@@ -591,20 +581,50 @@ html, body {
 
 
 	
-/* 7. DROPDOWNS Y AJUSTES */
-.settings-dropdown-container { position: relative; } 
-.settings-dropdown {
-    position: absolute; top: 110%; left: 50%;
-    transform: translateX(-50%);
-    min-width: 140px; background: var(--dropdown-bg);
-    /*backdrop-filter: blur(12px);*/
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-    z-index: 200; display: none; padding: 4px 0; color: inherit;
-}
-.settings-dropdown.show { display: block; }
+/* 7. DROPDOWNS Y AJUSTES - CORREGIDO */
+.settings-dropdown-container { 
+    position: relative; 
+    display: inline-flex; 
+} 
 
-.font-dropdown { width: 170px; max-height: 320px; }
+.settings-dropdown {
+    position: absolute; 
+    top: 120%; /* Un poco más de aire abajo del botón */
+    right: 0;   /* Alineado al borde derecho del botón */
+    left: auto; /* Anulamos el centrado que causa el salto */
+    transform: none; /* Quitamos el transform para que no choque con la animación */
+    
+    min-width: 140px; 
+    background: var(--dropdown-bg);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    z-index: 200; 
+    display: none; 
+    padding: 4px 0; 
+    color: inherit;
+}
+
+/* Animación simplificada para evitar saltos de posición */
+@keyframes fadeInSimple {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.settings-dropdown.show { 
+    display: block; 
+    animation: fadeInSimple 0.2s ease-out; 
+}
+
+.font-dropdown { 
+    width: 180px; 
+    max-height: 320px; 
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 .setting-option {
     padding: 8px 14px; cursor: pointer; font-size: 18px;
@@ -620,10 +640,17 @@ html, body {
     opacity: 0.6; letter-spacing: 0.05em;
 }
 
+/* Unifica el tamaño de todos los botones de icono del menú superior */
 .nav-icon-btn {
-    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-    border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05);
-    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 32px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
 }
 .nav-icon-btn:hover { background: rgba(255,255,255,0.15); }
 
@@ -669,15 +696,7 @@ html, body {
     to { transform: translateY(0); opacity: 1; }
 }
 
-@media (max-width: 768px) {
-    #reading-container-fixed {padding-right: 20px;  padding-left: 20px;}
-    #reading-container-fixed > .content-wrapper { padding-top: 5px; padding-bottom: 20px; }
-    #image-timer { top: 90px; font-size: 17px; padding: 6px 14px; gap: 8px; }
-    .nav-icon-btn { width: 24px; height: 24px; }
-    #resume-card { bottom: 0.5rem; max-width: 320px; width: 100%; right: 15px;}
-    .settings-dropdown { left: auto; right: 0; transform: none; }
-    .font-dropdown { left: 0; transform: none; }                                            
-}
+
 
  /* Ocultar etiquetas de Callouts estilo Obsidian [!tipo] */
         #book-content blockquote, #book-content p {
@@ -1937,9 +1956,42 @@ html, body {
 
 /* Asegurar que el contenedor de lectura no herede animaciones extrañas */
 #reading-container-fixed {
-    scroll-behavior: auto !important; /* Evita saltos suaves al resetear el scroll */
-	touch-action: pan-y; 
-    overscroll-behavior-x: none;
+    flex: 1;
+	display: flex; 	
+	flex-direction: column;
+	width: 100%;
+	
+	margin: 0 auto;
+	position: relative;
+	    
+	/* Centrado Vertical que tenías antes */
+     
+    padding: 0 10%; 
+	    
+	/* Comportamiento y Scroll */
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: auto !important; /* Evita saltos al cambiar de página */
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+	/* Estabilización de altura */
+    height: calc(100vh - 130px); 
+	
 }
 
+#reading-container-fixed > .content-wrapper {
+    flex: 1; display: flex; flex-direction: column;
+    justify-content: center; min-height: min-content;
+    padding-top: 20px; padding-bottom: 40px;
+}
 
+@media (max-width: 768px) {
+    #reading-container-fixed {padding-right: 20px;  padding-left: 20px;}
+    #reading-container-fixed > .content-wrapper { padding-top: 5px; padding-bottom: 20px; }
+    #image-timer { top: 90px; font-size: 17px; padding: 6px 14px; gap: 8px; }
+    .nav-icon-btn { width: 24px; height: 24px; }
+    #resume-card { bottom: 0.5rem; max-width: 320px; width: 100%; right: 15px;}
+    .settings-dropdown { left: auto; right: 0; transform: none; }
+    .font-dropdown { left: auto; transform: none; }                                            
+}

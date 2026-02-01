@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Barlow+Condensed:ital,wght@0,300;0,400;1,300;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700&family=Lora:ital,wght@0,400;0,700&family=Libre+Baskerville:ital,wght@0,400;0,700&family=Source+Sans+3:wght@400;700&family=IBM+Plex+Sans:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Barlow+Condensed:ital,wght@0,300;0,400;1,300;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Round" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	<meta property="og:type" content="website">
@@ -9,6 +10,7 @@
 	<meta property="og:title" content="Nexus Avatar - Lector de Manuscritos">
 	<meta property="og:description" content="Explora la biblioteca de documentos y manuscritos sincronizados.">
 	<meta property="og:image" content="https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg">
+
 	<meta property="twitter:card" content="summary_large_image">
 	<meta property="twitter:url" content="https://proc3r.github.io/nexus/">
 	<meta property="twitter:title" content="Nexus Avatar - Lector de Manuscritos">
@@ -16,14 +18,18 @@
 	<meta property="twitter:image" content="https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+	<link rel="preload" 
+      href="https://fonts.gstatic.com/s/materialiconsround/v109/LDItaoyNOAY6Uewc665JcIzCKsKc_M9flwmP.woff2" 
+      as="font" 
+      type="font/woff2" 
+      crossorigin="anonymous">
     <title>Nexus Avatar</title>
 	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
-    
-	<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">-->
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/proc3r/nexus@main/estilos-nexus.css?v=1.3">
-	<!-- <link rel="stylesheet" href="estilos-nexus.css">  ATENCION NO BORRAR USADO PARA TEST LOCAL  -->
+   	<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">-->
+	
+    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/proc3r/nexus@main/estilos-nexus.css">-->
+	<link rel="stylesheet" href="estilos-nexus.css"> 
     <link rel="dns-prefetch" href="https://wsrv.nl">
 	<link rel="preconnect" href="https://wsrv.nl">
 
@@ -80,32 +86,27 @@
 			<button onclick="togglePauseImageTimer()" class="timer-pause-btn text-[#ffffff]">Pausar</button>
 		</div>
 		<nav class="h-8 flex-shrink-0 flex items-center justify-between px-4 border-b-4 border-blue-500 bg-black/20 backdrop-blur-md relative z-50">
-			<button onclick="closeReader()" class="text-[#ffcc00] font-bold uppercase text-[18px] tracking-[0.02em] condensed flex items-center gap-1 hover:text-white transition-colors" style="text-shadow: -1px 1px 5px rgb(0 0 0 / 79%);">
+			<button onclick="closeReader()" class="text-[#ffcc00] font-bold uppercase text-[23px] tracking-[0.02em] condensed flex items-center gap-1 hover:text-white transition-colors" style="text-shadow: -1px 1px 5px rgb(0 0 0 / 79%);">
 				<span class="mi-round text-sm"></span>NEXUS
 			</button>
 			<div class="flex items-center gap-2 md:gap-4">
-				<div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[11px] font-bold border border-white/5">
+				<div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[13px] font-bold border border-white/5">
 					<button onclick="changeFontSize(-2)" class="hover:text-[#ffcc00]" title="Disminuir Fuente">A-</button>
 					<span id="font-size-val">25</span>
 					<button onclick="changeFontSize(2)" class="hover:text-[#ffcc00]" title="Aumentar Fuente">A+</button>
 				</div>
 				<div class="settings-dropdown-container">
-					<button onclick="toggleDropdown('font-dropdown')" class="flex items-center gap-1 px-3 py-0.5 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5" title="Cambiar Fuente">
-						<span id="current-font-label" class="text-[11px] font-bold uppercase condensed tracking-wider w-11 truncate sm:inline">Merriweather</span>
-						<svg class="w-2.5 h-2.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					<button onclick="toggleDropdown('font-dropdown')" class="nav-icon-btn" title="Cambiar Fuente">
+						<span class="mi-round text-lg">text_fields</span>
 					</button>
 					<div id="font-dropdown" class="settings-dropdown font-dropdown custom-scrollbar">
 						<div class="setting-option" style="font-family: 'Merriweather'" onclick="changeFontFamily('Merriweather')">Merriweather</div>
-						<div class="setting-option" style="font-family: 'EB Garamond'" onclick="changeFontFamily('EB Garamond')">EB Garamond</div>
-						<div class="setting-option" style="font-family: 'Playfair Display'" onclick="changeFontFamily('Playfair Display')">Playfair Display</div>
 						<div class="setting-option" style="font-family: 'Lora'" onclick="changeFontFamily('Lora')">Lora</div>
-						<div class="setting-option" style="font-family: 'Libre Baskerville'" onclick="changeFontFamily('Libre Baskerville')">Baskerville</div>
 						<div class="setting-option" style="font-family: 'Inter'" onclick="changeFontFamily('Inter')">Inter</div>
-						<div class="setting-option" style="font-family: 'IBM Plex Sans'" onclick="changeFontFamily('IBM Plex Sans')">IBM Plex Sans</div>
-						<div class="setting-option" style="font-family: 'Montserrat'" onclick="changeFontFamily('Montserrat')">Montserrat</div>
 						<div class="setting-option" style="font-family: 'Atkinson Hyperlegible'" onclick="changeFontFamily('Atkinson Hyperlegible')">Hyperlegible</div>
 					</div>
 				</div>
+
                         
 						<div class="settings-dropdown-container">
     <button onclick="toggleDropdown('align-dropdown')" class="nav-icon-btn" title="Alineación">
@@ -129,13 +130,13 @@
         <span class="mi-round text-lg">format_line_spacing</span>
     </button>
     <div id="spacing-dropdown" class="settings-dropdown">
-        <div class="setting-option selected" onclick="changeLineHeight(1.4)">
+        <div class="setting-option selected" onclick="changeLineHeight(1.3)">
             <span class="mi-round text-base">reorder</span> Compacto
         </div>
-        <div class="setting-option" onclick="changeLineHeight(1.7)">
+        <div class="setting-option" onclick="changeLineHeight(1.5)">
             <span class="mi-round text-base">notes</span> Normal
         </div>
-        <div class="setting-option" onclick="changeLineHeight(2.1)">
+        <div class="setting-option" onclick="changeLineHeight(1.8)">
             <span class="mi-round text-base">subject</span> Extenso
         </div>
     </div>
