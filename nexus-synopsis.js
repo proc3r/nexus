@@ -163,6 +163,13 @@ function closeSynopsis() {
 		window.speechSynthesis.cancel();
 		synopsisSubChunks = [];
 		isSynopsisReading = false;
+		
+			// 2. Limpiar el reproductor de podcast y restaurar botones (Color Azul)
+		// Llamamos a la función global definida en nexus-podcast.js
+		if (typeof closePodcast === 'function') {
+			closePodcast();
+		}
+		
 		const modal = document.getElementById('synopsis-modal');
 		const body = document.getElementById('synopsis-body');
 		const btnStop = document.getElementById('btn-synopsis-stop');

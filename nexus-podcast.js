@@ -1,5 +1,5 @@
 /**
- * NEXUS PODCAST MODULE - Versión Final con Portal de Resonancia
+ * NEXUS PODCAST MODULE - Versión Final con Portal de Resonancia y Control de Volumen
  */
 
 let podAudioInstance = null; // Evita conflicto con TTS
@@ -67,6 +67,11 @@ function initPodcast(bookId) {
     podAudioInstance.onloadedmetadata = () => {
         if (savedTime) podAudioInstance.currentTime = parseFloat(savedTime);
         document.getElementById('pod-progress').max = Math.floor(podAudioInstance.duration);
+        
+        // Sincronizar volumen actual del slider con la instancia de audio
+        const volSlider = document.getElementById('pod-volume-slider');
+        if (volSlider) podAudioInstance.volume = volSlider.value;
+        
         updatePlaybackUI();
     };
 
@@ -124,9 +129,42 @@ function seekAudio(val) { if (podAudioInstance) podAudioInstance.currentTime = v
 function rewindAudio() { if (podAudioInstance) podAudioInstance.currentTime -= 10; }
 function forwardAudio() { if (podAudioInstance) podAudioInstance.currentTime += 30; }
 
-function closePodcast() {
+// --- NUEVAS FUNCIONES DE VOLUMEN ---
+function updatePodVolume(val) {
     if (podAudioInstance) {
+        podAudioInstance.volume = val;
+        podAudioInstance.muted = (val == 0);
+    }
+    const muteBtn = document.getElementById('pod-mute-btn');
+    if (muteBtn) {
+        const icon = muteBtn.querySelector('.material-icons');
+        if (val == 0) icon.innerText = 'volume_off';
+        else if (val < 0.5) icon.innerText = 'volume_down';
+        else icon.innerText = 'volume_up';
+    }
+}
+
+function togglePodMute() {
+    if (!podAudioInstance) return;
+    const volSlider = document.getElementById('pod-volume-slider');
+    const muteBtn = document.getElementById('pod-mute-btn');
+    const icon = muteBtn ? muteBtn.querySelector('.material-icons') : null;
+
+    if (podAudioInstance.muted) {
+        podAudioInstance.muted = false;
+        if (volSlider) volSlider.value = podAudioInstance.volume || 1;
+        if (icon) icon.innerText = podAudioInstance.volume < 0.5 ? 'volume_down' : 'volume_up';
+    } else {
+        podAudioInstance.muted = true;
+        if (volSlider) volSlider.value = 0;
+        if (icon) icon.innerText = 'volume_off';
+    }
+}
+
+function closePodcast() {
+     if (podAudioInstance) {
         podAudioInstance.pause();
+        podAudioInstance.src = ""; // Limpia la fuente para que no quede "cargado"
         clearInterval(podTimer);
     }
     const playerContainer = document.getElementById('podcast-player-container');
@@ -147,7 +185,6 @@ window.stopAndHidePodcast = function() {
 /**
  * FUNCIONALIDADES DEL PORTAL DE RESONANCIA
  */
-// Reemplaza estas funciones en tu nexus-podcast.js
 
 function showPodcastEndPortal(bookId) {
     const book = library.find(b => b.id === bookId);
@@ -163,42 +200,44 @@ function showPodcastEndPortal(bookId) {
     portal.classList.remove('hidden');
     portal.classList.add('flex');
 
-    // --- ACCIONES CORREGIDAS ---
-
-    // 1. LEER LIBRO (Usa el sistema de nexus-voice.js)
-    document.getElementById('btn-portal-read').onclick = () => {
-        closePodcastEndPortal();
-        closePodcast();
-        // Cancelamos cualquier voz previa (sinopsis o libro anterior)
-        window.speechSynthesis.cancel(); 
-        
-        openReader(bookId);
-        
-        // Esperamos a que el lector cargue para iniciar su TTS específico
-        setTimeout(() => { 
-            if (typeof startSpeech === 'function') {
-                startSpeech(); // Llama a la función de nexus-voice.js
-            }
-        }, 1200);
-    };
-
-    // 2. VER SINOPSIS (Usa el sistema de nexus-synopsis.js)
-    document.getElementById('btn-portal-synopsis').onclick = () => {
-        closePodcastEndPortal();
-        window.speechSynthesis.cancel(); // Limpia cola de voz
-        
-        if (typeof showSynopsis === 'function') {
-            showSynopsis(bookId);
-            // Iniciamos específicamente el TTS de la sinopsis
-            setTimeout(() => { 
-                if (typeof startSynopsisTTS === 'function') {
-                    startSynopsisTTS(); 
-                }
-            }, 800);
+    // NUEVO: Cerrar al hacer clic fuera de la ventana principal
+    portal.onclick = function(e) {
+        // Si el ID del elemento clickeado es el del contenedor padre (el fondo oscuro)
+        if (e.target.id === 'nexus-portal-container') {
+            closePodcast(); 
+			closePodcastEndPortal();
         }
     };
 
-    // 3. REPETIR PODCAST
+
+	// BOTÓN DE LA CRUZ (Si tienes un botón close en el HTML del portal)
+		const portalCloseBtn = portal.querySelector('.portal-close-btn'); // Ajusta el selector si es diferente
+		if (portalCloseBtn) {
+			portalCloseBtn.onclick = () => {
+				closePodcast();
+				closePodcastEndPortal();
+			};
+		}
+		
+    // --- ACCIONES DE BOTONES (Sin cambios) ---
+    document.getElementById('btn-portal-read').onclick = () => {
+        closePodcastEndPortal();
+        closePodcast();
+        window.speechSynthesis.cancel(); 
+        openReader(bookId);
+        setTimeout(() => { if (typeof startSpeech === 'function') startSpeech(); }, 1200);
+    };
+
+    document.getElementById('btn-portal-synopsis').onclick = () => {
+        closePodcastEndPortal();
+		 closePodcast();
+        window.speechSynthesis.cancel(); 
+        if (typeof showSynopsis === 'function') {
+            showSynopsis(bookId);
+            setTimeout(() => { if (typeof startSynopsisTTS === 'function') startSynopsisTTS(); }, 800);
+        }
+    };
+
     document.getElementById('btn-portal-replay').onclick = () => {
         closePodcastEndPortal();
         window.speechSynthesis.cancel();
@@ -214,6 +253,8 @@ function closePodcastEndPortal() {
     if (portal) {
         portal.classList.add('hidden');
         portal.classList.remove('flex');
+        // Limpiamos el evento onclick al cerrar para evitar ejecuciones accidentales después
+        portal.onclick = null; 
     }
 }
 
@@ -229,3 +270,21 @@ function setupMediaSession(book) {
         navigator.mediaSession.setActionHandler('pause', () => togglePodcastPlay(false));
     }
 }
+
+// Inicialización de Listeners para el slider de volumen
+document.addEventListener('DOMContentLoaded', () => {
+    const volSlider = document.getElementById('pod-volume-slider');
+    const muteBtn = document.getElementById('pod-mute-btn');
+    
+    if (volSlider) {
+        // Inicializar el volumen de la instancia si ya existe
+        volSlider.addEventListener('input', (e) => {
+            if (podAudioInstance) podAudioInstance.volume = e.target.value;
+            // Opcional: llamar a updatePodVolume si quieres cambiar el icono del altavoz
+            if (typeof updatePodVolume === 'function') updatePodVolume(e.target.value);
+        });
+    }
+    if (muteBtn) {
+        muteBtn.addEventListener('click', togglePodMute);
+    }
+});

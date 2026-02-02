@@ -2156,7 +2156,7 @@ html, body {
         top: 77px; /* Posición cuando el header es visible */
         left: 50%;
         transform: translateX(-50%);
-        width: 93%;
+        width: 97%;
         border-radius: 12px;
         position: fixed;
         z-index: 1500; /* Por debajo del header global que tiene 2000+ */
@@ -2239,14 +2239,7 @@ html, body {
 .pod-close:hover { color: #ef4444; }
 
 /* FILA 2: Controles Centrales y Tiempo */
-.pod-row-mid {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    height: 30px;
-    padding-top: 4px;
-}
+
 
 .pod-controls {
     display: flex;
@@ -2283,6 +2276,88 @@ html, body {
     font-family: 'Inter', monospace;
 }
 
+/*   */
+
+/* Contenedor principal de la fila de controles */
+.pod-row-mid {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 5px 0px;
+	position: relative;
+    height: 30px;
+}
+
+/* Base para las tres columnas */
+.pod-mid-left, .pod-mid-right {
+    flex: 1; /* Ocupan el mismo espacio para forzar el centro */
+    display: flex;
+    align-items: center;
+}
+
+.pod-mid-center {
+    flex: 0 0 auto; /* No se expande, mantiene su tamaño natural */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pod-mid-right {
+    justify-content: flex-end; /* Tiempo a la derecha */
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    color: white;
+}
+
+/* Ajuste específico del volumen para que no "salte" */
+.pod-volume-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#pod-volume-slider {
+    width: 60px;
+    height: 4px;
+    cursor: pointer;
+    vertical-align: super;
+}
+
+/* Botones de control */
+.pod-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.pod-btn-main .material-icons {
+    font-size: 35px; /* Tamaño destacado para el Play/Pause */
+    color: #ffcc00;
+}
+
+.pod-btn .material-icons {
+    font-size: 24px;
+    color: white;
+    opacity: 0.8;
+}
+
+/* Responsivo para móviles muy estrechos */
+@media (max-width: 320px) {
+    #pod-volume-slider { display: none; } /* Ocultar barra de volumen si no hay espacio, dejar solo icono */
+    .pod-mid-right { font-size: 12px; }
+}
+
+
+/*  */
+
+
+
+
+
+
+
+
 /* FILA 3: Barra de Progreso */
 .pod-row-bottom {
     width: 100%;
@@ -2317,11 +2392,15 @@ html, body {
 	box-shadow: 0 0 11px rgb(26 44 229 / 61%);
 }
 
+.podcast-badge-btn:hover { transform: scale(1.1); }
+
 .podcast-badge-btn.active {
     border-color: #ef4444;
     background: rgb(155 27 27 / 78%);
     box-shadow: 0 0 8px rgb(239 68 68 / 57%);
 }
+
+
 
 .pod-label {
     color: white;
@@ -2366,6 +2445,7 @@ html, body {
     justify-content: center;
     padding: 20px;
     animation: portalFadeIn 0.4s ease;
+	cursor: pointer; /* Indica que el fondo es interactivo */
 }
 
 .portal-overlay.flex { display: flex; }
@@ -2380,6 +2460,7 @@ html, body {
     border: 1px solid rgba(156, 39, 176, 0.4);
     box-shadow: 0 0 25px rgb(0 0 0 / 50%);
     backdrop-filter: blur(10px);
+	cursor: default; /* Evita que el cursor de puntero se herede dentro de la ventana */
 }
 
 /* Efecto Latido Púrpura */
@@ -2440,7 +2521,7 @@ html, body {
 
 /* Grid de Acciones */
 .portal-body {
-    padding: 30px 20px 100px 20px;
+    padding: 30px 20px 46px 20px;
 }
 
 .portal-action-grid {

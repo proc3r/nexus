@@ -424,11 +424,24 @@ function openReader(id) {
     loadChapter(0);
 }
 function closeReader() { 
-    // 1. Limpieza de procesos activos (Voz y Timers)
-    if (typeof stopSpeech === 'function') stopSpeech(); 
+    // 1. LIMPIEZA DE PROCESOS ACTIVOS (Voz y Timers)
+    // Detenemos cualquier audio de síntesis inmediatamente
+    if (typeof stopSpeech === 'function') {
+        stopSpeech(); 
+    } else {
+        window.speechSynthesis.cancel();
+    }
+    
     if (typeof clearImageTimer === 'function') clearImageTimer(); 
 
-    // 2. Manejo de navegación según el modo de lectura
+    // 2. RESET DE ESTADO INTERNO
+    // Es vital resetear estos índices para que la próxima vez que se abra un libro 
+    // (o el mismo) no intente renderizar desde una posición inválida.
+    currentChunkIndex = 0;
+    currentChapterIndex = 0;
+    window.navDirection = 'next'; // Resetear dirección por defecto
+
+    // 3. MANEJO DE NAVEGACIÓN SEGÚN EL MODO
     if (window.isLectorFijo) {
         // Si el lector es una página independiente, volvemos a la raíz
         window.location.href = "./"; 
@@ -441,22 +454,30 @@ function closeReader() {
         if (readerView) readerView.classList.add('hidden'); 
         if (libraryContainer) libraryContainer.classList.remove('hidden'); 
 
-        // 3. RESTABLECER HEADER GLOBAL:
-        // Quitamos la clase de ocultación y forzamos su posición inicial
+        // 4. RESTABLECER HEADER GLOBAL
         if (globalHeader) {
             globalHeader.classList.remove('header-hidden');
             globalHeader.style.transform = "translateY(0)";
+            // Aseguramos que sea visible quitando estilos de opacidad si los hubiera
+            globalHeader.style.opacity = "1";
         }
 
-        // 4. RESET DE SCROLL:
+        // 5. RESET DE SCROLL Y UI
         // Volvemos arriba para que el usuario vea la biblioteca desde el inicio
-        // y para que la lógica de scroll del header se reinicie limpiamente
-        window.scrollTo(0, 0);
-        lastScrollTop = 0;
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        
+        // lastScrollTop debe resetearse si usas lógica de ocultar header al hacer scroll
+        if (typeof lastScrollTop !== 'undefined') lastScrollTop = 0;
 
-        // 5. Verificar sesión para mostrar la tarjeta de "Continuar leyendo" si aplica
+        // Desbloqueamos el scroll del body por si acaso quedó bloqueado por el lector
+        document.body.style.overflow = '';
+
+        // 6. ACTUALIZACIÓN DE SESIÓN
+        // Verificar sesión para mostrar la tarjeta de "Continuar leyendo"
         if (typeof checkLastSession === 'function') checkLastSession(); 
     }
+    
+    console.log("Lector cerrado y estados reseteados.");
 }
 	function loadChapter(idx) {
     if (idx < 0 || idx >= currentBook.chapters.length) return;
@@ -592,36 +613,71 @@ function renderChunk() {
 		  
         }
 
-	function prevChunk() { 
+
+function prevChunk() { 
     window.navDirection = 'prev'; // Seteamos dirección atrás
-    clearImageTimer(); 
-    if (isSpeaking && isPaused) { synth.resume(); isPaused = false; updatePauseUI(false); }
+    
+    // --- NUEVA LÓGICA DE RETORNO AL INICIO ---
+    if (currentChunkIndex === 0 && currentChapterIndex === 0) {
+        console.log("Inicio alcanzado: Retornando a la biblioteca.");
+        
+        // Detenemos cualquier audio antes de salir
+        if (typeof stopSpeech === 'function') {
+            stopSpeech(); 
+        } else {
+            window.speechSynthesis.cancel();
+        }
+
+        // Cerramos el lector (Asegúrate de tener esta función definida)
+        if (typeof closeReader === 'function') {
+            closeReader();
+        } else {
+            // Fallback en caso de que la función tenga otro nombre
+            document.getElementById('reader-container').classList.add('hidden');
+            document.body.style.overflow = ''; 
+        }
+        return; // Salimos de la función para no ejecutar el resto
+    }
+    // ------------------------------------------
+
+    if (typeof clearImageTimer === 'function') clearImageTimer(); 
+    
+    if (isSpeaking && isPaused) { 
+        synth.resume(); 
+        isPaused = false; 
+        updatePauseUI(false); 
+    }
     if (isSpeaking) synth.cancel(); 
 
     if (currentChunkIndex > 0) { 
         currentChunkIndex--; 
         renderChunk(); 
     } else if (currentChapterIndex > 0) { 
-        // 1. Retrocedemos el índice del capítulo
+        // Retrocedemos el índice del capítulo
         currentChapterIndex--; 
         
-        // 2. Cargamos los datos del nuevo capítulo manualmente para no perder el control
+        // Cargamos los datos del nuevo capítulo
         const chapter = currentBook.chapters[currentChapterIndex];
-        chunks = chapter.content; // Actualizamos los pedazos de texto
-        currentChunkIndex = chunks.length - 1; // Vamos al final del capítulo
+        chunks = chapter.content; 
+        currentChunkIndex = chunks.length - 1; // Vamos al final del capítulo anterior
         
-        // 3. Actualizamos la interfaz
-        document.getElementById('chapter-indicator').innerText = stripHtml(chapter.title);
+        // Actualizamos la interfaz
+        const indicator = document.getElementById('chapter-indicator');
+        if (indicator) indicator.innerText = stripHtml(chapter.title);
+        
         document.querySelectorAll('.toc-item').forEach(el => el.classList.remove('active'));
         const activeItem = document.getElementById(`toc-item-${currentChapterIndex}`);
         if (activeItem) activeItem.classList.add('active');
 
-        // 4. Renderizamos (usará la dirección 'prev' que pusimos arriba)
+        // Renderizamos (usará la dirección 'prev')
         renderChunk(); 
     } 
 }
 
+
     
+
+
 // --- LÓGICA DE SWIPE PARA MÓVIL ---
 let touchstartX = 0;
 let touchendX = 0;
@@ -641,21 +697,21 @@ function initTouchEvents() {
 }
 
 function handleSwipeGesture() {
-    const swipeThreshold = 60; // Sensibilidad del deslizamiento
+    const swipeThreshold = 60; // Sensibilidad
     
-    // Deslizar a la izquierda -> Siguiente Chunk
+    // Deslizar a la izquierda -> Siguiente
     if (touchstartX - touchendX > swipeThreshold) {
-        nextChunk();
+        if (typeof nextChunk === 'function') nextChunk();
     }
     
-    // Deslizar a la derecha -> Chunk Anterior
+    // Deslizar a la derecha -> Atrás (Ahora incluye retorno a biblioteca)
     if (touchendX - touchstartX > swipeThreshold) {
         prevChunk();
     }
 }
 
-// Llamamos a la inicialización (puedes poner esto dentro de tu window.onload)
-initTouchEvents();
+// Inicialización
+document.addEventListener('DOMContentLoaded', initTouchEvents);
      
 	 
 function checkAutoLoad() {
