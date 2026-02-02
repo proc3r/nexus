@@ -252,12 +252,23 @@ html, body {
     padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Asegura que el contenedor de los items del TOC también permita el flujo */
+#toc-container {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
 #reader-sidebar {
     height: 100dvh; background: rgba(20, 21, 23, 0.3);
     backdrop-filter: blur(100px); border-right: 1px solid rgba(255, 255, 255, 0.05);
     position: absolute; left: 0; top: 0; display: flex; flex-direction: column; z-index: 110;
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
     box-sizing: border-box; touch-action: pan-y; z-index: 9999;
+	overflow-y: auto; /* Asegura scroll vertical */
+    touch-action: pan-y; /* Permite solo scroll vertical, bloqueando gestos laterales accidentales */
+    overscroll-behavior: contain; /* ¡CLAVE! Evita que el scroll afecte al body */
+    -webkit-overflow-scrolling: touch; /* Suavidad en iOS */
 }
 
 #reader-sidebar:not(.open) { transform: translateX(-100%); }

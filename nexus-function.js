@@ -221,25 +221,47 @@ function renderTOC() {
 		});
 	}
 		
-    function openSidebar() { 
-		document.getElementById('reader-sidebar').classList.add('open'); 
-		document.getElementById('sidebar-trigger').classList.add('hidden'); 
-		if (sidebarTimer) clearTimeout(sidebarTimer); 
-	}
+    
+	
+	function openSidebar() { 
+    const sidebar = document.getElementById('reader-sidebar');
+    sidebar.classList.add('open'); 
+    document.getElementById('sidebar-trigger').classList.add('hidden'); 
+    
+    // Bloqueamos el scroll del body solo en móviles para que no interfiera con el TOC
+    if (window.innerWidth < 1024) {
+        document.body.style.overflow = 'hidden';
+    }
+
+    if (sidebarTimer) clearTimeout(sidebarTimer); 
+}
 
 	function closeSidebar() {
-		isPinned = false; 
-		document.body.classList.remove('sidebar-pinned');
-		const sidebar = document.getElementById('reader-sidebar');
-		const trigger = document.getElementById('sidebar-trigger');
-		if (sidebar) {
-			sidebar.classList.remove('open');
-			sidebar.classList.remove('pinned');
-		}
-		if (trigger) {
-			trigger.classList.remove('hidden');
-		}
-	}
+    isPinned = false; 
+    
+    // 1. Restaurar el scroll del cuerpo (Body)
+    // Esto es vital si lo bloqueamos al abrir el menú en móviles
+    document.body.style.overflow = '';
+    document.body.classList.remove('sidebar-pinned');
+
+    const sidebar = document.getElementById('reader-sidebar');
+    const trigger = document.getElementById('sidebar-trigger');
+
+    // 2. Gestionar clases visuales del Sidebar
+    if (sidebar) {
+        sidebar.classList.remove('open');
+        sidebar.classList.remove('pinned');
+        
+        // Opcional: Reiniciar el scroll del índice al principio al cerrar
+        const tocContainer = document.getElementById('toc-container');
+        if (tocContainer) tocContainer.scrollTop = 0;
+    }
+
+    // 3. Restaurar el disparador (botón de apertura)
+    if (trigger) {
+        trigger.classList.remove('hidden');
+    }
+}
 
 	function handleSidebarLeave() { 
 		if (isPinned) return; 
@@ -260,14 +282,41 @@ function renderTOC() {
 		}
 	}
 
+	
+	
 	function initTouchEvents() {
-		const sidebar = document.getElementById('reader-sidebar');
-		let startX = 0;
-		sidebar.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive: true});
-		sidebar.addEventListener('touchend', e => { 
-			if (startX - e.changedTouches[0].clientX > 50) closeSidebar(); 
-		}, {passive: true});
-	}
+    const sidebar = document.getElementById('reader-sidebar');
+    if (!sidebar) return;
+
+    let startX = 0;
+    let startY = 0;
+
+    sidebar.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }, {passive: true});
+
+    sidebar.addEventListener('touchmove', e => {
+        const moveX = Math.abs(e.touches[0].clientX - startX);
+        const moveY = Math.abs(e.touches[0].clientY - startY);
+
+        // Si el movimiento es más vertical que horizontal, detenemos la lógica de cierre
+        // para dejar que el scroll natural del sistema funcione
+        if (moveY > moveX) {
+            return; 
+        }
+    }, {passive: true});
+
+    sidebar.addEventListener('touchend', e => { 
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+
+        // Solo cerramos si el deslizamiento fue predominantemente lateral izquierdo
+        if (startX - endX > 50 && Math.abs(startY - endY) < 30) {
+            closeSidebar(); 
+        }
+    }, {passive: true});
+}
 
 	
 
