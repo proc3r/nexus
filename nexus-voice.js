@@ -189,6 +189,9 @@ function stopSpeech() {
     updatePauseUI(false); 
 }
 	function prepareAndStartSpeech() {
+		// Seguridad: Si el modal de sinopsis está abierto, no iniciar voz del lector
+		const synModal = document.getElementById('synopsis-modal');
+		if (synModal && !synModal.classList.contains('hidden')) return;
 		if (isPaused) synth.resume(); 
 		synth.cancel();
 		isPaused = false;

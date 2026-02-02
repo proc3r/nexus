@@ -202,6 +202,7 @@ function closeSynopsis() {
 	function startSynopsisTTS() {
 		const body = document.getElementById('synopsis-body');
 		if (!body) return;
+		
 		window.speechSynthesis.cancel();
 		synth.cancel();
 		synopsisSubChunks = [];

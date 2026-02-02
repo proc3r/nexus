@@ -37,7 +37,7 @@ body {
     z-index: 2000;
     backdrop-filter: blur(5px);
     /* CRÍTICO: Esto permite que la barra se mueva suavemente */
-    transition: transform 0.5s ease-in-out;
+    transition: transform 0.3s ease-in-out;
     transform: translateY(0); 
     will-change: transform;
 }
