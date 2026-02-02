@@ -265,10 +265,17 @@ html, body {
     position: absolute; left: 0; top: 0; display: flex; flex-direction: column; z-index: 110;
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
     box-sizing: border-box; touch-action: pan-y; z-index: 9999;
-	overflow-y: auto; /* Asegura scroll vertical */
+	overflow-y: auto !important; /* Asegura scroll vertical */
     touch-action: pan-y; /* Permite solo scroll vertical, bloqueando gestos laterales accidentales */
-    overscroll-behavior: contain; /* ¡CLAVE! Evita que el scroll afecte al body */
+    overscroll-behavior: contain !important; /* ¡CLAVE! Evita que el scroll afecte al body */
     -webkit-overflow-scrolling: touch; /* Suavidad en iOS */
+	touch-action: pan-y; /* Solo permite scroll vertical */
+}
+
+/* Evita que el body se mueva cuando el dedo está sobre el sidebar */
+body.sidebar-open {
+    overflow: hidden;
+    overscroll-behavior: none;
 }
 
 #reader-sidebar:not(.open) { transform: translateX(-100%); }

@@ -226,9 +226,9 @@ function renderTOC() {
 	function openSidebar() { 
     const sidebar = document.getElementById('reader-sidebar');
     sidebar.classList.add('open'); 
+    document.body.classList.add('sidebar-open'); // Nueva clase de control
     document.getElementById('sidebar-trigger').classList.add('hidden'); 
     
-    // Bloqueamos el scroll del body solo en móviles para que no interfiera con el TOC
     if (window.innerWidth < 1024) {
         document.body.style.overflow = 'hidden';
     }
@@ -238,26 +238,17 @@ function renderTOC() {
 
 	function closeSidebar() {
     isPinned = false; 
-    
-    // 1. Restaurar el scroll del cuerpo (Body)
-    // Esto es vital si lo bloqueamos al abrir el menú en móviles
     document.body.style.overflow = '';
     document.body.classList.remove('sidebar-pinned');
+    document.body.classList.remove('sidebar-open'); // Limpiamos la clase
 
     const sidebar = document.getElementById('reader-sidebar');
     const trigger = document.getElementById('sidebar-trigger');
 
-    // 2. Gestionar clases visuales del Sidebar
     if (sidebar) {
         sidebar.classList.remove('open');
         sidebar.classList.remove('pinned');
-        
-        // Opcional: Reiniciar el scroll del índice al principio al cerrar
-        const tocContainer = document.getElementById('toc-container');
-        if (tocContainer) tocContainer.scrollTop = 0;
     }
-
-    // 3. Restaurar el disparador (botón de apertura)
     if (trigger) {
         trigger.classList.remove('hidden');
     }
@@ -294,25 +285,33 @@ function renderTOC() {
     sidebar.addEventListener('touchstart', e => {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
-    }, {passive: true});
+        
+        // Si estamos al tope de la lista, bajamos 1px manualmente. 
+        // Esto "engaña" al navegador para que no active el pull-to-refresh.
+        if (sidebar.scrollTop === 0) {
+            sidebar.scrollTop = 1;
+        }
+    }, {passive: false});
 
     sidebar.addEventListener('touchmove', e => {
-        const moveX = Math.abs(e.touches[0].clientX - startX);
-        const moveY = Math.abs(e.touches[0].clientY - startY);
+        const currentY = e.touches[0].clientY;
+        const currentX = e.touches[0].clientX;
+        const diffY = currentY - startY;
+        const diffX = currentX - startX;
 
-        // Si el movimiento es más vertical que horizontal, detenemos la lógica de cierre
-        // para dejar que el scroll natural del sistema funcione
-        if (moveY > moveX) {
-            return; 
+        // Si el movimiento es vertical (scroll)
+        if (Math.abs(diffY) > Math.abs(diffX)) {
+            // Evitamos que el evento llegue al 'body' o al navegador (refresco)
+            e.stopPropagation();
         }
-    }, {passive: true});
+    }, {passive: false});
 
     sidebar.addEventListener('touchend', e => { 
         const endX = e.changedTouches[0].clientX;
         const endY = e.changedTouches[0].clientY;
 
-        // Solo cerramos si el deslizamiento fue predominantemente lateral izquierdo
-        if (startX - endX > 50 && Math.abs(startY - endY) < 30) {
+        // Lógica de cierre lateral (Swipe left)
+        if (startX - endX > 70 && Math.abs(startY - endY) < 40) {
             closeSidebar(); 
         }
     }, {passive: true});
