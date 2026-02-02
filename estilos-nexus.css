@@ -8,6 +8,18 @@ body {
     font-display: optional;
 }
 
+/* Asegura que nada se salga por los costados */
+* {
+    max-width: 100vw;
+    box-sizing: border-box;
+}
+
+#reader-view, #library-container {
+    width: 100%;
+    overflow-x: hidden;
+    position: relative;
+}
+
 :root {
     --primary-accent: #ffcc00;
     --dark-bg: #0f1115;
@@ -171,9 +183,17 @@ html, body {
     transition: background-color 0.3s ease;
     height: 100vh; /* Forzamos altura */
     overflow: hidden; /* Evita barra doble en el body */
+	touch-action: manipulation; /* Optimiza el toque y evita el zoom por doble clic */
+    overflow-x: hidden; /* Evita que aparezcan las barras amarillas laterales que mencionas */
+	width: 100%;
+    position: relative;
 }
 
-										  
+			/* Asegura que el modal de imagen no herede el bloqueo de toque */
+#image-modal {
+    touch-action: auto !important;
+}
+							  
 
 #app { 
     height: 100dvh; 

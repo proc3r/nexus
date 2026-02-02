@@ -289,22 +289,66 @@ function renderTOC() {
 		}
 	});
 
-	function openImageModal(url, caption) {
-		const modal = document.getElementById('image-modal');
-		const modalImg = document.getElementById('modal-image');
-		const modalCap = document.getElementById('modal-caption');
-		modalImg.src = url;
-		modalCap.innerText = caption.replace(/_/g, ' '); // Limpia el nombre del archivo
-		modal.classList.remove('hidden');
-		document.body.style.overflow = 'hidden';
-	}
 
-	function closeImageModal() {
-		const modal = document.getElementById('image-modal');
-		modal.classList.add('hidden');
-		document.body.style.overflow = '';
-		document.getElementById('modal-image').src = "";
-	}
+		// Función para habilitar el zoom cuando la imagen se abre
+		function enableZoom() {
+			const viewport = document.querySelector('meta[name="viewport"]');
+			if (viewport) {
+				viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes');
+			}
+		}
+
+		// Función para deshabilitar el zoom al cerrar la imagen
+		function disableZoom() {
+			const viewport = document.getElementById('meta-viewport'); // O usa querySelector como arriba
+			if (viewport) {
+				viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+			}
+			
+			// TRUCO EXTRA: Forzar al navegador a volver al zoom original
+			window.scrollTo(0, 0);
+			document.body.style.zoom = "100%"; 
+		}
+
+
+
+	function openImageModal(url, caption) {
+    const modal = document.getElementById('image-modal');
+    const modalImg = document.getElementById('modal-image');
+    const modalCap = document.getElementById('modal-caption');
+    
+    // 1. Habilitar ZOOM temporalmente para la imagen
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes');
+    }
+
+    modalImg.src = url;
+    modalCap.innerText = caption.replace(/_/g, ' ');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('image-modal');
+    
+    // 1. Bloquear ZOOM nuevamente
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+    }
+
+    // 2. Truco para forzar al navegador a "resetear" el zoom si el usuario lo dejó ampliado
+    window.scrollTo(0, 0); 
+
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    document.getElementById('modal-image').src = "";
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === "Escape") closeImageModal();
+});
 
 	document.addEventListener('keydown', (e) => {
 		if (e.key === "Escape") closeImageModal();
