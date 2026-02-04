@@ -1698,10 +1698,7 @@ body.sidebar-open {
 
 /* --- BOTÓN SHARE (CIAN NEÓN) --- */
 .btn-share-nexus {
-    /*background: rgba(0, 229, 255, 0.15);*/
-    /*border: 1px solid rgba(0, 229, 255, 0.3);*/
     color: #d347eb;
-    /*box-shadow: 0px 0px 8px rgb(0 229 255 / 40%);*/
     border-radius: 0.8rem;
     width: 48px;
     height: 42px;
@@ -2675,4 +2672,290 @@ body.sidebar-open {
     .portal-window { max-width: 550px; }
     .portal-action-grid { grid-template-columns: repeat(4, 1fr); }
     .portal-header { height: 110px; }
+}
+
+/* --- NEXUS SOUNDTRACK STYLES --- */
+
+/* Esconder el iframe de YouTube sin romper la funcionalidad */
+.yt-hidden-player {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+
+
+
+
+.soundtrack-controls {
+    display: flex;
+    align-items: center; /* Alinea botón y textos al centro vertical */
+    gap: 12px;
+}
+
+.soundtrack-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px; /* Espacio mínimo entre el texto y el slider */
+}
+
+
+
+
+.soundtrack-label-inline {
+    font-size: 15px;
+    opacity: 10;
+    letter-spacing: 0.2px;
+    font-weight: 300;
+    font-family: 'Barlow Condensed';
+    padding-bottom: 3px;
+}
+
+.volume-wrapper {
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+
+/* Contenedor Principal en el Sidebar */
+.soundtrack-card {
+    padding: 3px 8px 2px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: -8px;
+    background: rgb(63 189 183 / 50%);
+    border: 1px solid rgba(68, 189, 183, 0.3);
+    color: #fffdfd;
+    box-shadow: 0px 0px 20px rgb(63 189 183 / 68%);
+    border-radius: 0.5rem;
+	    backdrop-filter: blur(2px);
+    
+}
+
+.soundtrack-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.3px;
+    opacity: 0.8;
+    margin-bottom: 3px;
+    font-weight: 800;
+    color: #ffffff;
+    text-align: -webkit-right;
+    font-family: 'Barlow Condensed';
+}
+
+
+
+/* Botón Circular Play/Pause */
+.music-toggle-btn {
+        width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #08f0fb7a;
+    color: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 2px 4px 9px rgb(0 0 0 / 60%);
+}
+
+.music-toggle-btn:hover {
+    transform: scale(1.05);
+    background: #ffffff;
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+}
+
+.music-toggle-btn span {
+    font-size: 30px;
+}
+
+
+
+.volume-wrapper {
+    display: flex;
+    align-items: center;
+    margin-bottom: 9px;
+}
+
+/* Barra de Volumen Personalizada */
+.nexus-slider {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    background: rgb(255 255 255 / 52%);
+    border-radius: 2px;
+    outline: none;
+    accent-color: #ffcc00; /* Para navegadores modernos */
+}
+
+.nexus-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #ffcc00;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #1a1b1e;
+}
+
+/* Etiqueta de Estado (Cargando, Reproduciendo...) 
+.status-label {
+    
+}*/
+
+/* Usamos el nuevo nombre para no interferir con otros elementos */
+.status-label-yt {
+    font-size: 15px;
+    font-family: 'barlow condensed', sans-serif;
+    opacity: 0.8;
+    margin: 0;
+    color: #ffffff;
+    font-style: italic;
+    padding-bottom: 4px;
+    padding-top: 2px;
+    text-transform: uppercase;
+    line-height: 1.2; /* Ajuste para comprimir verticalmente */
+    
+}
+
+/* El contenedor que los alinea en una fila */
+.soundtrack-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Centrado vertical entre el estado y el título */
+    width: 100%;
+}
+
+
+/* Botón con estilo Cristal Nexus */
+.btn-volume-nexus {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(63 189 183 / 50%);
+    border: 1px solid rgba(68, 189, 183, 0.3);
+    color: #fffdfd;
+    box-shadow: 0px 0px 20px rgb(63 189 183 / 40%);
+    border-radius: 0.5rem;
+    backdrop-filter: blur(2px);
+    transition: all 0.3s ease;
+}
+
+/* Animación de Latido para cuando la música suena */
+@keyframes music-beat {
+    0% { transform: scale(1); box-shadow: 0px 0px 10px rgb(63 189 183 / 40%); }
+    50% { transform: scale(1.1); box-shadow: 0px 0px 25px rgb(63 189 183 / 80%); }
+    100% { transform: scale(1); box-shadow: 0px 0px 10px rgb(63 189 183 / 40%); }
+}
+
+.music-playing-beat {
+    animation: music-beat 3s infinite ease-in-out;
+    background: rgb(63 189 183 / 70%) !important;
+}
+
+/* Popover del Slider Vertical */
+.volume-popover {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 20, 20, 0.9);
+    padding: 15px 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(68, 189, 183, 0.5);
+    z-index: 100;
+}
+
+/* Slider Vertical */
+.nexus-slider-vertical {
+    appearance: none;
+    width: 4px;
+    height: 100px;
+    background: #333;
+    outline: none;
+    writing-mode: bt-lr; /* Orientación vertical */
+    -webkit-appearance: slider-vertical;
+}
+
+/* Contenedor posicionado a la derecha */
+.volume-sidebar {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 9999;
+    animation: fadeInRight 0.3s ease;
+}
+
+.volume-sidebar-glass {
+        background: rgba(63, 189, 183, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 21px;
+    padding: 22px 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0px 0px 9px rgb(63 189 183 / 95%);
+}
+
+.volume-side-icon {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Contenedor del slider lateral */
+.slider-wrapper {
+    height: 130px;
+    width: 40px; /* Más ancho para facilitar el toque */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none; /* Crucial: evita que el libro haga scroll */
+    position: relative;
+}
+
+.nexus-slider-vertical {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 160px; /* Longitud real */
+    height: 10px; /* Grosor de la barra */
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    outline: none;
+    /* Rotación limpia */
+    transform: rotate(270deg);
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+
+/* El "Thumb" o tirador circular */
+.nexus-slider-vertical::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px; /* Más grande para que no se escape el dedo */
+    height: 28px;
+    background: #08f0fb;
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(8, 240, 251, 0.8);
+    border: 2px solid white;
+    cursor: pointer;
+}
+
+/* Animación de entrada */
+@keyframes fadeInRight {
+    from { opacity: 0; transform: translateY(-50%) translateX(20px); }
+    to { opacity: 1; transform: translateY(-50%) translateX(0); }
 }

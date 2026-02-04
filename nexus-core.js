@@ -129,14 +129,23 @@ async function loadDirectBook(params) {
         // 5. Finalización
         if(statusText) statusText.innerText = "Sincronizado";
         
-        // Ocultar el spinner/loader de lector.html si existe
+        // Ocultar loaders
         document.getElementById('auto-loader')?.classList.add('hidden');
         document.getElementById('main-spinner')?.classList.add('hidden');
+
+        // --- ENLACE CON SOUNDTRACK ---
+        // Si la función updateSoundtrack existe, le pasamos el ID (aunque sea null)
+        // soundtrack.js se encargará de poner la pista por defecto si es null.
+        if (typeof updateSoundtrack === 'function') {
+            updateSoundtrack(currentBook.soundtrack);
+        } else if (typeof initPlayer === 'function') {
+            // Si el reproductor no existe, lo inicializamos
+            initPlayer();
+        }
 
     } catch (e) {
         console.error("Error de carga en loadDirectBook:", e);
         if(statusText) statusText.innerText = "Error: Archivo no encontrado";
-        // Si hay error, al menos ocultamos el loader para mostrar el mensaje
         document.getElementById('auto-loader')?.classList.add('hidden');
     }
 }
@@ -175,6 +184,7 @@ async function loadDirectBook(params) {
 			document.querySelectorAll('.settings-dropdown').forEach(d => d.classList.remove('show'));
 		}
 	});
+
 
 async function fetchBooks() {
     const statusText = document.getElementById('status-text');
@@ -218,10 +228,17 @@ async function fetchBooks() {
                         if (!res.ok) return;
                         const text = await res.text();
                         
-                        const hasIndexTag = /indexar:\s*true/.test(text.split('---')[1] || "");
+                        // Extraer Frontmatter para verificar indexación
+                        const frontmatter = text.split('---')[1] || "";
+                        const hasIndexTag = /indexar:\s*true/.test(frontmatter);
                         if (!hasIndexTag) return; 
 
-                        // --- DETECTOR DE PODCAST (NUEVO) ---
+                        // --- DETECTOR DE SOUNDTRACK (NUEVO) ---
+                        // Buscamos la etiqueta soundtrack: ID en el frontmatter
+                        const soundtrackMatch = frontmatter.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/);
+                        const soundtrackId = soundtrackMatch ? soundtrackMatch[1] : null;
+
+                        // --- DETECTOR DE PODCAST ---
                         const podcastMatch = text.match(/!\[\[(.*?\.mp3)\]\]/);
                         let podcastUrl = null;
                         if (podcastMatch) {
@@ -232,10 +249,8 @@ async function fetchBooks() {
                         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
                         let coverUrl = DEFAULT_COVER;
                         if (coverMatch) {
-                            // Si el primer match es el mp3, buscamos otro para la imagen o usamos el default
                             let fileNameImg = coverMatch[1].split('|')[0].trim();
                             if (fileNameImg.toLowerCase().endsWith('.mp3')) {
-                                // Buscamos un segundo match que no sea mp3
                                 const allMatches = [...text.matchAll(/!\[\[(.*?)\]\]/g)];
                                 const imgMatch = allMatches.find(m => !m[1].toLowerCase().endsWith('.mp3'));
                                 if (imgMatch) fileNameImg = imgMatch[1].split('|')[0].trim();
@@ -246,13 +261,17 @@ async function fetchBooks() {
                             }
                         }
 
+                        // Parseamos los capítulos
+                        const chapters = parseMarkdown(text);
+
                         library.push({
                             id: btoa(file.path + repo.api), 
                             fileName: file.name,
                             title: file.name.replace('.md', '').replace(/_/g, ' '),
                             cover: coverUrl,
-                            podcastUrl: podcastUrl, // Guardamos la URL del audio
-                            chapters: parseMarkdown(text),
+                            podcastUrl: podcastUrl,
+                            soundtrack: soundtrackId, // <--- ID de YouTube guardado aquí
+                            chapters: chapters,
                             rawBase: repo.adjuntos,
                             repoIdx: REPOSITORIES.indexOf(repo)
                         });
@@ -281,27 +300,28 @@ async function fetchBooks() {
 
 
 
-	function parseMarkdown(text) {
+function parseMarkdown(text) {
 		const lines = text.split('\n');
 		const chapters = [];
 		let currentChapter = null;
 		let inFrontmatter = false;
 		let startLine = 0;
-		let inMediaBlock = false; // Nueva bandera para detectar bloques media																	  
+		let inMediaBlock = false; 																	  
 																								
-		// --- LÓGICA DE SOUNDTRACK ---
+		// --- LÓGICA DE SOUNDTRACK (LIMPIEZA AGRESIVA) ---
 		let soundtrackId = null;
 		if (lines.length > 0 && lines[0].trim() === "---") {
 			inFrontmatter = true;
 			for (let i = 1; i < lines.length; i++) {
 				const line = lines[i].trim();
 				if (line.toLowerCase().startsWith('soundtrack:')) {
-					soundtrackId = line.split(':')[1].trim();
+					// Limpiamos comillas, espacios y caracteres especiales del ID
+					soundtrackId = line.split(':')[1].replace(/['"\r\s]/g, '').trim();
 				}
 				if (line === "---") { inFrontmatter = false; startLine = i + 1; break; }
 			}
 		}
-		// ----------------------------
+		// ------------------------------------------------
 
 		if (inFrontmatter) startLine = 0;
 		for (let i = startLine; i < lines.length; i++) {
@@ -334,7 +354,7 @@ async function fetchBooks() {
 						let calloutBlock = subChunk;
 						if (i + 1 < lines.length && lines[i+1].trim().startsWith('>')) {
 							calloutBlock += '\n' + lines[i+1].trim();
-							i++; // Saltamos la lectura de la línea siguiente ya que la acabamos de unir
+							i++; 
 						}
 						currentChapter.content.push(calloutBlock);
 					} 
@@ -348,7 +368,6 @@ async function fetchBooks() {
 		}
 		if (currentChapter) chapters.push(currentChapter);
 		
-		// Guardamos el ID detectado como una propiedad del array para recuperarlo luego
 		chapters.soundtrackId = soundtrackId;
 		return chapters;
 	}
@@ -440,9 +459,18 @@ function openReader(id) {
     syncVisualSettings();
 
     loadChapter(0);
+
+    // --- INTEGRACIÓN SOUNDTRACK (NUEVO) ---
+    // Avisamos al reproductor que cargue el tema de este libro 
+    // (o el default si book.soundtrack es null)
+    if (typeof updateSoundtrack === 'function') {
+        updateSoundtrack(currentBook.soundtrack);
+    }
 }
+
+
 function closeReader() { 
-    // 1. LIMPIEZA DE PROCESOS ACTIVOS (Voz y Timers)
+    // 1. LIMPIEZA DE PROCESOS ACTIVOS (Voz, Timers y Música)
     // Detenemos cualquier audio de síntesis inmediatamente
     if (typeof stopSpeech === 'function') {
         stopSpeech(); 
@@ -452,19 +480,35 @@ function closeReader() {
     
     if (typeof clearImageTimer === 'function') clearImageTimer(); 
 
+    // --- INTEGRACIÓN SOUNDTRACK: Detener música al salir ---
+    if (typeof player !== 'undefined' && player && typeof player.pauseVideo === 'function') {
+        player.pauseVideo();
+        isMusicPlaying = false;
+        
+        // Reset visual de los controles de música
+        const musicIcon = document.getElementById('music-icon');
+        const musicBtn = document.getElementById('btn-music-main');
+        const statusText = document.getElementById('music-status-text');
+
+        if (musicIcon) musicIcon.innerText = "play_arrow";
+        if (musicBtn) musicBtn.style.background = "#08f0fb7a"; // Color inactivo
+        if (statusText) statusText.innerText = "Ambiente listo";
+
+        // Opcional: Volver a cargar el video por defecto para que la biblioteca esté limpia
+        if (typeof updateSoundtrack === 'function') {
+            updateSoundtrack(null); 
+        }
+    }
+
     // 2. RESET DE ESTADO INTERNO
-    // Es vital resetear estos índices para que la próxima vez que se abra un libro 
-    // (o el mismo) no intente renderizar desde una posición inválida.
     currentChunkIndex = 0;
     currentChapterIndex = 0;
-    window.navDirection = 'next'; // Resetear dirección por defecto
+    window.navDirection = 'next'; 
 
     // 3. MANEJO DE NAVEGACIÓN SEGÚN EL MODO
     if (window.isLectorFijo) {
-        // Si el lector es una página independiente, volvemos a la raíz
         window.location.href = "./"; 
     } else {
-        // Ocultar Lector y Mostrar Biblioteca
         const readerView = document.getElementById('reader-view');
         const libraryContainer = document.getElementById('library-container');
         const globalHeader = document.getElementById('nexus-header-global');
@@ -476,27 +520,22 @@ function closeReader() {
         if (globalHeader) {
             globalHeader.classList.remove('header-hidden');
             globalHeader.style.transform = "translateY(0)";
-            // Aseguramos que sea visible quitando estilos de opacidad si los hubiera
             globalHeader.style.opacity = "1";
         }
 
         // 5. RESET DE SCROLL Y UI
-        // Volvemos arriba para que el usuario vea la biblioteca desde el inicio
         window.scrollTo({ top: 0, behavior: 'instant' });
-        
-        // lastScrollTop debe resetearse si usas lógica de ocultar header al hacer scroll
         if (typeof lastScrollTop !== 'undefined') lastScrollTop = 0;
-
-        // Desbloqueamos el scroll del body por si acaso quedó bloqueado por el lector
         document.body.style.overflow = '';
 
         // 6. ACTUALIZACIÓN DE SESIÓN
-        // Verificar sesión para mostrar la tarjeta de "Continuar leyendo"
         if (typeof checkLastSession === 'function') checkLastSession(); 
     }
     
-    console.log("Lector cerrado y estados reseteados.");
+    console.log("Lector cerrado, música pausada y estados reseteados.");
 }
+
+
 	function loadChapter(idx) {
     if (idx < 0 || idx >= currentBook.chapters.length) return;
 
