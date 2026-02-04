@@ -87,16 +87,20 @@ async function loadDirectBook(params) {
             coverUrl = getOptimizedImageUrl(rawCoverUrl, 400); 
         }
 
+        // Ejecutamos el parseo (que ahora incluye la detección de soundtrackId)
+        const parsedChapters = parseMarkdown(text);
+
         // Dentro de loadDirectBook en nexus-core.js
-		currentBook = {
-		id: 'direct-load',
-		fileName: fileName, // <--- ESTE NOMBRE ES CRUCIAL
-		title: fileName.replace('.md', '').replace(/_/g, ' '),
-		cover: coverUrl,
-		chapters: parseMarkdown(text),
-		rawBase: repo.adjuntos,
-		repoIdx: repoIndex   // <--- ESTE ÍNDICE ES CRUCIAL
-};
+        currentBook = {
+            id: 'direct-load',
+            fileName: fileName, // <--- ESTE NOMBRE ES CRUCIAL
+            title: fileName.replace('.md', '').replace(/_/g, ' '),
+            cover: coverUrl,
+            chapters: parsedChapters,
+            rawBase: repo.adjuntos,
+            repoIdx: repoIndex,  // <--- ESTE ÍNDICE ES CRUCIAL
+            soundtrack: parsedChapters.soundtrackId // <--- AGREGADO: Captura el ID de YouTube
+        };
 
         // --- CONFIGURACIÓN DE LA INTERFAZ (UI) ---
         
@@ -136,6 +140,8 @@ async function loadDirectBook(params) {
         document.getElementById('auto-loader')?.classList.add('hidden');
     }
 }
+
+
 
 
 	function stripHtml(html) {
@@ -283,12 +289,20 @@ async function fetchBooks() {
 		let startLine = 0;
 		let inMediaBlock = false; // Nueva bandera para detectar bloques media																	  
 																								
+		// --- LÓGICA DE SOUNDTRACK ---
+		let soundtrackId = null;
 		if (lines.length > 0 && lines[0].trim() === "---") {
 			inFrontmatter = true;
 			for (let i = 1; i < lines.length; i++) {
-				if (lines[i].trim() === "---") { inFrontmatter = false; startLine = i + 1; break; }
+				const line = lines[i].trim();
+				if (line.toLowerCase().startsWith('soundtrack:')) {
+					soundtrackId = line.split(':')[1].trim();
+				}
+				if (line === "---") { inFrontmatter = false; startLine = i + 1; break; }
 			}
 		}
+		// ----------------------------
+
 		if (inFrontmatter) startLine = 0;
 		for (let i = startLine; i < lines.length; i++) {
 			const line = lines[i];
@@ -333,8 +347,12 @@ async function fetchBooks() {
 			}
 		}
 		if (currentChapter) chapters.push(currentChapter);
+		
+		// Guardamos el ID detectado como una propiedad del array para recuperarlo luego
+		chapters.soundtrackId = soundtrackId;
 		return chapters;
 	}
+	
 	
 
 	function renderShelf() {
