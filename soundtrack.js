@@ -4,7 +4,7 @@ let isPlayerReady = false;
 let isSyncing = false; // Bandera para evitar bucles infinitos
 
 const DEFAULT_VOLUME = 20; 
-const DEFAULT_SOUNDTRACK = "Q9ksWb4Y3SY";
+const DEFAULT_SOUNDTRACK = "wJ2tGxjTjuI";
 
 // 1. Inicialización de la API
 function onYouTubeIframeAPIReady() {
