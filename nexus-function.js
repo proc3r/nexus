@@ -632,22 +632,20 @@ function changeLineHeight(h) {
 }
 
 /**
- * Intenta ocultar la barra de direcciones del navegador (Modo Automático)
+ * Intenta ocultar la barra de direcciones del navegador
+ * forzando un scroll mínimo tras la carga.
  */
 function hideBrowserBar() {
-    // 1. Guardamos el alto original
-    const originalHeight = document.body.style.height;
+    // 1. Aseguramos que el body sea lo suficientemente alto
+    document.body.style.height = '101vh';
     
-    // 2. Forzamos un alto extra para que el navegador crea que hay scroll
-    document.body.style.height = '105vh';
-    
+    // 2. Ejecutamos el scroll tras un breve delay para que el navegador lo procese
     setTimeout(() => {
-        // 3. Ejecutamos el scroll mínimo
         window.scrollTo(0, 1);
-        
-        // 4. Restauramos el alto después de un momento para no afectar la navegación
+        // Devolvemos el height a su estado normal después de un momento
+        // para no causar saltos visuales en el scroll del lector
         setTimeout(() => {
-            document.body.style.height = originalHeight || '100%';
-        }, 500);
-    }, 100);
+            document.body.style.height = '100vh';
+        }, 1000);
+    }, 500);
 }
