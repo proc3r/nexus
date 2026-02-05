@@ -6,6 +6,7 @@ html {
 /* Evita que el texto se mueva mientras carga la fuente */
 body {
     font-display: optional;
+	overscroll-behavior-y: none; /* 'none' es menos agresivo que 'contain' para la barra */
 }
 
 /* Asegura que nada se salga por los costados */
@@ -18,6 +19,7 @@ body {
     width: 100%;
     overflow-x: hidden;
     position: relative;
+    min-height: 100.1vh; /* Esto fuerza al navegador a ver un scroll mínimo */
 }
 
 :root {
@@ -182,11 +184,12 @@ html, body {
     margin: 0;
     transition: background-color 0.3s ease;
     /*height: 100vh; Forzamos altura */
-	
+	min-height: 100vh; /* Usa min-height en su lugar */
     overflow: hidden; /* Evita barra doble en el body */
 	touch-action: manipulation; /* Optimiza el toque y evita el zoom por doble clic */
     overflow-x: hidden; /* Evita que aparezcan las barras amarillas laterales que mencionas */
 	width: 100%;
+	-webkit-overflow-scrolling: touch; /* Mejora el scroll en iPhone */
     position: relative;
 }
 
