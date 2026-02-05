@@ -224,29 +224,7 @@ async function loadDirectBook(params) {
 	
 
 
-	function initPullToRefreshBlocker() {
-		let touchStart = 0;
-		const libraryContainer = document.getElementById('library-container');
-		const readerContainer = document.getElementById('reading-container-fixed');
-		
-		document.addEventListener('touchstart', (e) => { touchStart = e.touches[0].pageY; }, { passive: true });
-											
-							  
 
-		document.addEventListener('touchmove', (e) => {
-			const touchMove = e.touches[0].pageY;
-			const activeContainer = document.getElementById('reader-view').classList.contains('hidden') ? libraryContainer : readerContainer;
-			if (activeContainer.scrollTop <= 0 && touchMove > touchStart) { if (e.cancelable) e.preventDefault(); }
-		}, { passive: false });
-	}
-
-	
-
-	window.addEventListener('click', (e) => {
-		if (!e.target.closest('.settings-dropdown-container')) {
-			document.querySelectorAll('.settings-dropdown').forEach(d => d.classList.remove('show'));
-		}
-	});
 
 
 async function fetchBooks() {
