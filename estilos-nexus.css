@@ -248,7 +248,8 @@ html, body {
 /* 3. LECTOR Y SIDEBAR */
 #reader-view {
     position: fixed; inset: 0; z-index: 100;
-    display: flex; flex-direction: row; height: 100dvh;
+    display: flex; flex-direction: row; 
+	/* height: 100dvh;*/
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
 }
@@ -2118,16 +2119,18 @@ body.sidebar-open {
     padding: 0 10%; 
 	    
 	/* Comportamiento y Scroll */
-    overflow-y: auto;
+    /*overflow-y: auto;*/
     overflow-x: hidden;
     scroll-behavior: auto !important; /* Evita saltos al cambiar de página */
     touch-action: pan-y;
-    overscroll-behavior-y: contain;
+ /*   overscroll-behavior-y: contain;*/
     -webkit-overflow-scrolling: touch;
 	/* Estabilización de altura */
-    height: calc(100vh - 130px); 
+    /*height: calc(100vh - 130px); */
 	
 }
+
+
 
 #reading-container-fixed > .content-wrapper {
     flex: 1; display: flex; flex-direction: column;
