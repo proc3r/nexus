@@ -40,6 +40,28 @@
     </style>	
 </head>
 <body>
+
+<div id="nexus-splash" class="nexus-splash-container">
+    <div class="splash-layout">
+        <div class="section-top">
+            <h1 class="splash-title">NEXUS</h1>
+        </div>
+
+        <div class="section-center">
+            <div class="loader-wrapper">
+                <img src="luna.png" class="splash-logo-img">
+                <div class="loader-circle"></div>
+            </div>
+            <p id="loader-book-title" class="splash-subtitle">BIBLIOTECA</p>
+        </div>
+
+        <div class="section-bottom">
+            <p id="splash-status-text" class="splash-status">SINCRONIZANDO...</p>
+        </div>
+    </div>
+</div>
+
+
     <div id="app">
       
    <header id="nexus-header-global">
@@ -87,11 +109,11 @@
                 <div class="p-4 flex flex-col justify-between h-full relative z-10">
                     <div class="flex justify-between pb-3 items-start">
                         <button onclick="closeReader()" class="text-[#ffcc00] px-2 bg-black/40 backdrop-blur-sm p-1 rounded-lg border border-white/10 font-bold uppercase text-[16px] tracking-widest condensed drop-shadow-lg">⬅️ Salir</button>
-                        <div class="flex items-center px-3 gap-5 bg-black/40 backdrop-blur-sm p-1 rounded-lg border border-white/10">
-                            <button id="expand-mode-btn" onclick="toggleExpandMode()" class="text-gray-300 text-[12px] font-bold uppercase condensed hover:text-[#ffcc00]">Exp</button>
-                            <button id="pin-btn" onclick="togglePin()" class="text-gray-300 opacity-90 text-xs hover:opacity-100">📌</button>
+                        <div class="flex items-center px-3 gap-4 bg-black/40 backdrop-blur-sm p-1 rounded-lg border border-white/10">
+                            <button id="expand-mode-btn" onclick="toggleExpandMode()" class="text-gray-300 text-[15px] font-bold uppercase condensed hover:text-[#ffcc00]">Exp</button>
+                            <button id="pin-btn" onclick="togglePin()" class="text-gray-300 opacity-90 hover:opacity-100">📌</button>
                             <button onclick="closeSidebar()" class="text-[#ffcc00] hover:text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
                     </div>
@@ -208,7 +230,7 @@
 		<div class="max-w-4xl mx-auto">
 			<div class="flex justify-between text-[14px] uppercase font-bold opacity-70 mb-2 condensed tracking-widest">
 				<span id="time-remaining" class="text-[19px] font-bold italic opacity-100" style="letter-spacing: 0.5px;">Calculando tiempo...</span>
-				<span style="letter-spacing: 0.2px; font-style: italic;font-size: 19px;">Parrafo <span id="current-p-num">0</span> / <span id="total-p-num">0</span> • <span id="progress-percent">0%</span></span>
+				<span style="letter-spacing: 0.2px; font-style: italic;font-size: 19px;"><span id="current-p-num">0</span> / <span id="total-p-num">0</span> • <span id="progress-percent">0%</span></span>
 			</div>
 			<div class="progress-bar-container mb-3">
 				<div id="reading-progress-bar"></div>

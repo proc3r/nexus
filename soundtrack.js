@@ -1,7 +1,8 @@
-let player;
-let isMusicPlaying = false;
-let isPlayerReady = false;
-let isSyncing = false; // Bandera para evitar bucles infinitos
+// Usamos var para permitir que el script se cargue más de una vez sin error fatal
+var player;
+var isMusicPlaying = isMusicPlaying || false;
+var isPlayerReady = isPlayerReady || false;
+var isSyncing = isSyncing || false;
 
 const DEFAULT_VOLUME = 20; 
 const DEFAULT_SOUNDTRACK = "wJ2tGxjTjuI";
@@ -40,22 +41,31 @@ function onPlayerReady(event) {
     isPlayerReady = true;
     globalVolumeControl(DEFAULT_VOLUME, 'init');
 
-    const statusText = document.getElementById('music-status-text');
     const volBtn = document.getElementById('btn-volume-yt');
+    if (volBtn && !isMusicPlaying) {
+        volBtn.classList.add('music-waiting-pulse');
+    }
 
+    const statusText = document.getElementById('music-status-text');
     if (statusText) {
         statusText.innerText = (window.currentBook && window.currentBook.soundtrack) ? "SINCRONIZADO" : "AMBIENTE LISTO";
     }
-
-    // Si la música no está sonando (bloqueo de navegador), activamos el latido de espera
-    if (!isMusicPlaying && volBtn) {
-        volBtn.classList.add('music-waiting-pulse');
-    }
 }
+
 
 function onPlayerStateChange(event) {
+    if (event.data === YT.PlayerState.PLAYING) {
+        isMusicPlaying = true;
+        actualizarVisualesMusica(true);
+    } 
+    else if (event.data === YT.PlayerState.PAUSED) {
+        isMusicPlaying = false;
+        actualizarVisualesMusica(false);
+    }
+    
     if (event.data === YT.PlayerState.ENDED) player.playVideo();
 }
+
 
 function globalVolumeControl(val, originId) {
     if (isSyncing) return; 
@@ -86,23 +96,37 @@ function globalVolumeControl(val, originId) {
     isSyncing = false;
 }
 
+
 function updateVolumeButtonVisuals(val) {
     const btn = document.getElementById('btn-volume-yt');
     if (!btn) return;
     
-    if (val === 0) {
-        btn.classList.remove('music-playing-beat');
+    const volumeValue = parseInt(val);
+
+    if (volumeValue === 0) {
+        // MUTEADO: Oscurecemos pero activamos latido de espera (blanco)
         btn.style.opacity = "0.4";
-        // Opcional: Si el volumen es 0, pausamos la música para ahorrar datos
+        btn.classList.remove('music-playing-beat');
+        btn.classList.add('music-waiting-pulse');
+        
+        // Pausamos video para ahorrar recursos si está muteado
         if (isMusicPlaying && player) player.pauseVideo(); 
     } else {
+        // CON VOLUMEN: Brillo total
         btn.style.opacity = "1";
+        
+        // Si hay música activa, latido de reproducción. Si no, latido de espera.
         if (isMusicPlaying) {
+            btn.classList.remove('music-waiting-pulse');
             btn.classList.add('music-playing-beat');
             if (player) player.playVideo();
+        } else {
+            btn.classList.add('music-waiting-pulse');
         }
     }
 }
+
+
 
 function toggleSoundtrack() {
     const musicBtn = document.getElementById('btn-music-main');
@@ -158,25 +182,45 @@ function updateSoundtrack(videoId, forcePlay = true) {
     }
 }
 
-// Función auxiliar para no repetir código de iconos
 function actualizarVisualesMusica(activar) {
     const musicBtn = document.getElementById('btn-music-main');
     const musicIcon = document.getElementById('music-icon');
     const volBtn = document.getElementById('btn-volume-yt');
     const statusText = document.getElementById('music-status-text');
+    
+    // Verificamos si el slider de volumen está en 0
+    const syncSlider = document.getElementById('music-volume-sync');
+    const isMuted = syncSlider && parseInt(syncSlider.value) === 0;
 
     if (activar) {
         if (musicBtn) musicBtn.style.background = "#FFD920A6";
         if (musicIcon) musicIcon.innerText = "pause";
-        if (volBtn) volBtn.classList.add('music-playing-beat');
         if (statusText) statusText.innerText = "REPRODUCIENDO...";
+        
+        if (volBtn) {
+            // Si está reproduciendo pero muteado, sigue en latido blanco
+            if (isMuted) {
+                volBtn.classList.remove('music-playing-beat');
+                volBtn.classList.add('music-waiting-pulse');
+            } else {
+                volBtn.classList.remove('music-waiting-pulse');
+                volBtn.classList.add('music-playing-beat');
+            }
+        }
     } else {
         if (musicBtn) musicBtn.style.background = "#08f0fb7a";
         if (musicIcon) musicIcon.innerText = "play_arrow";
-        if (volBtn) volBtn.classList.remove('music-playing-beat');
-        if (statusText) statusText.innerText = "AMBIENTE LISTO";
+        if (statusText) statusText.innerText = "EN PAUSA";
+        
+        if (volBtn) {
+            // En pausa SIEMPRE late en blanco (esté muteado o no)
+            volBtn.classList.remove('music-playing-beat');
+            volBtn.classList.add('music-waiting-pulse');
+        }
     }
 }
+
+
 
 function toggleVolumePopover(event) {
     if (event) event.stopPropagation();

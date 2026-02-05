@@ -19,6 +19,69 @@
 
 	const AUDIO_BASE_URL = "https://raw.githubusercontent.com/proc3r/Audios/master/";
 
+
+
+
+
+// --- 2. FUNCIONES DE CONTROL DE INTERFAZ (MOVER AQUÍ ARRIBA) ---
+
+function renderLibrary() {
+    // Si estamos en el lector o no existe el grid, abortamos para evitar errores
+    const grid = document.getElementById('library-grid');
+    if (window.isLectorFijo || !grid) return;
+
+    console.log("Renderizando librería...");
+    grid.innerHTML = ''; 
+
+    // Dibujar los libros en el grid
+    library.forEach(book => {
+        const card = createBookCard(book);
+        grid.appendChild(card);
+    });
+
+    // --- GESTIÓN DE INTERFAZ ---
+    
+    // 1. Ocultar el spinner viejo del header
+    document.getElementById('main-spinner')?.classList.add('hidden');
+    const oldStatus = document.getElementById('status-text');
+    if (oldStatus) oldStatus.innerText = "Sincronizado";
+
+    // 2. CERRAR EL SPLASH (Index)
+    const splash = document.getElementById('nexus-splash') || document.getElementById('auto-loader');
+    
+    if (splash) {
+        setTimeout(() => {
+            splash.style.opacity = "0";
+            setTimeout(() => {
+                splash.style.display = "none";
+            }, 800);
+        }, 500);
+    
+}
+}
+
+// --- CAPTURA INMEDIATA DE TÍTULO PARA EL SPINNER ---
+(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookName = urlParams.get('book');
+    const loaderTitle = document.getElementById('loader-book-title');
+    
+    // Solo actuamos si existe el elemento dinámico (estamos en el lector)
+    if (loaderTitle) {
+        if (bookName) {
+            loaderTitle.innerText = bookName.replace('.md', '').replace(/_/g, ' ').toUpperCase();
+        } else {
+            // Si el lector abre el libro por defecto
+            loaderTitle.innerText = "MODELO NOUMÉNICO";
+        }
+    }
+})();
+
+
+// --- 3. LÓGICA DE CARGA (FETCHBOOKS) ---
+// Aquí pegas tu función fetchBooks tal cual la definimos en el paso anterior
+
+
 		function extractPodcast(content) {
 			const match = content.match(/!\[\[(.*?\.mp3)\]\]/);
 			if (match) {
@@ -78,7 +141,7 @@ async function loadDirectBook(params) {
         
         const text = await response.text();
         
-        // Lógica de Portada: Intentamos extraer la portada del texto antes de asignar la por defecto
+        // Lógica de Portada
         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
         let coverUrl = DEFAULT_COVER;
         if (coverMatch) {
@@ -87,19 +150,18 @@ async function loadDirectBook(params) {
             coverUrl = getOptimizedImageUrl(rawCoverUrl, 400); 
         }
 
-        // Ejecutamos el parseo (que ahora incluye la detección de soundtrackId)
+        // Ejecutamos el parseo
         const parsedChapters = parseMarkdown(text);
 
-        // Dentro de loadDirectBook en nexus-core.js
         currentBook = {
             id: 'direct-load',
-            fileName: fileName, // <--- ESTE NOMBRE ES CRUCIAL
+            fileName: fileName,
             title: fileName.replace('.md', '').replace(/_/g, ' '),
             cover: coverUrl,
             chapters: parsedChapters,
             rawBase: repo.adjuntos,
-            repoIdx: repoIndex,  // <--- ESTE ÍNDICE ES CRUCIAL
-            soundtrack: parsedChapters.soundtrackId // <--- AGREGADO: Captura el ID de YouTube
+            repoIdx: repoIndex,
+            soundtrack: parsedChapters.soundtrackId
         };
 
         // --- CONFIGURACIÓN DE LA INTERFAZ (UI) ---
@@ -122,24 +184,25 @@ async function loadDirectBook(params) {
         renderChunk();
         
         // 4. INICIALIZAR NAVEGACIÓN (TOC y Marcadores)
-        // Estas llamadas activan el menú lateral y los puntos de la barra inferior
         renderTOC();
         renderProgressMarkers();
         
-        // 5. Finalización
-        if(statusText) statusText.innerText = "Sincronizado";
+        // 5. Finalización y protección contra errores de UI
+        if (statusText) statusText.innerText = "Sincronizado";
+        document.getElementById('main-spinner')?.classList.add('hidden');
+
+        // IMPORTANTE: Solo renderizar librería si NO es el lector fijo
+        if (!window.isLectorFijo) {
+            renderLibrary();
+        }
         
         // Ocultar loaders
         document.getElementById('auto-loader')?.classList.add('hidden');
-        document.getElementById('main-spinner')?.classList.add('hidden');
 
         // --- ENLACE CON SOUNDTRACK ---
-        // Si la función updateSoundtrack existe, le pasamos el ID (aunque sea null)
-        // soundtrack.js se encargará de poner la pista por defecto si es null.
         if (typeof updateSoundtrack === 'function') {
             updateSoundtrack(currentBook.soundtrack);
         } else if (typeof initPlayer === 'function') {
-            // Si el reproductor no existe, lo inicializamos
             initPlayer();
         }
 
@@ -189,6 +252,19 @@ async function loadDirectBook(params) {
 async function fetchBooks() {
     const statusText = document.getElementById('status-text');
     
+    // --- FUNCIÓN INTERNA PARA CERRAR EL SPLASH ---
+    const ocultarSplash = () => {
+        setTimeout(() => {
+            const splash = document.getElementById('nexus-splash');
+            if (splash) {
+                splash.style.opacity = "0";
+                setTimeout(() => {
+                    splash.style.display = "none";
+                }, 800);
+            }
+        }, 500); // Pequeño margen para que el usuario vea el estado "Sincronizado"
+    };
+
     // 1. INTENTAR CARGAR DESDE CACHE (sessionStorage)
     const cachedLibrary = sessionStorage.getItem('nexus_library_cache');
     if (cachedLibrary) {
@@ -198,6 +274,8 @@ async function fetchBooks() {
         document.getElementById('main-spinner')?.classList.add('hidden');
         renderLibrary();
         checkAutoLoad(); 
+        
+        ocultarSplash(); // Cerramos el splash si cargó de cache
         return; 
     }
 
@@ -233,8 +311,7 @@ async function fetchBooks() {
                         const hasIndexTag = /indexar:\s*true/.test(frontmatter);
                         if (!hasIndexTag) return; 
 
-                        // --- DETECTOR DE SOUNDTRACK (NUEVO) ---
-                        // Buscamos la etiqueta soundtrack: ID en el frontmatter
+                        // --- DETECTOR DE SOUNDTRACK ---
                         const soundtrackMatch = frontmatter.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/);
                         const soundtrackId = soundtrackMatch ? soundtrackMatch[1] : null;
 
@@ -245,7 +322,7 @@ async function fetchBooks() {
                             podcastUrl = AUDIO_BASE_URL + encodeURIComponent(podcastMatch[1].trim());
                         }
 
-                        // --- DETECTOR DE PORTADA ---
+                        // --- DETECTOR DE PORTADA (Lógica Completa) ---
                         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
                         let coverUrl = DEFAULT_COVER;
                         if (coverMatch) {
@@ -270,7 +347,7 @@ async function fetchBooks() {
                             title: file.name.replace('.md', '').replace(/_/g, ' '),
                             cover: coverUrl,
                             podcastUrl: podcastUrl,
-                            soundtrack: soundtrackId, // <--- ID de YouTube guardado aquí
+                            soundtrack: soundtrackId,
                             chapters: chapters,
                             rawBase: repo.adjuntos,
                             repoIdx: REPOSITORIES.indexOf(repo)
@@ -290,13 +367,18 @@ async function fetchBooks() {
         renderLibrary();
         checkAutoLoad(); 
 
+        ocultarSplash(); // Cerramos el splash tras carga de red exitosa
+
     } catch (e) { 
         if (statusText) {
             statusText.innerText = e.message === "API Rate Limit" ? "Límite GitHub excedido" : "Error API";
         }
         console.error("Error crítico:", e);
+        ocultarSplash(); // Cerramos incluso en error para no bloquear al usuario
     }
 }
+
+
 
 
 
@@ -625,6 +707,13 @@ function renderChunk() {
 
     const isMobile = window.innerWidth <= 768;
 
+
+	const loader = document.getElementById('auto-loader');
+    if (loader) {
+        loader.style.opacity = "0";
+        setTimeout(() => { loader.style.display = "none"; }, 800);
+    }
+	
     if (isMobile) {
         // Efecto Barrido Lateral para Móvil
         if (window.navDirection === 'next') content.classList.add('slide-in-right');
@@ -798,6 +887,8 @@ function checkAutoLoad() {
         }
     }
 }
+
+
 // --- LÓGICA DE NAVEGACIÓN GLOBAL (HEADER + PODCAST) ---
 (function() {
     let lastScrollTop = 0;
@@ -843,3 +934,4 @@ function checkAutoLoad() {
         lastScrollTop = st <= 0 ? 0 : st;
     }, true); 
 })();
+
