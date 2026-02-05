@@ -393,11 +393,13 @@ function parseMarkdown(text) {
 		});
 	}
 	
+
 function openReader(id) {
-	
-	 // OCULTAR HEADER AL ENTRAR AL LECTOR
+    
+    // OCULTAR HEADER AL ENTRAR AL LECTOR
     const globalHeader = document.getElementById('nexus-header-global');
     if (globalHeader) globalHeader.classList.add('header-hidden');
+    
     // --- INTEGRACIÓN PODCAST: Detener audio al entrar al lector ---
     if (typeof window.stopAndHidePodcast === 'function') {
         window.stopAndHidePodcast();
@@ -460,13 +462,16 @@ function openReader(id) {
 
     loadChapter(0);
 
-    // --- INTEGRACIÓN SOUNDTRACK (NUEVO) ---
-    // Avisamos al reproductor que cargue el tema de este libro 
-    // (o el default si book.soundtrack es null)
-    if (typeof updateSoundtrack === 'function') {
-        updateSoundtrack(currentBook.soundtrack);
-    }
+    // --- INTEGRACIÓN SOUNDTRACK (ACTUALIZADO PARA AUTO-PLAY) ---
+    // Usamos un pequeño delay para asegurar que el DOM y el clic del usuario 
+    // permitan la reproducción automática de YouTube.
+    setTimeout(() => {
+        if (typeof updateSoundtrack === 'function') {
+            updateSoundtrack(currentBook.soundtrack);
+        }
+    }, 300); 
 }
+
 
 
 function closeReader() { 
@@ -489,14 +494,17 @@ function closeReader() {
         const musicIcon = document.getElementById('music-icon');
         const musicBtn = document.getElementById('btn-music-main');
         const statusText = document.getElementById('music-status-text');
+        const volBtn = document.getElementById('btn-volume-yt'); // Agregado para quitar el beat
 
         if (musicIcon) musicIcon.innerText = "play_arrow";
         if (musicBtn) musicBtn.style.background = "#08f0fb7a"; // Color inactivo
         if (statusText) statusText.innerText = "Ambiente listo";
+        if (volBtn) volBtn.classList.remove('music-playing-beat');
 
-        // Opcional: Volver a cargar el video por defecto para que la biblioteca esté limpia
+        // IMPORTANTE: Cargamos el soundtrack por defecto en modo "espera" (silencio)
         if (typeof updateSoundtrack === 'function') {
-            updateSoundtrack(null); 
+    updateSoundtrack(null, false); // El 'false' apaga el auto-play
+
         }
     }
 
@@ -532,8 +540,9 @@ function closeReader() {
         if (typeof checkLastSession === 'function') checkLastSession(); 
     }
     
-    console.log("Lector cerrado, música pausada y estados reseteados.");
+    console.log("Lector cerrado, música en espera y estados reseteados.");
 }
+
 
 
 	function loadChapter(idx) {

@@ -51,8 +51,6 @@ function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.ENDED) player.playVideo();
 }
 
-// --- CONTROLADOR MAESTRO DE VOLUMEN ---
-// Sustituye a syncAllVolumes y changeVolume
 function globalVolumeControl(val, originId) {
     if (isSyncing) return; 
     isSyncing = true;
@@ -76,16 +74,8 @@ function globalVolumeControl(val, originId) {
         syncSlider.value = volumeValue;
     }
 
-    // 4. Actualizar Visuales y Auto-Pausa
+    // 4. Actualizar Visuales y Auto-Pausa (Mantiene tu lógica)
     updateVolumeButtonVisuals(volumeValue);
-
-    // 5. Gestión de cierre automático si se usa la barra emergente
-    if (originId === 'music-volume-sync') {
-        clearTimeout(window.volumeTimeout);
-        window.volumeTimeout = setTimeout(() => {
-            document.getElementById('volume-sidebar-container')?.classList.add('hidden');
-        }, 4000);
-    }
 
     isSyncing = false;
 }
@@ -135,24 +125,50 @@ function toggleSoundtrack() {
     } catch (e) { console.error("Error toggle:", e); }
 }
 
-function updateSoundtrack(videoId) {
+function updateSoundtrack(videoId, forcePlay = true) {
+    // Si no hay videoId (el libro no tiene), usamos el DEFAULT
     const finalId = videoId || DEFAULT_SOUNDTRACK;
+    
     if (player && isPlayerReady) {
-        isMusicPlaying = false;
-        const musicBtn = document.getElementById('btn-music-main');
-        const volBtn = document.getElementById('btn-volume-yt');
-        
-        if (musicBtn) musicBtn.style.background = "#08f0fb7a";
-        if (volBtn) volBtn.classList.remove('music-playing-beat');
-        
-        player.cueVideoById({
-            videoId: finalId,
-            suggestedQuality: 'small'
-        });
-        
-        document.getElementById('music-status-text').innerText = videoId ? "SINCRONIZADO" : "AMBIENTE ESTÁNDAR";
-    } else if (!player) {
+        // Si forcePlay es true (como cuando entramos a un libro), usamos loadVideoById
+        if (forcePlay) {
+            isMusicPlaying = true;
+            player.loadVideoById({
+                videoId: finalId,
+                suggestedQuality: 'small'
+            });
+            actualizarVisualesMusica(true);
+        } else {
+            // Solo entra aquí si explícitamente enviamos forcePlay = false (al cerrar)
+            isMusicPlaying = false;
+            player.cueVideoById({
+                videoId: finalId,
+                suggestedQuality: 'small'
+            });
+            actualizarVisualesMusica(false);
+        }
+    } else {
         initPlayer();
+    }
+}
+
+// Función auxiliar para no repetir código de iconos
+function actualizarVisualesMusica(activar) {
+    const musicBtn = document.getElementById('btn-music-main');
+    const musicIcon = document.getElementById('music-icon');
+    const volBtn = document.getElementById('btn-volume-yt');
+    const statusText = document.getElementById('music-status-text');
+
+    if (activar) {
+        if (musicBtn) musicBtn.style.background = "#FFD920A6";
+        if (musicIcon) musicIcon.innerText = "pause";
+        if (volBtn) volBtn.classList.add('music-playing-beat');
+        if (statusText) statusText.innerText = "REPRODUCIENDO...";
+    } else {
+        if (musicBtn) musicBtn.style.background = "#08f0fb7a";
+        if (musicIcon) musicIcon.innerText = "play_arrow";
+        if (volBtn) volBtn.classList.remove('music-playing-beat');
+        if (statusText) statusText.innerText = "AMBIENTE LISTO";
     }
 }
 
@@ -163,12 +179,32 @@ function toggleVolumePopover(event) {
 
     if (sidebar.classList.contains('hidden')) {
         sidebar.classList.remove('hidden');
+        // Reset de seguridad por si venía de una animación
+        sidebar.style.transform = "";
+        sidebar.style.opacity = "";
+        
+        // Iniciamos el timer de cierre inicial
         clearTimeout(window.volumeTimeout);
-        window.volumeTimeout = setTimeout(() => {
-            sidebar.classList.add('hidden');
-        }, 4000);
+        window.volumeTimeout = setTimeout(closeVolumeSidebar, 4000);
     } else {
-        sidebar.classList.add('hidden');
+        closeVolumeSidebar();
+    }
+}
+
+// Función para cerrar con animación hacia el costado
+function closeVolumeSidebar() {
+    const sidebar = document.getElementById('volume-sidebar-container');
+    if (sidebar && !sidebar.classList.contains('hidden')) {
+        // Añadimos una clase de transición (debes ponerla en tu CSS)
+        sidebar.style.transform = "translateY(-50%) translateX(100px)";
+        sidebar.style.opacity = "0";
+        
+        setTimeout(() => {
+            sidebar.classList.add('hidden');
+            // Reseteamos estilos para la próxima vez que se abra
+            sidebar.style.transform = "";
+            sidebar.style.opacity = "";
+        }, 400); // Duración de la animación
     }
 }
 
@@ -176,3 +212,59 @@ function toggleVolumePopover(event) {
 window.addEventListener('click', () => {
     document.getElementById('volume-sidebar-container')?.classList.add('hidden');
 });
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const syncSlider = document.getElementById('music-volume-sync');
+    const sidebar = document.getElementById('volume-sidebar-container');
+
+    // --- PROTECCIÓN PARA ESCRITORIO ---
+    // Evitamos que el clic dentro del panel llegue a la ventana y lo cierre
+    sidebar?.addEventListener('click', (e) => e.stopPropagation());
+    sidebar?.addEventListener('mousedown', (e) => e.stopPropagation());
+
+    if (syncSlider) {
+        // Bloqueo de scroll del body mientras se arrastra en mobile
+        syncSlider.addEventListener('touchmove', (e) => {
+            // Detenemos que el toque llegue al listener de scroll global
+            e.stopPropagation();
+            
+            // Si el navegador intenta hacer scroll en la página, lo cancelamos
+            // para que el slider mantenga el control del dedo.
+            if (e.cancelable) e.preventDefault(); 
+        }, { passive: false });
+
+        // Al soltar (Mobile y Escritorio)
+        const handleRelease = (e) => {
+            e.stopPropagation(); // Evita que el clic final active el cierre global
+            clearTimeout(window.volumeTimeout);
+            window.volumeTimeout = setTimeout(closeVolumeSidebar, 3000);
+        };
+
+        syncSlider.addEventListener('touchend', handleRelease);
+        syncSlider.addEventListener('mouseup', handleRelease);
+        
+        // Al tocar (para resetear el timer de cierre inmediatamente)
+        syncSlider.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+            clearTimeout(window.volumeTimeout);
+        }, { passive: true });
+    }
+});
+
+// Función de cierre con retraso y animación
+function startClosingTimeout() {
+    clearTimeout(window.volumeTimeout);
+    window.volumeTimeout = setTimeout(() => {
+        const sidebar = document.getElementById('volume-sidebar-container');
+        if (sidebar && !sidebar.classList.contains('hidden')) {
+            sidebar.classList.add('closing-animation'); // Añadimos clase de salida
+            
+            // Esperamos a que termine la animación de CSS para ocultarlo realmente
+            setTimeout(() => {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('closing-animation');
+            }, 400); 
+        }
+    }, 3000); // 3 segundos de cortesía antes de irse
+}

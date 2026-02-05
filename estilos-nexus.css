@@ -1700,8 +1700,8 @@ body.sidebar-open {
 .btn-share-nexus {
     color: #d347eb;
     border-radius: 0.8rem;
-    width: 48px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2842,9 +2842,9 @@ body.sidebar-open {
     align-items: center;
     justify-content: center;
     background: rgb(63 189 183 / 50%);
-    border: 1px solid rgba(68, 189, 183, 0.3);
+    border: 1px solid rgba(68, 189, 183, 0.7);
     color: #fffdfd;
-    box-shadow: 0px 0px 20px rgb(63 189 183 / 40%);
+    box-shadow: 0px 0px 10px rgb(63 189 183 / 60%);
     border-radius: 0.5rem;
     backdrop-filter: blur(2px);
     transition: all 0.3s ease;
@@ -2852,15 +2852,18 @@ body.sidebar-open {
 
 /* Animación de Latido para cuando la música suena */
 @keyframes music-beat {
-    0% { transform: scale(1); box-shadow: 0px 0px 10px rgb(63 189 183 / 40%); }
-    50% { transform: scale(1.1); box-shadow: 0px 0px 25px rgb(63 189 183 / 80%); }
-    100% { transform: scale(1); box-shadow: 0px 0px 10px rgb(63 189 183 / 40%); }
+    0% { transform: scale(1); box-shadow: 0px 0px 10px rgb(63 189 183 / 90%); }
+    50% { transform: scale(0.9); box-shadow: 0px 0px 4px rgb(63 189 183 / 40%); }
+    100% { transform: scale(1); box-shadow: 0px 0px 10px rgb(63 189 183 / 90%); }
 }
 
 .music-playing-beat {
     animation: music-beat 3s infinite ease-in-out;
-    background: rgb(63 189 183 / 70%) !important;
+    background: rgb(63 189 183 / 47%) !important;
 }
+
+
+
 
 /* Popover del Slider Vertical */
 .volume-popover {
@@ -2875,25 +2878,34 @@ body.sidebar-open {
     z-index: 100;
 }
 
-/* Slider Vertical */
-.nexus-slider-vertical {
-    appearance: none;
-    width: 4px;
-    height: 100px;
-    background: #333;
-    outline: none;
-    writing-mode: bt-lr; /* Orientación vertical */
-    -webkit-appearance: slider-vertical;
-}
 
-/* Contenedor posicionado a la derecha */
+/* Estado Base */
 .volume-sidebar {
     position: fixed;
     right: 20px;
     top: 50%;
     transform: translateY(-50%);
-    z-index: 9999;
+    z-index: 99999; /* Por encima de todo */
     animation: fadeInRight 0.3s ease;
+	opacity: 1;
+	transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+/* Cuando está oculto */
+.volume-sidebar.hidden {
+    display: none;
+    opacity: 0;
+    transform: translateY(-50%) translateX(100px); /* Se va a la derecha */
+}
+
+#music-volume-sync {
+    touch-action: none !important;
+}
+
+/* Animación de salida activa */
+.closing-animation {
+    opacity: 0 !important;
+    transform: translateY(-50%) translateX(100px) !important;
 }
 
 .volume-sidebar-glass {
@@ -2926,20 +2938,37 @@ body.sidebar-open {
     position: relative;
 }
 
+
+
+
+/* MEJORA TÁCTIL: Aumentamos el área de colisión del slider */
+.nexus-slider-vertical {
+    -webkit-appearance: none;
+    width: 160px;
+    height: 10px; /* Más grueso para facilitar el agarre */
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 10px;
+    transform: rotate(270deg);
+    touch-action: none; /* Instrucción directa al navegador: No hagas nada con el dedo aquí */
+	cursor: pointer;
+    z-index: 10000;
+}
+
+/*
 .nexus-slider-vertical {
     -webkit-appearance: none;
     appearance: none;
-    width: 160px; /* Longitud real */
-    height: 10px; /* Grosor de la barra */
+    width: 160px; /* Longitud real 
+    height: 10px; 
     background: rgba(255, 255, 255, 0.2);
     border-radius: 10px;
     outline: none;
-    /* Rotación limpia */
+ 
     transform: rotate(270deg);
     cursor: pointer;
     margin: 0;
     padding: 0;
-}
+}*/
 
 /* El "Thumb" o tirador circular */
 .nexus-slider-vertical::-webkit-slider-thumb {
