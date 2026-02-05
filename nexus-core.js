@@ -940,3 +940,13 @@ function checkAutoLoad() {
     }, true); 
 })();
 
+function autoHideAddressBar() {
+    // Esperamos a que la página se estabilice tras quitar el loader
+    setTimeout(() => {
+        // Deslizamos 1 píxel hacia abajo
+        window.scrollTo(0, 1);
+        
+        console.log("Intento de ocultar barra ejecutado automáticamente");
+    }, 1000); // 1 segundo después de que desaparezca el splash
+}
+
