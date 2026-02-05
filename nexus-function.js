@@ -632,20 +632,22 @@ function changeLineHeight(h) {
 }
 
 /**
- * Intenta ocultar la barra de direcciones del navegador
- * forzando un scroll mínimo tras la carga.
+ * Intenta ocultar la barra al primer toque del usuario
  */
-function hideBrowserBar() {
-    // 1. Aseguramos que el body sea lo suficientemente alto
-    document.body.style.height = '101vh';
+function activarModoLectura() {
+    const doc = document.documentElement;
     
-    // 2. Ejecutamos el scroll tras un breve delay para que el navegador lo procese
-    setTimeout(() => {
-        window.scrollTo(0, 1);
-        // Devolvemos el height a su estado normal después de un momento
-        // para no causar saltos visuales en el scroll del lector
-        setTimeout(() => {
-            document.body.style.height = '100vh';
-        }, 1000);
-    }, 500);
+    // Intento de Fullscreen (Lo más efectivo)
+    if (doc.requestFullscreen) {
+        doc.requestFullscreen();
+    } else if (doc.webkitRequestFullscreen) {
+        doc.webkitRequestFullscreen();
+    }
+
+    // Scroll de respaldo
+    window.scrollTo(0, 1);
+
+    // Removemos el evento para que no se repita
+    document.removeEventListener('touchstart', activarModoLectura);
+    document.removeEventListener('click', activarModoLectura);
 }

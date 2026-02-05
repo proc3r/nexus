@@ -48,15 +48,20 @@ function renderLibrary() {
 
     // 2. CERRAR EL SPLASH (Index)
     const splash = document.getElementById('nexus-splash') || document.getElementById('auto-loader');
-    
-    if (splash) {
+
+if (splash) {
+    setTimeout(() => {
+        splash.style.opacity = "0";
+
+        // Preparamos el trigger para el primer toque del usuario
+        // Esto es legal para el navegador y esconderá la barra
+        document.addEventListener('touchstart', activarModoLectura, { passive: false });
+        document.addEventListener('click', activarModoLectura);
+
         setTimeout(() => {
-            splash.style.opacity = "0";
-            setTimeout(() => {
-                splash.style.display = "none";
-            }, 800);
-        }, 500);
-    
+            splash.style.display = "none";
+        }, 800);
+    }, 500);
 }
 }
 
