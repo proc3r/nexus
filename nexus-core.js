@@ -46,18 +46,23 @@ function renderLibrary() {
     const oldStatus = document.getElementById('status-text');
     if (oldStatus) oldStatus.innerText = "Sincronizado";
 
-    // 2. CERRAR EL SPLASH (Index)
+    // 2. CERRAR EL SPLASH (Index) Y OCULTAR BARRA
     const splash = document.getElementById('nexus-splash') || document.getElementById('auto-loader');
     
     if (splash) {
         setTimeout(() => {
             splash.style.opacity = "0";
+
+            // DISPARO DEL TRUCO: Intentamos ocultar la barra mientras el splash se desvanece
+            if (typeof hideBrowserBar === 'function') {
+                hideBrowserBar();
+            }
+
             setTimeout(() => {
                 splash.style.display = "none";
             }, 800);
         }, 500);
-    
-}
+    }
 }
 
 // --- CAPTURA INMEDIATA DE TÍTULO PARA EL SPINNER ---
