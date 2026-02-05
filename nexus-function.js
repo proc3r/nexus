@@ -636,18 +636,28 @@ function changeLineHeight(h) {
  */
 function activarModoLectura() {
     const doc = document.documentElement;
-    
-    // Intento de Fullscreen (Lo más efectivo)
+
+    // 1. Intentar Fullscreen (La forma definitiva)
     if (doc.requestFullscreen) {
         doc.requestFullscreen();
     } else if (doc.webkitRequestFullscreen) {
         doc.webkitRequestFullscreen();
     }
 
-    // Scroll de respaldo
-    window.scrollTo(0, 1);
+    // 2. Truco de Scroll Físico:
+    // Estiramos el cuerpo un momento y forzamos el scroll
+    document.body.style.minHeight = '110vh';
+    window.scrollTo({
+        top: 10,
+        behavior: 'smooth'
+    });
 
-    // Removemos el evento para que no se repita
-    document.removeEventListener('touchstart', activarModoLectura);
+    // 3. Restauramos la altura después de que el navegador procese el movimiento
+    setTimeout(() => {
+        document.body.style.minHeight = '100vh';
+    }, 700);
+
+    // Removemos eventos para que no moleste más
     document.removeEventListener('click', activarModoLectura);
+    document.removeEventListener('touchstart', activarModoLectura);
 }

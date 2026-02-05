@@ -182,14 +182,21 @@ html, body {
     margin: 0;
     transition: background-color 0.3s ease;
   /*  height: 100vh;  Forzamos altura */
-	height: 100%;
 	 min-height: 100.1vh; 
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Suavidad en iOS */
     overflow: hidden; /* Evita barra doble en el body */
 	touch-action: manipulation; /* Optimiza el toque y evita el zoom por doble clic */
     overflow-x: hidden; /* Evita que aparezcan las barras amarillas laterales que mencionas */
 	width: 100%;
     position: relative;
 }
+
+/* Solo bloqueamos el pull-to-refresh, pero dejamos que la barra suba */
+body {
+    overscroll-behavior-y: contain; 
+}
+
 
 			/* Asegura que el modal de imagen no herede el bloqueo de toque */
 #image-modal {
