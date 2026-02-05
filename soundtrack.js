@@ -38,12 +38,18 @@ function initPlayer() {
 
 function onPlayerReady(event) {
     isPlayerReady = true;
-    // Inicialización maestra del volumen
     globalVolumeControl(DEFAULT_VOLUME, 'init');
 
     const statusText = document.getElementById('music-status-text');
+    const volBtn = document.getElementById('btn-volume-yt');
+
     if (statusText) {
         statusText.innerText = (window.currentBook && window.currentBook.soundtrack) ? "SINCRONIZADO" : "AMBIENTE LISTO";
+    }
+
+    // Si la música no está sonando (bloqueo de navegador), activamos el latido de espera
+    if (!isMusicPlaying && volBtn) {
+        volBtn.classList.add('music-waiting-pulse');
     }
 }
 
@@ -174,16 +180,25 @@ function actualizarVisualesMusica(activar) {
 
 function toggleVolumePopover(event) {
     if (event) event.stopPropagation();
+    
+    const volBtn = document.getElementById('btn-volume-yt');
     const sidebar = document.getElementById('volume-sidebar-container');
+    
+    // --- LÓGICA DE ACTIVACIÓN ---
+    if (isPlayerReady && !isMusicPlaying) {
+        // Quitamos el latido de espera y activamos la música
+        if (volBtn) volBtn.classList.remove('music-waiting-pulse');
+        toggleSoundtrack(); // Esta función ya activa isMusicPlaying y el beat de reproducción
+    }
+
     if (!sidebar) return;
 
+    // --- MANEJO DE LA BARRA LATERAL ---
     if (sidebar.classList.contains('hidden')) {
         sidebar.classList.remove('hidden');
-        // Reset de seguridad por si venía de una animación
         sidebar.style.transform = "";
         sidebar.style.opacity = "";
         
-        // Iniciamos el timer de cierre inicial
         clearTimeout(window.volumeTimeout);
         window.volumeTimeout = setTimeout(closeVolumeSidebar, 4000);
     } else {
