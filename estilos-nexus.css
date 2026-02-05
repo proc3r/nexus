@@ -181,8 +181,8 @@ html, body {
     font-family: 'Inter', sans-serif;
     margin: 0;
     transition: background-color 0.3s ease;
-    height: 100vh; /* Forzamos altura */
-	 min-height: 100.1vh; 
+    /*height: 100vh; Forzamos altura */
+	
     overflow: hidden; /* Evita barra doble en el body */
 	touch-action: manipulation; /* Optimiza el toque y evita el zoom por doble clic */
     overflow-x: hidden; /* Evita que aparezcan las barras amarillas laterales que mencionas */
