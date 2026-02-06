@@ -12,21 +12,21 @@ function onYouTubeIframeAPIReady() {
     initPlayer();
 }
 
+
 function initPlayer() {
     if (player) return;
     const vId = (window.currentBook && window.currentBook.soundtrack) ? window.currentBook.soundtrack : DEFAULT_SOUNDTRACK;
     
-    player = new YT.Player('youtube-player', {
+    // Objeto base de configuración
+    const playerConfig = {
         height: '0',
         width: '0',
-        videoId: vId,
         playerVars: {
             'playsinline': 1,
             'enablejsapi': 1,
             'origin': window.location.origin,
             'controls': 0,
             'disablekb': 1,
-            'fs': 0,
             'modestbranding': 1
         },
         events: {
@@ -34,8 +34,19 @@ function initPlayer() {
             'onStateChange': onPlayerStateChange,
             'onError': (e) => console.error("Error YT:", e.data)
         }
-    });
+    };
+
+    // SI EL ID ES LARGO (Lista), usamos 'list', si es corto, 'videoId'
+    if (vId.length > 15 || vId.startsWith('PL') || vId.startsWith('RD')) {
+        playerConfig.playerVars.listType = 'playlist';
+        playerConfig.playerVars.list = vId;
+    } else {
+        playerConfig.videoId = vId;
+    }
+
+    player = new YT.Player('youtube-player', playerConfig);
 }
+
 
 function onPlayerReady(event) {
 	
