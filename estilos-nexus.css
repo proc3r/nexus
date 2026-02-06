@@ -403,23 +403,23 @@ body.sidebar-open {
 
 /* 5. PROGRESO Y MARCADORES */
 .progress-bar-container {
-    width: 100%; height: 6px; background: rgba(255,255,255,0.4);
-    border-radius: 10px; position: relative;
+    width: 100%; height: 8px; background: rgb(97 112 155 / 63%);
+    border-radius: 10px; position: relative; box-shadow: 0px 0px 6px rgb(57 117 181);
 }
-#reading-progress-bar { height: 100%; background: var(--primary-accent); width: 0%; transition: width 0.3s ease; }
+#reading-progress-bar { height: 100%; background: #05ff3bd6; width: 0%; transition: width 0.3s ease; }
  
 #progress-markers-container { position: absolute; inset: 0; pointer-events: none; }
 .progress-marker {
     position: absolute; top: 50%; transform: translate(-50%, -50%);
     width: 12px; height: 8px; cursor: pointer; pointer-events: auto;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: center; z-index: 9998;
 }
 .marker-h1-dot { 
     width: 8px; height: 8px; background-color: var(--marker-h1);
     border-radius: 50%; box-shadow: 0 0 8px rgba(255, 68, 68, 0.4);
     border: 1px solid rgba(0,0,0,0.2); 
 }
-.marker-h2-line { width: 2px; height: 8px; background: rgba(200,150,100,0.5); }
+.marker-h2-line { width: 2px; height: 8px; background: rgb(237 119 62 / 90%); }
  /*
 .marker-tooltip {
     position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
@@ -434,11 +434,11 @@ body.sidebar-open {
 /* Estado base del tooltip */
 .marker-tooltip {
     position: absolute;
-    bottom: 85px;
+    bottom: 15px;
     left: 50%;
 	border-radius: 4px;
 	padding: 4px 8px;
-	background: rgb(0 215 23 / 25%);
+	background: rgb(21 161 36 / 52%);
 	backdrop-filter: blur(4px);
     transform: translateX(-50%);
     opacity: 0;
@@ -452,7 +452,7 @@ body.sidebar-open {
 	 border: 1px solid rgb(246 248 249 / 30%);
 	box-shadow: 0px 0px 6px rgb(0 255 0 / 88%);
 	
-	 color: white;
+	color: white;
 }
 
 /* Forzar mostrado desde JS */
@@ -583,14 +583,6 @@ body.sidebar-open {
     transform: scale(0.98); /* Efecto de pulsación al hacer clic */
 }
 
-/* Mejora la carga progresiva 
-.reader-image-container {
-        min-height: 200px; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}*/
 
 .reader-text {
     font-family: 'Barlow Condensed';
@@ -607,24 +599,6 @@ body.sidebar-open {
     width: 100%; display: flex; justify-content: center; margin: 2rem 0;
     flex-direction: column; align-items: center; position: relative;
 }
-/*
-.reader-image {
-    max-width: 100%; max-height: 85vh; border-radius: 0.75rem;
-   
-    object-fit: contain;
-}*/
-
-
-
-
-
-/*
-.book-card-cover {
-    width: 100%; height: 180px; border-radius: 2.5rem 2.5rem 0rem 0rem; margin-bottom: 0.3rem;
-    overflow: hidden; background: rgba(255,255,255,0.03); display: flex;
-    align-items: center; justify-content: center; position: relative;
-    border: 1px solid rgba(255,255,255,0.05);
-}*/
 
 /* Contenedor de la imagen de la tarjeta principal */
 .book-card-cover {
@@ -636,31 +610,7 @@ body.sidebar-open {
     background: #25262b;
 }
 
-/* 
-.book-card-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(transparent, rgba(0,0,0,0.95));
-    padding: 30px 15px 15px 15px;
-    pointer-events: none; 
-}
 
-.book-card-title-internal {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800;
-    font-size: 1.5rem;
-    line-height: 1;
-    text-transform: uppercase;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-*/
 /* Asegura que el título no crezca infinitamente y mantenga el estilo */
 .book-card-title-internal {
     display: -webkit-box;
@@ -676,8 +626,6 @@ body.sidebar-open {
 	backface-visibility: hidden;
     transform: translateZ(0); /* Fuerza aceleración de hardware sin mover el objeto */
 }
-
-
 
 /* El overlay ahora ocupa toda la imagen para el degradado */
 .book-card-overlay {
@@ -721,7 +669,7 @@ body.sidebar-open {
     width: max-content;
     max-width: 95%;
     box-shadow: 0px 0px 8px rgb(0 255 0 / 81%);
-	background-color: rgb(52 243 12 / 20%);
+	background-color: rgb(49 163 26 / 64%);
     border: 1px solid rgb(52 243 12 / 30%);
     font-family: 'Barlow Condensed';
 }
@@ -1524,7 +1472,7 @@ body.sidebar-open {
     align-items: center;
     justify-content: center;
     gap: 15px;
-    z-index: 9998;
+    z-index: 9997;
     /* Transición suave para todos los cambios de posición */
     transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
                 bottom 0.4s ease, 
@@ -3272,7 +3220,7 @@ body.sidebar-open {
     right: 3%;
     width: 48px;
     height: 48px;
-    bottom: 15%;
+    bottom: 135px;
 	box-shadow: 0px 0px 5px rgb(255 0 0 / 65%);
 	
     }
