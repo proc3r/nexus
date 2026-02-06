@@ -19,7 +19,7 @@
 	<meta property="twitter:image" content="https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	
+	<link rel="manifest" href="/manifest.json">
 	<link rel="preload" 
       href="https://fonts.gstatic.com/s/materialiconsround/v109/LDItaoyNOAY6Uewc665JcIzCKsKc_M9flwmP.woff2" 
       as="font" 
@@ -97,7 +97,8 @@
                 <span id="resume-book-label" class="resume-book-title">Título del Libro</span>
             </div>
         </div>
-       <div id="reader-view" class="hidden book-container dark-mode">
+    
+	<div id="reader-view" class="hidden book-container dark-mode">
     <div id="sidebar-trigger" onmouseenter="openSidebar()" onclick="openSidebar()">
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
     </div>
@@ -523,7 +524,15 @@
  <!-- <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-synopsis.js" defer></script>-->
 	<script>
 	</script>
-	
+	<script>
+	  if ('serviceWorker' in navigator) {
+		window.addEventListener('load', () => {
+		  navigator.serviceWorker.register('/sw.js')
+			.then(reg => console.log('Nexus SW registrado', reg))
+			.catch(err => console.log('Error al registrar SW', err));
+		});
+	  }
+	</script>	
 	
 </body>
 </html>
