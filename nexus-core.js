@@ -455,6 +455,12 @@ function parseMarkdown(text) {
 	
 
 function openReader(id) {
+	
+	// --- NUEVO: ACTIVAR FULLSCREEN GLOBAL AL ENTRAR ---
+    // Se usa documentElement para que toda la web (incluyendo librería al volver) sea Fullscreen
+    if (typeof launchFullScreen === 'function') {
+        launchFullScreen(document.documentElement);
+    }
     
     // OCULTAR HEADER AL ENTRAR AL LECTOR
     const globalHeader = document.getElementById('nexus-header-global');
@@ -936,3 +942,14 @@ function checkAutoLoad() {
     }, true); 
 })();
 
+function launchFullScreen(element) {
+    if(element.requestFullscreen) {
+        element.requestFullscreen();
+    } else if(element.mozRequestFullScreen) {
+        element.mozRequestFullScreen();
+    } else if(element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen();
+    } else if(element.msRequestFullscreen) {
+        element.msRequestFullscreen();
+    }
+}

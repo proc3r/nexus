@@ -67,6 +67,10 @@ async function loadExternalDictionary() {
 	
 	
 function startSpeech() {
+	
+	if (typeof launchFullScreen === 'function') {
+        launchFullScreen(document.documentElement);
+    }
     isSpeaking = true; 
     isPaused = false;
     document.getElementById('tts-btn').classList.add('hidden'); 
@@ -190,6 +194,8 @@ function stopSpeech() {
 }
 	function prepareAndStartSpeech() {
 		// Seguridad: Si el modal de sinopsis está abierto, no iniciar voz del lector
+		
+		
 		const synModal = document.getElementById('synopsis-modal');
 		if (synModal && !synModal.classList.contains('hidden')) return;
 		if (isPaused) synth.resume(); 

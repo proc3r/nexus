@@ -39,6 +39,12 @@
 	function resumeLastSession() {
     const saved = localStorage.getItem('nexus_last_session');
     if (!saved) return;
+	
+	// --- NUEVO: ACTIVAR FULLSCREEN AL REANUDAR SESIÓN ---
+    if (typeof launchFullScreen === 'function') {
+        launchFullScreen(document.documentElement);
+    }
+	
     const data = JSON.parse(saved);
 
     // Intentamos encontrar el libro en la librería cargada
@@ -638,44 +644,14 @@ function toggleZenMode() {
     const zenIcon = document.getElementById('zen-icon');
     if (!mainLayout) return;
 
-    // 1. Alternar la clase visual (tu Modo Zen actual)
+    // Solo manejamos las barras visuales
     const isZen = mainLayout.classList.toggle('zen-active-ui');
 
-    // 2. Cerrar la barra lateral (TOC)
     if (isZen) {
-        closeSidebar();
-        // 3. Solicitar Fullscreen Real al Navegador
-        launchFullScreen(document.documentElement); 
-    } else {
-        // Al salir del Zen, también salimos del Fullscreen real
-        exitFullScreen();
+        closeSidebar(); 
     }
 
-    // 4. Actualizar el icono
     if (zenIcon) {
         zenIcon.innerText = isZen ? 'fullscreen_exit' : 'fullscreen';
-    }
-}
-
-// Funciones de soporte para compatibilidad con todos los navegadores
-function launchFullScreen(element) {
-    if(element.requestFullscreen) {
-        element.requestFullscreen();
-    } else if(element.mozRequestFullScreen) { // Firefox
-        element.mozRequestFullScreen();
-    } else if(element.webkitRequestFullscreen) { // Chrome, Safari y Opera
-        element.webkitRequestFullscreen();
-    } else if(element.msRequestFullscreen) { // IE/Edge
-        element.msRequestFullscreen();
-    }
-}
-
-function exitFullScreen() {
-    if(document.exitFullscreen) {
-        document.exitFullscreen();
-    } else if(document.mozCancelFullScreen) {
-        document.mozCancelFullScreen();
-    } else if(document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
     }
 }
