@@ -171,11 +171,7 @@ function closeSynopsis() {
 		synopsisSubChunks = [];
 		isSynopsisReading = false;
 		
-			// 2. Limpiar el reproductor de podcast y restaurar botones (Color Azul)
-		// Llamamos a la función global definida en nexus-podcast.js
-		if (typeof closePodcast === 'function') {
-			closePodcast();
-		}
+		
 		
 		const modal = document.getElementById('synopsis-modal');
 		const body = document.getElementById('synopsis-body');
@@ -187,6 +183,8 @@ function closeSynopsis() {
 		if (btnStop) btnStop.classList.add('hidden');
 		if (btnPlay) btnPlay.classList.remove('hidden');
 	}
+	
+		stopSynopsisTTS(); 
 	
 		document.addEventListener('click', function(event) {
 				const speedMenuReader = document.getElementById('reader-speed-menu');
@@ -214,6 +212,15 @@ function closeSynopsis() {
 // --- LÓGICA DE VOZ PARA SINOPSIS ---
 
 	function startSynopsisTTS() {
+		
+		if (typeof podAudioInstance !== 'undefined' && podAudioInstance && !podAudioInstance.paused) {
+        // Guardamos una bandera para saber que debemos reanudarlo después
+			window.wasPodcastPlayingBeforeTTS = true;
+			togglePodcastPlay(false);
+		} else {
+			window.wasPodcastPlayingBeforeTTS = false;
+		}
+	
 		const body = document.getElementById('synopsis-body');
 		if (!body) return;
 		
@@ -238,6 +245,11 @@ function closeSynopsis() {
 			const modalVisible = !document.getElementById('synopsis-modal').classList.contains('hidden');
 			if (!modalVisible || currentSynopsisIdx >= synopsisSubChunks.length) {
 				stopSynopsisTTS();
+				 if (window.wasPodcastPlayingBeforeTTS) {
+					togglePodcastPlay(true);
+					window.wasPodcastPlayingBeforeTTS = false;
+				}
+				
 				return;
 			}
 			const currentText = synopsisSubChunks[currentSynopsisIdx].trim();
@@ -265,5 +277,11 @@ function closeSynopsis() {
 		currentSynopsisIdx = 0;
 		document.getElementById('btn-synopsis-stop').classList.add('hidden');
 		document.getElementById('btn-synopsis-tts').classList.remove('hidden');
+		
+		if (window.wasPodcastPlayingBeforeTTS) {
+        togglePodcastPlay(true);
+        window.wasPodcastPlayingBeforeTTS = false;
+    }
+
 	}
 
