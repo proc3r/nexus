@@ -408,9 +408,7 @@
         <button onclick="closePodcast()" class="pod-close"><span class="material-icons">close</span></button>
     </div>
 
-    <div class="pod-row-bottom">
-        <input type="range" id="pod-progress" min="0" value="0" step="1" oninput="seekAudio(this.value)">
-    </div>
+   
 	
     <div class="pod-row-mid">
         <div class="pod-mid-left">
@@ -438,8 +436,12 @@
             <span id="pod-time">00:00 / 00:00</span>
         </div>
     </div>
-
-    <audio id="main-podcast-audio" preload="none"></audio>
+	
+	<div class="pod-row-bottom">
+        <input type="range" id="pod-progress" min="0" value="0" step="1" oninput="seekAudio(this.value)">
+    </div>
+    
+	<audio id="main-podcast-audio" preload="none"></audio>
 </div>
 
 
