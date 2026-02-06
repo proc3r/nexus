@@ -536,9 +536,9 @@ body.sidebar-open {
     text-transform: uppercase;
     transition: color 0.3s ease;
     letter-spacing: 0.01em;
-    font-size: 19px;
+    font-size: 22px;
     font-family: 'Barlow Condensed';
-    padding-top: 6px;
+    padding-top: 1px;
     max-width: 95%;
 	opacity: 0.8;
 }
@@ -3273,6 +3273,8 @@ body.sidebar-open {
     width: 48px;
     height: 48px;
     bottom: 15%;
+	box-shadow: 0px 0px 5px rgb(255 0 0 / 65%);
+	
     }
 
     .zen-active-ui .zen-btn-mobile {
@@ -3286,5 +3288,8 @@ body.sidebar-open {
         background: rgba(0, 0, 0, 0.8);
         color: #ffffff;
         transform: scale(1.1);
+		
+		transform: scale(1.1);
+		transition: transform 0.3s ease;
     }
 }

@@ -655,3 +655,58 @@ function toggleZenMode() {
         zenIcon.innerText = isZen ? 'fullscreen_exit' : 'fullscreen';
     }
 }
+
+/**
+ * NEXUS CORE - MODO ZEN
+ * Navegación simple por teclado sin gestión de foco.
+ */
+document.addEventListener('keydown', (e) => {
+    // 1. Bloqueamos el TAB por completo
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        return;
+    }
+
+    // 2. Si el lector está oculto o estamos escribiendo, no hacer nada
+    const readerView = document.getElementById('reader-view');
+    if (!readerView || readerView.classList.contains('hidden')) return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    const container = document.getElementById('reading-container-fixed');
+
+    switch (e.key) {
+        // NAVEGACIÓN DE TEXTO (BLOQUES)
+        case 'ArrowRight':
+            e.preventDefault();
+            if (typeof nextChunk === 'function') nextChunk();
+            break;
+
+        case 'ArrowLeft':
+            e.preventDefault();
+            if (typeof prevChunk === 'function') prevChunk();
+            break;
+
+        // SCROLL (DENTRO DEL TEXTO)
+        case 'ArrowDown':
+            e.preventDefault();
+            container?.scrollBy({ top: 150, behavior: 'smooth' });
+            break;
+
+        case 'ArrowUp':
+            e.preventDefault();
+            container?.scrollBy({ top: -150, behavior: 'smooth' });
+            break;
+
+        // PLAY / PAUSE
+        case ' ':
+            e.preventDefault();
+            if (typeof toggleSpeech === 'function') toggleSpeech();
+            break;
+
+        // SALIR
+        case 'Escape':
+            e.preventDefault();
+            if (typeof closeReader === 'function') closeReader();
+            break;
+    }
+});

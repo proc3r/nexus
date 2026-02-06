@@ -38,6 +38,9 @@ function initPlayer() {
 }
 
 function onPlayerReady(event) {
+	
+	
+	
     isPlayerReady = true;
     globalVolumeControl(DEFAULT_VOLUME, 'init');
 
@@ -357,3 +360,4 @@ function startClosingTimeout() {
         }
     }, 3000); // 3 segundos de cortesía antes de irse
 }
+
