@@ -36,6 +36,8 @@ body {
     --reader-font-family: 'Merriweather', serif;
     --reader-text-align: justify;
     --reader-line-height: 1.8;
+	--title-Section: #ffcc00;
+	
 }
 
 
@@ -300,7 +302,7 @@ body.sidebar-open {
         background-color: var(--sidebar-blur);
     }
     .sidebar-header { padding: 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-    #chapter-list {     padding-left: 0.1px; padding-right: 0.1px; }
+    #chapter-list {     padding-left: 0.1px; padding-right: 0.1px; padding-bottom: 20px; }
 }
 
 .sidebar-header { flex-shrink: 0; }
@@ -310,6 +312,8 @@ body.sidebar-open {
     flex: 1; display: flex; flex-direction: column;
     height: 100dvh; overflow: hidden; position: relative;
 }
+
+
 
 .book-container.dark-mode { 
     background-color: var(--reader-dark); 
@@ -328,10 +332,10 @@ body.sidebar-open {
     font-size: var(--reader-font-size);
     text-align: var(--reader-text-align);
     line-height: var(--reader-line-height);
-	padding-bottom: 10px;
+	padding-bottom: 40px;
 	width: 100%;
     position: relative;
-	text-shadow: 1px 2px 2px #5656568a;
+	text-shadow: 1px 1px 2px #56565680;
 
 }
 
@@ -526,15 +530,32 @@ body.sidebar-open {
     text-shadow: -3px -2px 5px rgb(0 0 0 / 21%);
 }
 
+/* 1. Estilos base (sin color fijo) */
 #chapter-indicator {
-    color: #ff4444 !important; /* Forzamos el color rojo igual al botón */
-    font-weight: bold;
+        font-weight: bold;
     text-transform: uppercase;
+    transition: color 0.3s ease;
+    letter-spacing: 0.01em;
+    font-size: 19px;
+    font-family: 'Barlow Condensed';
+    padding-top: 6px;
+    max-width: 95%;
+	opacity: 0.8;
+}
+
+/* 2. Color cuando el lector está en MODO OSCURO */
+.dark-mode #chapter-indicator {
+    color: #3fff00 !important; /* Verde vibrante para fondo negro */
+}
+
+/* 3. Color cuando el lector está en MODO CLARO */
+.light-mode #chapter-indicator {
+    color: #2563eb !important; /* Azul corporativo o puedes usar #b91c1c para un rojo oscuro */
 }
 
 #sidebar-trigger {
     position: fixed !important; left: 0; top: 50%; transform: translateY(-50%);
-    z-index: 120; width: 21px; height: 60px; background: var(--primary-accent);
+    z-index: 120; width: 15px; height: 60px; background: var(--primary-accent);
     border-radius: 0 10px 10px 0; display: flex; align-items: center; justify-content: center;
     cursor: pointer; color: #000; transition: width 0.2s ease;
 }
@@ -1311,10 +1332,7 @@ body.sidebar-open {
 
 /* Botón Rojo (Persona hablando) */
 .btn-float-red {
-    
-	/*box-shadow: 0 0px 5px rgb(249 11 11 / 95%);*/
-	
-    backdrop-filter: blur(1px);
+    backdrop-filter: blur(3px);
 	background-color: rgb(52 243 12 / 70%) !important;
 	transition: transform 0.5s, background-color 0.3s;
 	box-shadow: 0px 0px 8px rgb(0 255 0  / 81%);
@@ -1330,7 +1348,7 @@ body.sidebar-open {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgb(0 229 34 / 76%);
+    background-color: rgb(0 229 34 / 90%);
     cursor: pointer;
     transition: transform 0.5s, background-color 0.3s;
 	box-shadow: 0 0px 5px rgb(11 249 62 / 55%);
@@ -1343,7 +1361,16 @@ body.sidebar-open {
     background-color: rgb(255 204 0 / 0.6);
     /*box-shadow: 3px 3px 12px rgb(24 24 24 / 55%);*/
 	box-shadow: 0px 0px 8px rgb(0 255 0  / 81%);
+	animation: pause-tts 3s infinite ease-in-out;
+	backdrop-filter: blur(3px);
 	
+}
+
+/* Animación de Latido para cuando la música suena */
+@keyframes pause-tts {
+    0% { transform: scale(1); box-shadow: 0px 0px 8px rgb(0 255 0 / 95%); }
+    50% { transform: scale(1); box-shadow: 0px 0px 3px rgb(0 255 0 / 40%); }
+    100% { transform: scale(1); box-shadow: 0px 0px 8px rgb(0 255 0 / 95%); }
 }
 
 /* Clase que se aplica por JS cuando se pausa (Verde) */
@@ -1380,7 +1407,7 @@ body.sidebar-open {
     width: 65px;
     height: 65px;
     border-radius: 50%;
-    background-color: rgba(220, 0, 0, 0.4);
+    background-color: rgba(220, 0, 0, 0.8);
     backdrop-filter: blur(2px);
     border: 1px solid rgba(255,255,255,0.1);
     color: white;
@@ -3123,3 +3150,145 @@ body.sidebar-open {
     transition: opacity 0.8s ease;
 }
 
+
+
+
+/* ============================================================
+   MODO ZEN NEXUS - CÓDIGO FINAL CONSOLIDADO
+   ============================================================ */
+
+/* --- MODO ZEN: AJUSTES MÍNIMOS NECESARIOS --- */
+
+/* Transiciones generales */
+.reader-main-layout nav, 
+.reader-main-layout footer,
+#chapter-indicator-container {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+
+/* Contenedor de lectura expandido */
+.zen-active-ui #reading-container-fixed {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 10 !important;
+    padding: 30px 5% 20px 6% !important; 
+    background: inherit;
+}
+
+
+/* Ocultar elementos en modo Zen */
+.zen-active-ui nav { transform: translateY(-100%); }
+.zen-active-ui footer { transform: translateY(100%); opacity: 0; pointer-events: none; }
+.zen-active-ui #chapter-indicator-container { opacity: 0; transform: translateY(-20px); }
+.zen-active-ui .zen-hide-group { display: none !important; }
+
+
+
+
+/* 3. Forzamos los controles TTS al frente total */
+.zen-active-ui .reader-controls-wrapper {
+    position: fixed !important;
+    bottom: 13px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 99999 !important; /* Prioridad máxima */
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+@media (min-width: 1024px) {
+.zen-active-ui .reader-controls-wrapper {
+    position: fixed !important;
+    bottom: 60px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 99999 !important; /* Prioridad máxima */
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+}
+/*
+.zen-btn-mobile {
+    position: fixed;
+    bottom: 120px; 
+    right: 12px;
+    z-index: 60;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffcc00;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+}*/
+
+.zen-btn-mobile {
+    position: fixed;
+    bottom: 119px;
+    right: 8px;
+    z-index: 60;
+    background: rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(2px);
+        border: 1px solid rgb(255 255 255 / 11%);
+    border-radius: 8px;
+    width: 29px;
+    height: 33px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-accent) rgba(0, 0, 0, 0.2);
+    transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
+}
+
+/* Feedback visual al presionar */
+.zen-btn-mobile:active {
+    transform: scale(0.9);
+}
+
+/* Asegura que el fondo sea negro profundo cuando el navegador entra en pantalla completa */
+:fullscreen, ::-webkit-full-screen, :-ms-fullscreen {
+    background-color: #000 !important;
+}
+
+/* Ajuste de margen para el botón Zen en pantalla completa real */
+.zen-active-ui .zen-btn-mobile {
+    /* En algunos móviles, al estar en Fullscreen, el botón 
+       necesita un poco más de margen por los gestos del sistema */
+    bottom: 30px !important; 
+}
+
+@media (min-width: 1024px) {
+    .zen-btn-mobile {
+    right: 3%;
+    width: 48px;
+    height: 48px;
+    bottom: 15%;
+    }
+
+    .zen-active-ui .zen-btn-mobile {
+        /* En modo Zen escritorio, lo bajamos un poco más que en móvil */
+        bottom: 40px !important;
+        right: 40px;
+    }
+    
+    /* Efecto Hover solo para PC (opcional, le da un toque profesional) */
+    .zen-btn-mobile:hover {
+        background: rgba(0, 0, 0, 0.8);
+        color: #ffffff;
+        transform: scale(1.1);
+    }
+}

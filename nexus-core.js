@@ -857,7 +857,19 @@ function handleSwipeGesture() {
 // Inicialización
 document.addEventListener('DOMContentLoaded', initTouchEvents);
      
-	 
+
+
+
+/**
+ * Llama a esta función dentro de tu código cuando abras el lector
+ * para que el foco empiece en el botón de lectura.
+ */
+function focusInitialReaderElement() {
+    // Intentamos enfocar el botón de Play/Voz por defecto
+    const playBtn = document.querySelector('.btn-audio-main') || document.getElementById('btn-read-toggle');
+    if (playBtn) playBtn.focus();
+}
+
 function checkAutoLoad() {
     const params = getUrlParams();
     if (params.repo !== null && params.book) {

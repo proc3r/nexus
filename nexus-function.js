@@ -632,3 +632,50 @@ function changeLineHeight(h) {
 }
 
 
+
+function toggleZenMode() {
+    const mainLayout = document.querySelector('.reader-main-layout');
+    const zenIcon = document.getElementById('zen-icon');
+    if (!mainLayout) return;
+
+    // 1. Alternar la clase visual (tu Modo Zen actual)
+    const isZen = mainLayout.classList.toggle('zen-active-ui');
+
+    // 2. Cerrar la barra lateral (TOC)
+    if (isZen) {
+        closeSidebar();
+        // 3. Solicitar Fullscreen Real al Navegador
+        launchFullScreen(document.documentElement); 
+    } else {
+        // Al salir del Zen, también salimos del Fullscreen real
+        exitFullScreen();
+    }
+
+    // 4. Actualizar el icono
+    if (zenIcon) {
+        zenIcon.innerText = isZen ? 'fullscreen_exit' : 'fullscreen';
+    }
+}
+
+// Funciones de soporte para compatibilidad con todos los navegadores
+function launchFullScreen(element) {
+    if(element.requestFullscreen) {
+        element.requestFullscreen();
+    } else if(element.mozRequestFullScreen) { // Firefox
+        element.mozRequestFullScreen();
+    } else if(element.webkitRequestFullscreen) { // Chrome, Safari y Opera
+        element.webkitRequestFullscreen();
+    } else if(element.msRequestFullscreen) { // IE/Edge
+        element.msRequestFullscreen();
+    }
+}
+
+function exitFullScreen() {
+    if(document.exitFullscreen) {
+        document.exitFullscreen();
+    } else if(document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+    } else if(document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+    }
+}
