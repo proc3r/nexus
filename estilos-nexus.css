@@ -2113,23 +2113,16 @@ body.sidebar-open {
 	display: flex; 	
 	flex-direction: column;
 	width: 100%;
-	
 	margin: 0 auto;
 	position: relative;
-	    
-	/* Centrado Vertical que tenías antes */
-     
-    padding: 0 10%; 
+	padding: 0 10%; 
 	    
 	/* Comportamiento y Scroll */
     /*overflow-y: auto;*/
     overflow-x: hidden;
     scroll-behavior: auto !important; /* Evita saltos al cambiar de página */
     touch-action: pan-y;
- /*   overscroll-behavior-y: contain;*/
     -webkit-overflow-scrolling: touch;
-	/* Estabilización de altura */
-    /*height: calc(100vh - 130px); */
 	
 }
 

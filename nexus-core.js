@@ -811,9 +811,11 @@ function prevChunk() {
     
 
 
-// --- LÓGICA DE SWIPE PARA MÓVIL ---
+// --- LÓGICA DE SWIPE OPTIMIZADA ---
 let touchstartX = 0;
+let touchstartY = 0; // Añadido para medir eje Y
 let touchendX = 0;
+let touchendY = 0; // Añadido para medir eje Y
 
 function initTouchEvents() {
     const readerZone = document.getElementById('reading-container-fixed');
@@ -821,25 +823,34 @@ function initTouchEvents() {
 
     readerZone.addEventListener('touchstart', e => {
         touchstartX = e.changedTouches[0].screenX;
+        touchstartY = e.changedTouches[0].screenY; // Capturamos origen vertical
     }, {passive: true});
 
     readerZone.addEventListener('touchend', e => {
         touchendX = e.changedTouches[0].screenX;
+        touchendY = e.changedTouches[0].screenY; // Capturamos final vertical
         handleSwipeGesture();
     }, {passive: true});
 }
 
 function handleSwipeGesture() {
-    const swipeThreshold = 60; // Sensibilidad
+    const deltaX = touchendX - touchstartX;
+    const deltaY = touchendY - touchstartY;
     
-    // Deslizar a la izquierda -> Siguiente
-    if (touchstartX - touchendX > swipeThreshold) {
-        if (typeof nextChunk === 'function') nextChunk();
-    }
+    const swipeThreshold = 70; // Sensibilidad horizontal (ligeramente aumentada)
+    const verticalLimit = Math.abs(deltaY); // Cuánto se movió el dedo verticalmente
     
-    // Deslizar a la derecha -> Atrás (Ahora incluye retorno a biblioteca)
-    if (touchendX - touchstartX > swipeThreshold) {
-        prevChunk();
+    // FILTRO DE INTENCIÓN: 
+    // Solo permitimos el swipe si el movimiento horizontal es mayor al vertical.
+    // Esto anula el "arco" del pulgar al hacer scroll.
+    if (Math.abs(deltaX) > verticalLimit && Math.abs(deltaX) > swipeThreshold) {
+        if (deltaX < 0) {
+            // Deslizar a la izquierda (delta negativo) -> Siguiente
+            if (typeof nextChunk === 'function') nextChunk();
+        } else {
+            // Deslizar a la derecha (delta positivo) -> Atrás
+            if (typeof prevChunk === 'function') prevChunk();
+        }
     }
 }
 
