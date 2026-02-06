@@ -78,27 +78,20 @@ function globalVolumeControl(val, originId) {
     // 1. Aplicar a YouTube
     if (player && isPlayerReady && typeof player.setVolume === 'function') {
         player.setVolume(volumeValue);
-        
-        // SOLUCIÓN: Si subimos de 0 y el sistema está en modo "reproduciendo", forzamos el Play
+        // Si hay volumen y debería estar sonando, aseguramos el play
         if (volumeValue > 0 && isMusicPlaying) {
-            if (player.getPlayerState() !== 1) { // 1 = playing
-                player.playVideo();
-            }
+            if (player.getPlayerState() !== 1) player.playVideo();
         }
     }
 
-    // 2. Sincronizar Sliders
+    // 2. Sincronizar Sliders (Escritorio y Emergente)
     const mainSlider = document.getElementById('music-volume');
-    if (mainSlider && originId !== 'music-volume') {
-        mainSlider.value = volumeValue;
-    }
+    if (mainSlider && originId !== 'music-volume') mainSlider.value = volumeValue;
 
     const syncSlider = document.getElementById('music-volume-sync');
-    if (syncSlider && originId !== 'music-volume-sync') {
-        syncSlider.value = volumeValue;
-    }
+    if (syncSlider && originId !== 'music-volume-sync') syncSlider.value = volumeValue;
 
-    // 3. Actualizar Visuales
+    // 3. Visuales
     updateVolumeButtonVisuals(volumeValue);
 
     isSyncing = false;
@@ -282,43 +275,71 @@ window.addEventListener('click', () => {
 });
 
 
+
 document.addEventListener('DOMContentLoaded', () => {
     const syncSlider = document.getElementById('music-volume-sync');
     const sidebar = document.getElementById('volume-sidebar-container');
 
-    // --- PROTECCIÓN PARA ESCRITORIO ---
-    // Evitamos que el clic dentro del panel llegue a la ventana y lo cierre
     sidebar?.addEventListener('click', (e) => e.stopPropagation());
     sidebar?.addEventListener('mousedown', (e) => e.stopPropagation());
 
     if (syncSlider) {
-        // Bloqueo de scroll del body mientras se arrastra en mobile
-        syncSlider.addEventListener('touchmove', (e) => {
-            // Detenemos que el toque llegue al listener de scroll global
+        // 1. Manejo nativo (Escritorio / Clic directo)
+        syncSlider.addEventListener('input', (e) => {
+            globalVolumeControl(e.target.value, 'music-volume-sync');
+        });
+
+        // 2. GESTIÓN TÁCTIL CORREGIDA
+        const handleTouch = (e) => {
+            if (e.cancelable) e.preventDefault();
             e.stopPropagation();
+
+            const touch = e.touches[0];
+            const rect = syncSlider.getBoundingClientRect();
             
-            // Si el navegador intenta hacer scroll en la página, lo cancelamos
-            // para que el slider mantenga el control del dedo.
-            if (e.cancelable) e.preventDefault(); 
+            // Determinamos si el slider es vertical u horizontal según su dibujo en pantalla
+            const isVertical = rect.height > rect.width;
+            
+            let percentage;
+            if (isVertical) {
+                // Si es vertical: El 100% está arriba (top) y el 0% abajo (bottom)
+                // Invertimos la resta porque en pantalla el eje Y crece hacia abajo
+                percentage = ((rect.bottom - touch.clientY) / rect.height) * 100;
+            } else {
+                // Si es horizontal: El 0% está a la izquierda (left)
+                percentage = ((touch.clientX - rect.left) / rect.width) * 100;
+            }
+            
+            // LIMITACIÓN ESTRICTA: Evita que siga subiendo al salir de la barra
+            let finalVal = Math.round(Math.min(Math.max(percentage, 0), 100));
+
+            if (!isNaN(finalVal)) {
+                syncSlider.value = finalVal;
+                globalVolumeControl(finalVal, 'music-volume-sync');
+            }
+        };
+
+        // Eventos de inicio y movimiento
+        syncSlider.addEventListener('touchstart', (e) => {
+            clearTimeout(window.volumeTimeout);
+            handleTouch(e);
         }, { passive: false });
 
-        // Al soltar (Mobile y Escritorio)
+        syncSlider.addEventListener('touchmove', handleTouch, { passive: false });
+
+        // 3. Al soltar
         const handleRelease = (e) => {
-            e.stopPropagation(); // Evita que el clic final active el cierre global
+            e.stopPropagation(); 
             clearTimeout(window.volumeTimeout);
             window.volumeTimeout = setTimeout(closeVolumeSidebar, 3000);
         };
 
         syncSlider.addEventListener('touchend', handleRelease);
         syncSlider.addEventListener('mouseup', handleRelease);
-        
-        // Al tocar (para resetear el timer de cierre inmediatamente)
-        syncSlider.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            clearTimeout(window.volumeTimeout);
-        }, { passive: true });
     }
 });
+
+
 
 // Función de cierre con retraso y animación
 function startClosingTimeout() {
