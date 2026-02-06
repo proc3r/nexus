@@ -118,7 +118,7 @@ function renderLibrary() {
         }
     });
     initTouchEvents();
-    initPullToRefreshBlocker();
+    
     setTimeout(() => { window.scrollTo(0, 1); }, 300);
 	};
 

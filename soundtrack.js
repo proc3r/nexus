@@ -67,6 +67,8 @@ function onPlayerStateChange(event) {
 }
 
 
+
+
 function globalVolumeControl(val, originId) {
     if (isSyncing) return; 
     isSyncing = true;
@@ -76,25 +78,32 @@ function globalVolumeControl(val, originId) {
     // 1. Aplicar a YouTube
     if (player && isPlayerReady && typeof player.setVolume === 'function') {
         player.setVolume(volumeValue);
+        
+        // SOLUCIÓN: Si subimos de 0 y el sistema está en modo "reproduciendo", forzamos el Play
+        if (volumeValue > 0 && isMusicPlaying) {
+            if (player.getPlayerState() !== 1) { // 1 = playing
+                player.playVideo();
+            }
+        }
     }
 
-    // 2. Sincronizar Slider del Menú Lateral (Widget)
+    // 2. Sincronizar Sliders
     const mainSlider = document.getElementById('music-volume');
     if (mainSlider && originId !== 'music-volume') {
         mainSlider.value = volumeValue;
     }
 
-    // 3. Sincronizar Slider Emergente (Lateral)
     const syncSlider = document.getElementById('music-volume-sync');
     if (syncSlider && originId !== 'music-volume-sync') {
         syncSlider.value = volumeValue;
     }
 
-    // 4. Actualizar Visuales y Auto-Pausa (Mantiene tu lógica)
+    // 3. Actualizar Visuales
     updateVolumeButtonVisuals(volumeValue);
 
     isSyncing = false;
 }
+
 
 
 function updateVolumeButtonVisuals(val) {
@@ -104,22 +113,24 @@ function updateVolumeButtonVisuals(val) {
     const volumeValue = parseInt(val);
 
     if (volumeValue === 0) {
-        // MUTEADO: Oscurecemos pero activamos latido de espera (blanco)
-        btn.style.opacity = "0.4";
+        // MUTEADO
+        btn.style.opacity = "0.6";
         btn.classList.remove('music-playing-beat');
         btn.classList.add('music-waiting-pulse');
         
-        // Pausamos video para ahorrar recursos si está muteado
-        if (isMusicPlaying && player) player.pauseVideo(); 
+        // Opcional: Pausar para ahorrar recursos, pero solo si realmente está en 0
+        if (player && typeof player.pauseVideo === 'function') player.pauseVideo();
     } else {
-        // CON VOLUMEN: Brillo total
+        // CON VOLUMEN
         btn.style.opacity = "1";
         
-        // Si hay música activa, latido de reproducción. Si no, latido de espera.
         if (isMusicPlaying) {
             btn.classList.remove('music-waiting-pulse');
             btn.classList.add('music-playing-beat');
-            if (player) player.playVideo();
+            // Si el volumen subió, nos aseguramos de que suene
+            if (player && typeof player.playVideo === 'function') {
+                if (player.getPlayerState() !== 1) player.playVideo();
+            }
         } else {
             btn.classList.add('music-waiting-pulse');
         }
@@ -130,30 +141,28 @@ function updateVolumeButtonVisuals(val) {
 
 function toggleSoundtrack() {
     const musicBtn = document.getElementById('btn-music-main');
-    const musicIcon = document.getElementById('music-icon');
-    const statusText = document.getElementById('music-status-text');
     const volBtn = document.getElementById('btn-volume-yt');
 
     if (!player || !isPlayerReady) return;
 
+    // RESCATE: Si está en silencio total al dar Play, lo subimos al 40% automáticamente
+    if (!isMusicPlaying && player.getVolume() === 0) {
+        globalVolumeControl(20, 'auto-fix');
+    }
+
     try {
         if (!isMusicPlaying) {
             player.playVideo();
-            if (musicIcon) musicIcon.innerText = "pause";
-            if (statusText) statusText.innerText = "REPRODUCIENDO...";
-            if (musicBtn) musicBtn.style.background = "#FFD920A6";
-            if (volBtn) volBtn.classList.add('music-playing-beat');
             isMusicPlaying = true;
+            actualizarVisualesMusica(true);
         } else {
             player.pauseVideo();
-            if (musicIcon) musicIcon.innerText = "play_arrow";
-            if (statusText) statusText.innerText = "EN PAUSA";
-            if (musicBtn) musicBtn.style.background = "#08f0fb7a";
-            if (volBtn) volBtn.classList.remove('music-playing-beat');
             isMusicPlaying = false;
+            actualizarVisualesMusica(false);
         }
     } catch (e) { console.error("Error toggle:", e); }
 }
+
 
 function updateSoundtrack(videoId, forcePlay = true) {
     // Si no hay videoId (el libro no tiene), usamos el DEFAULT

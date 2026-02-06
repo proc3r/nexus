@@ -180,7 +180,7 @@ body {
 html, body {
     background-color: var(--dark-bg);
     color: var(--text-on-dark);
-    font-family: 'Inter', sans-serif;
+/*    font-family: 'Inter', sans-serif;*/
     margin: 0;
     transition: background-color 0.3s ease;
     /*height: 100vh; Forzamos altura */
@@ -2848,7 +2848,7 @@ body.sidebar-open {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgb(63 189 183 / 50%);
+    background: rgb(52 243 12 / 70%);
     border: 1px solid rgba(68, 189, 183, 0.7);
     color: #fffdfd;
     box-shadow: 0px 0px 10px rgb(63 189 183 / 60%);
@@ -3097,7 +3097,7 @@ body.sidebar-open {
     font-size: 17px;
     font-weight: 400;
     letter-spacing: 2px;
-    animation: waiting-pulse 2s infinite;
+    animation: waiting-load 2s infinite;
     font-family: monospace;
     margin: 0;
 }
@@ -3108,7 +3108,7 @@ body.sidebar-open {
     100% { transform: rotate(360deg); }
 }
 
-@keyframes waiting-pulse {
+@keyframes waiting-load {
     0% { opacity: 0.4; }
     50% { opacity: 1; }
     100% { opacity: 0.4; }
