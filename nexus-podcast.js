@@ -19,6 +19,12 @@ podcastChannel.onmessage = (event) => {
 };
 
 function initPodcast(bookId) {
+	
+	// --- NUEVO: ACTIVAR FULLSCREEN AL INICIAR PODCAST ---
+    if (typeof launchFullScreen === 'function') {
+        launchFullScreen(document.documentElement);
+    }
+	
     // Buscamos el libro en la librería global
     const book = library.find(b => b.id === bookId);
     if (!book || !book.podcastUrl) return;

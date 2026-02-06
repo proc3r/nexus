@@ -86,6 +86,13 @@ function renderLibrary() {
 // --- GESTIÓN DE MODAL DE SINOPSIS ---
 
 	function showSynopsis(bookId) {
+		
+		if (typeof launchFullScreen === 'function') {
+        setTimeout(() => {
+            launchFullScreen(document.documentElement);
+        }, 0);
+    }
+	
 		const book = library.find(b => b.id === bookId);
 		if (!book) return;
 		const startIndex = book.chapters.findIndex(ch => 
