@@ -123,7 +123,13 @@ function renderLibrary() {
 	};
 
 
+
 async function loadDirectBook(params) {
+    // 1. BLOQUEO PREVENTIVO:
+    // Al poner currentBook en null, el initPlayer que modificaste 
+    // detectará que no hay libro y se detendrá (silencio durante el spinner).
+    currentBook = null; 
+
     const statusText = document.getElementById('status-text');
     let repoIndex = (params.repo !== null && !isNaN(params.repo)) ? parseInt(params.repo) : 0;
     
@@ -153,6 +159,7 @@ async function loadDirectBook(params) {
         // Ejecutamos el parseo
         const parsedChapters = parseMarkdown(text);
 
+        // ASIGNACIÓN DE DATOS (Ahora sí, el libro ya existe)
         currentBook = {
             id: 'direct-load',
             fileName: fileName,
@@ -200,10 +207,23 @@ async function loadDirectBook(params) {
         document.getElementById('auto-loader')?.classList.add('hidden');
 
         // --- ENLACE CON SOUNDTRACK ---
-        if (typeof updateSoundtrack === 'function') {
-            updateSoundtrack(currentBook.soundtrack);
-        } else if (typeof initPlayer === 'function') {
-            initPlayer();
+        // Al final, cuando ya no hay spinner, activamos la música
+        if (currentBook && currentBook.soundtrack) {
+            
+            // Generamos el valor aleatorio antes de despertar al reproductor
+            if (typeof refrescarValorAleatorio === 'function') {
+                refrescarValorAleatorio();
+            }
+
+            // Un pequeño delay para que el navegador no bloquee el audio tras quitar el spinner
+            setTimeout(() => {
+                if (typeof updateSoundtrack === 'function') {
+                    // Como el player no se creó al inicio, updateSoundtrack llamará a initPlayer
+                    updateSoundtrack(currentBook.soundtrack);
+                } else if (typeof initPlayer === 'function') {
+                    initPlayer();
+                }
+            }, 300); 
         }
 
     } catch (e) {
@@ -214,13 +234,11 @@ async function loadDirectBook(params) {
 }
 
 
-
-
-	function stripHtml(html) {
-		const tmp = document.createElement("DIV");
-		tmp.innerHTML = html;
-		return tmp.textContent || tmp.innerText || "";
-	}
+function stripHtml(html) {
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+}
 	
 
 
@@ -541,6 +559,11 @@ function openReader(id) {
 
 
 function closeReader() { 
+
+// NUEVO: Refrescar el valor aleatorio global para la próxima carga
+    if (typeof refrescarValorAleatorio === 'function') {
+        refrescarValorAleatorio();
+    }
     // 1. LIMPIEZA DE PROCESOS ACTIVOS (Voz, Timers y Música)
     // Detenemos cualquier audio de síntesis inmediatamente
     if (typeof stopSpeech === 'function') {
@@ -570,7 +593,7 @@ function closeReader() {
         // IMPORTANTE: Cargamos el soundtrack por defecto en modo "espera" (silencio)
         if (typeof updateSoundtrack === 'function') {
     updateSoundtrack(null, false); // El 'false' apaga el auto-play
-
+	
         }
     }
 

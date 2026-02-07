@@ -4,57 +4,94 @@ var isMusicPlaying = isMusicPlaying || false;
 var isPlayerReady = isPlayerReady || false;
 var isSyncing = isSyncing || false;
 
+// --- VARIABLES PARA EL SALTO ALEATORIO ---
+window.currentRandomTime = 0; 
+window.yaSalto = false;
+
 const DEFAULT_VOLUME = 20; 
 const DEFAULT_SOUNDTRACK = "wJ2tGxjTjuI";
 
-// 1. Inicialización de la API
-function onYouTubeIframeAPIReady() {
-    initPlayer();
+// --- LÓGICA DE VALOR ALEATORIO ---
+function refrescarValorAleatorio() {
+    window.currentRandomTime = Math.floor(Math.random() * 3001);
+    window.yaSalto = false; 
+    console.log("%c 🎲 VALOR GLOBAL REFRESCADO: " + window.currentRandomTime, "color: #000; background: #ffff00; font-weight: bold;");
 }
 
+// 1. Inicialización de la API
+function onYouTubeIframeAPIReady() {
+    if (!window.currentRandomTime) refrescarValorAleatorio();
+    initPlayer();
+}
 
 function initPlayer() {
     if (player) return;
     const vId = (window.currentBook && window.currentBook.soundtrack) ? window.currentBook.soundtrack : DEFAULT_SOUNDTRACK;
     
-    // Objeto base de configuración
-    const playerConfig = {
+    player = new YT.Player('youtube-player', {
         height: '0',
         width: '0',
+        videoId: vId,
         playerVars: {
             'playsinline': 1,
             'enablejsapi': 1,
             'origin': window.location.origin,
             'controls': 0,
             'disablekb': 1,
-            'modestbranding': 1
+            'fs': 0,
+            'modestbranding': 1,
+            'start': window.currentRandomTime // Carga inicial
         },
         events: {
             'onReady': onPlayerReady,
             'onStateChange': onPlayerStateChange,
             'onError': (e) => console.error("Error YT:", e.data)
         }
-    };
-
-    // SI EL ID ES LARGO (Lista), usamos 'list', si es corto, 'videoId'
-    if (vId.length > 15 || vId.startsWith('PL') || vId.startsWith('RD')) {
-        playerConfig.playerVars.listType = 'playlist';
-        playerConfig.playerVars.list = vId;
-    } else {
-        playerConfig.videoId = vId;
-    }
-
-    player = new YT.Player('youtube-player', playerConfig);
+    });
 }
 
+/**
+ * Función que llama nexus-core.js (Actualizada con salto)
+ */
+function updateSoundtrack(newVideoId, shouldPlay = true) {
+    const vId = newVideoId || DEFAULT_SOUNDTRACK;
+    
+    if (newVideoId !== null) {
+        refrescarValorAleatorio();
+    }
+
+    // EL AJUSTE ES ESTA CONDICIÓN REFORZADA:
+    if (player && isPlayerReady && typeof player.getIframe === 'function' && player.getIframe()) {
+        player.loadVideoById({
+            videoId: vId,
+            startSeconds: window.currentRandomTime
+        });
+        
+        if (!shouldPlay) {
+            setTimeout(() => { if(player) player.pauseVideo(); }, 500);
+        }
+    } else {
+        // Si el player existe pero perdió el Iframe (causa del cloneNode), lo reseteamos
+        player = null; 
+        isPlayerReady = false;
+        initPlayer();
+    }
+}
 
 function onPlayerReady(event) {
-	
-	
-	
     isPlayerReady = true;
+    
+    // LOGICA PARA LECTOR DIRECTO:
+    // Si estamos en el lector (por enlace externo), forzamos el arranque
+    if (window.currentBook || window.isLectorFijo) {
+        event.target.unMute();
+        event.target.setVolume(DEFAULT_VOLUME);
+        event.target.playVideo();
+    }
+
     globalVolumeControl(DEFAULT_VOLUME, 'init');
 
+    // Actualizar visuales de interfaz
     const volBtn = document.getElementById('btn-volume-yt');
     if (volBtn && !isMusicPlaying) {
         volBtn.classList.add('music-waiting-pulse');
@@ -62,24 +99,28 @@ function onPlayerReady(event) {
 
     const statusText = document.getElementById('music-status-text');
     if (statusText) {
-        statusText.innerText = (window.currentBook && window.currentBook.soundtrack) ? "SINCRONIZADO" : "AMBIENTE LISTO";
+        statusText.innerText = (window.currentBook || window.isLectorFijo) ? "SINCRONIZADO" : "AMBIENTE LISTO";
     }
 }
-
 
 function onPlayerStateChange(event) {
-    if (event.data === YT.PlayerState.PLAYING) {
-        isMusicPlaying = true;
-        actualizarVisualesMusica(true);
-    } 
-    else if (event.data === YT.PlayerState.PAUSED) {
-        isMusicPlaying = false;
-        actualizarVisualesMusica(false);
+    if (event.data === YT.PlayerState.PLAYING && !window.yaSalto) {
+        console.log("🚀 Sincronizando audio con valor global: " + window.currentRandomTime);
+        
+        event.target.seekTo(window.currentRandomTime, true);
+        
+        // REFUERZO DE MUTE: A veces YouTube silencia el primer video por seguridad
+        event.target.unMute();
+        event.target.setVolume(DEFAULT_VOLUME);
+        
+        window.yaSalto = true;
+        
+        const volBtn = document.getElementById('btn-volume-yt');
+        if (volBtn) volBtn.classList.remove('music-waiting-pulse');
     }
-    
-    if (event.data === YT.PlayerState.ENDED) player.playVideo();
-}
 
+    // ... (resto de la función igual) ...
+}
 
 
 

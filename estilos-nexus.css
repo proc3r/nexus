@@ -697,9 +697,10 @@ body.sidebar-open {
     font-weight: 800;
     transition: all 0.2s;
     flex-shrink: 0;
-    box-shadow: 0px 0px 6px #ffeb3b;
+    box-shadow: 0px 0px 6px #9d9237;
     background: rgb(231 214 56 / 48%);
     border: 1px solid rgb(235 148 14 / 30%);
+	animation: pause-tts 3s infinite ease-in-out;
 }
 
 .timer-pause-btn:hover { background-color: rgb(52 243 12 / 70%); box-shadow: 0px 0px 8px rgb(0 255 0 / 81%); transform: scale(1.05); }
@@ -2127,7 +2128,7 @@ body.sidebar-open {
 @media (max-width: 768px) {
     #reading-container-fixed {padding-right: 20px;  padding-left: 20px;}
     #reading-container-fixed > .content-wrapper { padding-top: 5px; padding-bottom: 20px; }
-    #image-timer { top: 90px; font-size: 17px; padding: 6px 14px; gap: 8px; }
+    #image-timer { top: 1px; font-size: 17px; padding: 6px 14px; gap: 8px; z-index: 10001; width: 99%; background-color: rgb(49 163 26 / 29%);max-width: 100%; backdrop-filter: blur(3px);}
     .nav-icon-btn { width: 24px; height: 24px; }
     #resume-card { bottom: 0.3rem; max-width: 95%;  right: 2%;}
     .settings-dropdown { left: auto; right: 0; transform: none; }
@@ -2654,6 +2655,7 @@ body.sidebar-open {
     height: 1px;
     opacity: 0;
     pointer-events: none;
+	
 }
 
 
@@ -2995,6 +2997,8 @@ body.sidebar-open {
     padding: 10vh 0 5vh;
     box-sizing: border-box;
 }
+
+
 
 /* --- SECCIÓN SUPERIOR --- */
 .splash-title {
