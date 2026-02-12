@@ -104,12 +104,13 @@ function onPlayerReady(event) {
 }
 
 function onPlayerStateChange(event) {
+    // 1. L¨®GICA DE SINCRONIZACI¨®N INICIAL (Tu c¨®digo original)
     if (event.data === YT.PlayerState.PLAYING && !window.yaSalto) {
-        console.log("ðŸš€ Sincronizando audio con valor global: " + window.currentRandomTime);
+        console.log("?? Sincronizando audio con valor global: " + window.currentRandomTime);
         
         event.target.seekTo(window.currentRandomTime, true);
         
-        // REFUERZO DE MUTE: A veces YouTube silencia el primer video por seguridad
+        // REFUERZO DE MUTE: Aseguramos sonido y volumen
         event.target.unMute();
         event.target.setVolume(DEFAULT_VOLUME);
         
@@ -118,9 +119,39 @@ function onPlayerStateChange(event) {
         const volBtn = document.getElementById('btn-volume-yt');
         if (volBtn) volBtn.classList.remove('music-waiting-pulse');
     }
-	
 
-    // ... (resto de la funciÃ³n igual) ...
+    // 2. REFUERZO PARA EVITAR PAUSA POR BLOQUEO DE NAVEGADOR
+    // Si el navegador intenta pausar al inicio, forzamos Play
+    if (event.data === YT.PlayerState.PAUSED && !window.yaSalto && (window.currentBook || window.isLectorFijo)) {
+        console.log("?? Pausa detectada al inicio. Forzando reproducci¨®n...");
+        event.target.playVideo();
+    }
+
+    // 3. ACTUALIZACI¨®N DE ESTADOS Y VISUALES
+    if (event.data === YT.PlayerState.PLAYING) {
+        isMusicPlaying = true;
+        if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(true);
+    } 
+    else if (event.data === YT.PlayerState.PAUSED) {
+        isMusicPlaying = false;
+        if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(false);
+    }
+
+    // 4. BUCLE INFINITO (Loop din¨¢mico)
+    // Cuando el tema termina, refresca el valor aleatorio y vuelve a empezar
+    if (event.data === YT.PlayerState.ENDED) {
+        console.log("?? Tema finalizado. Generando nuevo punto de inicio...");
+        refrescarValorAleatorio(); // Genera un nuevo currentRandomTime
+        
+        const nextVideoId = (window.currentBook && window.currentBook.soundtrack) 
+                            ? window.currentBook.soundtrack 
+                            : DEFAULT_SOUNDTRACK;
+                            
+        event.target.loadVideoById({
+            videoId: nextVideoId,
+            startSeconds: window.currentRandomTime
+        });
+    }
 }
 
 
