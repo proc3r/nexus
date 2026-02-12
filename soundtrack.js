@@ -103,14 +103,15 @@ function onPlayerReady(event) {
     }
 }
 
+
 function onPlayerStateChange(event) {
-    // 1. L車GICA DE SINCRONIZACI車N INICIAL (Tu c車digo original)
+    // --- 1. TU L車GICA DE SINCRONIZACI車N (Intacta) ---
     if (event.data === YT.PlayerState.PLAYING && !window.yaSalto) {
         console.log("?? Sincronizando audio con valor global: " + window.currentRandomTime);
         
         event.target.seekTo(window.currentRandomTime, true);
         
-        // REFUERZO DE MUTE: Aseguramos sonido y volumen
+        // Refuerzo de audio
         event.target.unMute();
         event.target.setVolume(DEFAULT_VOLUME);
         
@@ -120,28 +121,21 @@ function onPlayerStateChange(event) {
         if (volBtn) volBtn.classList.remove('music-waiting-pulse');
     }
 
-    // 2. REFUERZO PARA EVITAR PAUSA POR BLOQUEO DE NAVEGADOR
-    // Si el navegador intenta pausar al inicio, forzamos Play
-    if (event.data === YT.PlayerState.PAUSED && !window.yaSalto && (window.currentBook || window.isLectorFijo)) {
-        console.log("?? Pausa detectada al inicio. Forzando reproducci車n...");
-        event.target.playVideo();
-    }
-
-    // 3. ACTUALIZACI車N DE ESTADOS Y VISUALES
+    // --- 2. ACTUALIZACI車N DE ESTADOS (Para que el bot車n lata o no) ---
     if (event.data === YT.PlayerState.PLAYING) {
         isMusicPlaying = true;
         if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(true);
     } 
-    else if (event.data === YT.PlayerState.PAUSED) {
-        isMusicPlaying = false;
+    else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.BUFFERING) {
+        // No ponemos isMusicPlaying en false inmediatamente en buffering para evitar parpadeos
+        if (event.data === YT.PlayerState.PAUSED) isMusicPlaying = false;
         if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(false);
     }
 
-    // 4. BUCLE INFINITO (Loop din芍mico)
-    // Cuando el tema termina, refresca el valor aleatorio y vuelve a empezar
+    // --- 3. EL BUCLE INFINITO (Evita el frenazo al final) ---
     if (event.data === YT.PlayerState.ENDED) {
-        console.log("?? Tema finalizado. Generando nuevo punto de inicio...");
-        refrescarValorAleatorio(); // Genera un nuevo currentRandomTime
+        console.log("?? Tema finalizado. Reiniciando bucle aleatorio...");
+        refrescarValorAleatorio();
         
         const nextVideoId = (window.currentBook && window.currentBook.soundtrack) 
                             ? window.currentBook.soundtrack 
@@ -153,6 +147,20 @@ function onPlayerStateChange(event) {
         });
     }
 }
+
+// --- 4. EL VIGILANTE (Fuera de las funciones, para emergencias) ---
+// Si el bot車n est芍 latiendo (isMusicPlaying) pero YouTube se colg車 (Error 503 o AdBlock),
+// este peque?o bloque intenta despertarlo cada 20 segundos.
+setInterval(() => {
+    if (isMusicPlaying && player && isPlayerReady) {
+        const state = player.getPlayerState();
+        // Si deber赤a sonar pero est芍 en pausa (2) o buffering eterno (3)
+        if (state === 2 || state === 3 || state === -1) {
+            console.log("?? Vigilante: Recuperando audio tras micro-corte de red...");
+            player.playVideo();
+        }
+    }
+}, 20000);
 
 
 
