@@ -160,7 +160,7 @@ setInterval(() => {
             player.playVideo();
         }
     }
-}, 5000);
+}, 20000);
 
 
 
