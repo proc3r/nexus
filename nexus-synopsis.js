@@ -53,7 +53,7 @@ function renderLibrary() {
                 ${book.podcastUrl ? `
                     <div id="pod-btn-${book.id}" class="podcast-badge-btn" onclick="event.stopPropagation(); initPodcast('${book.id}')">
                         <span class="pod-label">PODCAST</span>
-                        <div class="pod-icon-circle">
+                        <div class="pod-icon-circle notranslate">
                             <span class="material-icons">headset</span>
                         </div>
                     </div>
@@ -71,7 +71,7 @@ function renderLibrary() {
                             ${hasSynopsis ? `<button class="btn-synopsis" onclick="event.stopPropagation(); showSynopsis('${book.id}')">SINOPSIS</button>` : ''}
                         </div>
                         <p class="text-[18px] text-[#ffcc00] font-bold uppercase condensed italic">
-                            <span class="mi-round text-[18px] align-middle mr-1">schedule</span>${timeStr}
+                            <span class="mi-round text-[18px] align-middle mr-1 notranslate">schedule</span>${timeStr}
                         </p>
                     </div>
                 </div>

@@ -146,7 +146,7 @@ function renderTOC() {
         
         item.innerHTML = `
             <div class="flex items-center group py-[1.5px]">
-                <span class="toc-toggle text-[10px] opacity-50" onclick="toggleTOCSection(${i}, event)">
+                <span class="toc-toggle notranslate" onclick="toggleTOCSection(${i}, event)">
                     ${hasChildren ? '+' : '•'}
                 </span>
                 <span class="toc-text cursor-pointer hover:opacity-80 transition-opacity truncate font-normal flex-1 condensed uppercase tracking-[0.015em] text-[21px]" onclick="jumpToChapter(${i})">
@@ -710,3 +710,36 @@ document.addEventListener('keydown', (e) => {
             break;
     }
 });
+
+// --- GESTOR DE CIERRE DE MENÚS (CLIC FUERA) ---
+
+window.addEventListener('mousedown', (e) => {
+    // 1. Buscamos si el clic fue dentro de algún dropdown o botón de configuración
+    const isClickInsideDropdown = e.target.closest('.settings-dropdown');
+    const isClickOnToggleBtn = e.target.closest('.setting-btn, .btn-speed');
+
+    // 2. Si el clic no fue en ninguno de esos dos, cerramos todos los menús
+    if (!isClickInsideDropdown && !isClickOnToggleBtn) {
+        document.querySelectorAll('.settings-dropdown').forEach(dropdown => {
+            dropdown.classList.remove('show');
+        });
+    }
+});
+
+// Al abrir el modal de traducción
+function openTranslateModal() {
+    const overlay = document.getElementById("translate-overlay");
+    overlay.style.display = "flex";
+    
+    // Bloquear el scroll del fondo para que solo se mueva el menú de idiomas
+    document.body.style.overflow = 'hidden'; 
+}
+
+// Al cerrar (clic fuera o botón X)
+function closeTranslateModal() {
+    const overlay = document.getElementById("translate-overlay");
+    overlay.style.display = "none";
+    
+    // Devolver el scroll al contenido
+    document.body.style.overflow = ''; 
+}

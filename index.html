@@ -45,7 +45,7 @@
 <div id="nexus-splash" class="nexus-splash-container">
     <div class="splash-layout">
         <div class="section-top">
-            <h1 class="splash-title">NEXUS</h1>
+            <h1 class="splash-title notranslate">NEXUS</h1>
         </div>
 
         <div class="section-center">
@@ -68,10 +68,17 @@
    <header id="nexus-header-global">
     <div class="header-inner">
         <div class="brand-zone">
-            <h1 class="logo-text">NEXUS</h1>
+            <h1 class="logo-text notranslate">NEXUS</h1>
             <p class="tagline-text">GUIA AVATARICA</p>
         </div>
+		
+		
+
+		
         <div id="status-indicator" class="status-zone">
+			
+			<button aria-label='Traducir Página' class='translate-toggle show-translate btn'></button>
+			
             <div class="status-flex">
                 <div id="main-spinner" class="spinner"></div>
                 <div id="sync-led-visual" class="led hidden"></div>
@@ -80,6 +87,7 @@
         </div>
     </div>
 </header>
+
 
     <div id="library-container">
         <div id="book-shelf" class="shelf-container"></div>
@@ -90,7 +98,7 @@
     </div>
         <div id="resume-card" class="hidden" onclick="resumeLastSession()">
             <div class="resume-icon-box">
-                <span class="mi-round text-2xl text-black">history</span>
+                <span class="mi-round text-2xl text-black notranslate">history</span>
             </div>
             <div class="resume-info">
                 <span class="resume-main-text">Continuar leyendo</span>
@@ -110,10 +118,14 @@
                 <div class="absolute inset-0 bg-black/40"></div>
                 <div class="p-4 flex flex-col justify-between h-full relative z-10">
                     <div class="flex justify-between pb-3 items-start">
-                        <button onclick="closeReader()" class="text-[#ffcc00] px-2 bg-black/40 backdrop-blur-sm p-1 rounded-lg border border-white/10 font-bold uppercase text-[16px] tracking-widest condensed drop-shadow-lg">⬅️ Salir</button>
+                        <button onclick="closeReader()" class="mi-round text-[40px] notranslate" style="
+    animation: pause-tts 3s infinite ease-in-out;
+">home</button>
                         <div class="flex items-center px-3 gap-4 bg-black/40 backdrop-blur-sm p-1 rounded-lg border border-white/10">
-                            <button id="expand-mode-btn" onclick="toggleExpandMode()" class="text-gray-300 text-[15px] font-bold uppercase condensed hover:text-[#ffcc00]">Exp</button>
-                            <button id="pin-btn" onclick="togglePin()" class="text-gray-300 opacity-90 hover:opacity-100">📌</button>
+                            <button id="expand-mode-btn" onclick="toggleExpandMode()" class="mi-round text-lg notranslate">expand</button>
+                            
+							
+							<button id="pin-btn" onclick="togglePin()" class="text-gray-300 opacity-90 hover:opacity-100">📌</button>
                             <button onclick="closeSidebar()" class="text-[#ffcc00] hover:text-white">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
@@ -128,7 +140,7 @@
 <div id="soundtrack-widget" class="soundtrack-card">
     <div class="soundtrack-controls">
         <button onclick="toggleSoundtrack()" id="btn-music-main" class="music-toggle-btn">
-            <span id="music-icon" class="material-icons-round">play_arrow</span>
+            <span id="music-icon" class="material-icons-round notranslate">play_arrow</span>
         </button>
 
         <div class="soundtrack-info">
@@ -160,17 +172,17 @@
         <button onclick="togglePauseImageTimer()" class="timer-pause-btn text-[#ffffff]">Pausar</button>
     </div>
     <nav class="h-8 flex-shrink-0 flex items-center justify-between px-4 border-b-4 border-blue-500 bg-black/20 backdrop-blur-md relative z-50">
-        <button onclick="closeReader()" class="text-[#ffcc00] font-bold uppercase text-[23px] tracking-[0.02em] condensed flex items-center gap-1 hover:text-white transition-colors" style="text-shadow: -1px 1px 5px rgb(0 0 0 / 79%);">
+        <button onclick="closeReader()" class="text-[#ffcc00] font-bold uppercase text-[23px] tracking-[0.02em] condensed flex items-center gap-1 hover:text-white transition-colors notranslate" style="text-shadow: -1px 1px 5px rgb(0 0 0 / 79%);">
             <span class="mi-round text-sm"></span>NEXUS
         </button>
         <div class="flex items-center gap-2 md:gap-4">
-            <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[13px] font-bold border border-white/5">
+            <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[13px] font-bold border border-white/5 notranslate">
                 <button onclick="changeFontSize(-2)" class="hover:text-[#ffcc00]" title="Disminuir Fuente">A-</button>
                 <span id="font-size-val">25</span>
                 <button onclick="changeFontSize(2)" class="hover:text-[#ffcc00]" title="Aumentar Fuente">A+</button>
             </div>
-            <div class="settings-dropdown-container">
-                <button onclick="toggleDropdown('font-dropdown')" class="nav-icon-btn" title="Cambiar Fuente">
+            <div class="settings-dropdown-container notranslate">
+                <button onclick="toggleDropdown('font-dropdown')" class="nav-icon-btn notranslate" title="Cambiar Fuente">
                     <span class="mi-round text-lg">text_fields</span>
                 </button>
                 <div id="font-dropdown" class="settings-dropdown font-dropdown custom-scrollbar">
@@ -182,41 +194,43 @@
             </div>
 
             <div class="settings-dropdown-container">
-                <button onclick="toggleDropdown('align-dropdown')" class="nav-icon-btn" title="Alineación">
+                <button onclick="toggleDropdown('align-dropdown')" class="nav-icon-btn notranslate" title="Alineación">
                     <span class="mi-round text-lg">format_align_center</span>
                 </button>
                 <div id="align-dropdown" class="settings-dropdown">
                     <div class="setting-option" onclick="changeAlignment('left')">
-                        <span class="mi-round text-base">format_align_left</span> Izquierda
+                        <span class="mi-round text-base notranslate">format_align_left</span> Izquierda
                     </div>
                     <div class="setting-option selected" onclick="changeAlignment('center')">
-                        <span class="mi-round text-base">format_align_center</span> Centro
+                        <span class="mi-round text-base notranslate">format_align_center</span> Centro
                     </div>
                     <div class="setting-option" onclick="changeAlignment('justify')">
-                        <span class="mi-round text-base">format_align_justify</span> Justificado
+                        <span class="mi-round text-base notranslate">format_align_justify</span> Justificado
                     </div>
                 </div>
             </div>
 
             <div class="settings-dropdown-container">
-                <button onclick="toggleDropdown('spacing-dropdown')" class="nav-icon-btn" title="Interlineado">
+                <button onclick="toggleDropdown('spacing-dropdown')" class="nav-icon-btn notranslate" title="Interlineado">
                     <span class="mi-round text-lg">format_line_spacing</span>
                 </button>
                 <div id="spacing-dropdown" class="settings-dropdown">
                     <div class="setting-option selected" onclick="changeLineHeight(1.3)">
-                        <span class="mi-round text-base">reorder</span> Compacto
+                        <span class="mi-round text-base notranslate">reorder</span> Compacto
                     </div>
                     <div class="setting-option" onclick="changeLineHeight(1.5)">
-                        <span class="mi-round text-base">notes</span> Normal
+                        <span class="mi-round text-base notranslate">notes</span> Normal
                     </div>
                     <div class="setting-option" onclick="changeLineHeight(1.8)">
-                        <span class="mi-round text-base">subject</span> Extenso
+                        <span class="mi-round text-base notranslate">subject</span> Extenso
                     </div>
                 </div>
             </div>
 
-            <button onclick="toggleDarkMode()" class="nav-icon-btn" title="Modo Color">🌓</button>
-        </div>
+            <button onclick="toggleDarkMode()" class="nav-icon-btn notranslate" title="Modo Color">🌓</button>
+			<button aria-label='Traducir Página' class='translate-toggle show-translate btn notranslate'></button>
+		
+		</div>
     </nav>
 
     <div id="chapter-indicator-container" class="flex-shrink-0 flex justify-center w-full pointer-events-none z-10 -mt-0.5">
@@ -226,7 +240,7 @@
 </div>
     
     <button id="zen-mode-btn" class="zen-btn-mobile" onclick="toggleZenMode()">
-        <span class="material-icons" id="zen-icon">fullscreen</span>
+        <span class="material-icons notranslate" id="zen-icon">fullscreen</span>
     </button>
     
     <div id="reading-container-fixed" class="custom-scrollbar">
@@ -240,7 +254,7 @@
     <footer class="flex-shrink-0 px-4 py-1 border-t border-white/10 bg-black/15">
         <div class="max-w-4xl mx-auto">
             <div class="zen-hide-group">
-                <div class="flex justify-between text-[14px] uppercase font-bold opacity-70 mb-2 condensed tracking-widest">
+                <div class="flex justify-between text-[14px] uppercase font-bold opacity-70 mb-2 condensed tracking-widest notranslate">
                     <span id="time-remaining" class="text-[19px] font-bold italic opacity-100" style="letter-spacing: 0.5px;">Calculando tiempo...</span>
                     <span style="letter-spacing: 0.2px; font-style: italic;font-size: 19px;"><span id="current-p-num">0</span> / <span id="total-p-num">0</span> • <span id="progress-percent">0%</span></span>
                 </div>
@@ -249,7 +263,7 @@
                     <div id="progress-markers-container"></div>
                 </div>
 							
-                <div class="flex justify-between items-center pb-2.5">
+                <div class="flex justify-between items-center pb-2.5 notranslate">
                     <button onclick="prevChunk()" class="btn-nav btn-back">◀ BACK</button>
                     <div class="flex items-center gap-3">
                         <button id="btn-volume-yt" onclick="toggleVolumePopover(event)" class="btn-volume-nexus">
@@ -304,7 +318,7 @@
         <div class="synopsis-header px-4">
             <h2 class="synopsis-title text-[#ffcc00] font-black uppercase condensed italic italic">Sinopsis</h2>
             <button onclick="closeSynopsis()" class="text-white/40 hover:text-red-500 flex items-center gap-1 uppercase text-[11px] font-bold tracking-tighter" title="Cerrar Sinopsis">
-                cerrar <span class="mi-round text-xl" style="color: #ff4444;font-size: 26px;
+                cerrar <span class="mi-round text-xl notranslate" style="color: #ff4444;font-size: 26px;
 ">close</span>
             </button>
         </div>
@@ -314,10 +328,10 @@
 
         <div class="audio-float-control">
     <button id="btn-synopsis-tts" onclick="startSynopsisTTS()" class="btn-float-sinopsis" title="Leer Sinopsis">
-        <span class="mi-round text-3xl text-black"></span>
+        <span class="mi-round text-3xl text-black notranslate"></span>
     </button>
     <button id="btn-synopsis-stop" onclick="stopSynopsisTTS()" class="btn-float-stop-sinopsis hidden">
-        <span class="mi-round text-3xl">stop</span>
+        <span class="mi-round text-3xl notranslate">stop</span>
     </button>
 	<div class="speed-control-container relative">
         <div id="synopsis-speed-menu" class="speed-menu hidden">
@@ -357,7 +371,7 @@
         <div class="share-header">
             <img id="share-book-img" src="" alt="Portada">
             <div class="share-header-gradient"></div>
-            <div class="share-title-container">
+            <div class="share-title-container notranslate">
                 <div class="share-grid">
                 <button onclick="executeShare('whatsapp')" class="share-icon-item group" title="WhatsApp">
                     <div class="icon-wrapper wa-bg"><i class="fab fa-whatsapp"></i></div>
@@ -394,7 +408,7 @@
     </div>
 </div>
         <div class="share-body">
-		<button onclick="closeShareModal()" class="share-close-btn">
+		<button onclick="closeShareModal()" class="share-close-btn notranslate">
                 <span class="material-icons-round">close</span>
             </button>
             
@@ -406,7 +420,7 @@
 <div id="podcast-player-container" class="podcast-floating-bar hidden">
     <div class="pod-row-top">
         <span id="podcast-book-title">Título del Podcast</span>
-        <button onclick="closePodcast()" class="pod-close"><span class="material-icons">close</span></button>
+        <button onclick="closePodcast()" class="pod-close"><span class="material-icons notranslate">close</span></button>
     </div>
 
    
@@ -425,11 +439,11 @@
 
         <div class="pod-mid-center">
             <div class="pod-controls">
-                <button onclick="rewindAudio()" class="pod-btn"><span class="material-icons">replay_10</span></button>
-                <button id="pod-play-pause" onclick="togglePodcastPlay()" class="pod-btn-main">
-                    <span class="material-icons">play_arrow</span>
+                <button onclick="rewindAudio()" class="pod-btn"><span class="material-icons notranslate">replay_10</span></button>
+                <button id="pod-play-pause" onclick="togglePodcastPlay()" class="pod-btn-main notranslate">
+                    <span class="material-icons notranslate">play_arrow</span>
                 </button>
-                <button onclick="forwardAudio()" class="pod-btn"><span class="material-icons">forward_30</span></button>
+                <button onclick="forwardAudio()" class="pod-btn"><span class="material-icons notranslate">forward_30</span></button>
             </div>
         </div>
 
@@ -464,28 +478,28 @@
                 
                 <button id="btn-portal-read" class="portal-action-item">
                     <div class="portal-icon-circle color-read">
-                        <span class="material-icons">auto_stories</span>
+                        <span class="material-icons notranslate">auto_stories</span>
                     </div>
                     <span>Leer Libro</span>
                 </button>
 
                 <button id="btn-portal-synopsis" class="portal-action-item">
                     <div class="portal-icon-circle color-synopsis">
-                        <span class="material-icons">summarize</span>
+                        <span class="material-icons notranslate">summarize</span>
                     </div>
                     <span>Sinopsis</span>
                 </button>
 
                 <button id="btn-portal-replay" class="portal-action-item">
                     <div class="portal-icon-circle color-replay">
-                        <span class="material-icons">replay</span>
+                        <span class="material-icons notranslate">replay</span>
                     </div>
                     <span>Repetir</span>
                 </button>
 
                 <button class="portal-action-item disabled">
                     <div class="portal-icon-circle color-ia">
-                        <span class="material-icons">psychology</span>
+                        <span class="material-icons notranslate">psychology</span>
                     </div>
                     <span>Chat IA</span>
                 </button>
@@ -494,22 +508,34 @@
         </div>
 
         <button onclick="closePodcastEndPortal()" class="portal-btn-close">
-            <span class="material-icons">close</span>
+            <span class="material-icons notranslate">close</span>
         </button>
     </div>
 </div>
 
+
+
+
 <div id="volume-sidebar-container" class="volume-sidebar hidden">
     <div class="volume-sidebar-glass">
-        <span class="material-icons-round volume-side-icon">volume_up</span>
+        <span class="material-icons-round volume-side-icon notranslate">volume_up</span>
         <div class="slider-wrapper">
             <input type="range" id="music-volume-sync" min="0" max="100" value="30" 
        oninput="globalVolumeControl(this.value, this.id)" class="nexus-slider-vertical">
         </div>
-        <span class="material-icons-round volume-side-icon">volume_off</span>
+        <span class="material-icons-round volume-side-icon notranslate">volume_off</span>
     </div>
 </div>
 
+<div id='translate-overlay' style='display: none;'>
+    <div class='overlay-content'>
+        
+        <div id='google_translate_element'/>
+		
+    </div>
+	<button id='close-translate-overlay'>
+            <span class="material-icons notranslate">close</span></button>
+</div>
 
 <script>
     if ('serviceWorker' in navigator) {
@@ -525,6 +551,7 @@
  <script src="nexus-voice.js" defer></script>
 <script src="nexus-function.js" defer></script>
 <script src="nexus-podcast.js" defer></script>
+<script src="traductor.js"></script>
 
 <script src="soundtrack.js"></script>
   <!-- <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-core.js" defer></script>-->

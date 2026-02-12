@@ -491,7 +491,7 @@ body.sidebar-open {
 .toc-toggle { 
     cursor: pointer; font-size: 0.7em; width: 1.2em; height: 1.2em; display: inline-flex; 
     align-items: center; justify-content: center; border-radius: 3px; 
-    background: rgba(255, 204, 0, 0.05); margin-right: 0.5px; flex-shrink: 0;
+    background: rgba(255, 204, 0, 0.05); margin-right: 0.5px; flex-shrink: 0; font-size: 15px;
 }
 
 /* 1. Ajuste de altura para reducir espacios en blanco entre elementos 
@@ -3244,4 +3244,318 @@ body.sidebar-open {
 		transform: scale(1.1);
 		transition: transform 0.3s ease;
     }
+}
+
+/* GOOGLE TRANSLATE */
+
+/* Ocultar el banner de Google que sale arriba */
+.goog-te-banner-frame.skiptranslate { display: none !important; }
+body { top: 0px !important; }
+
+.skiptranslate {
+               /* pointer-events: none !important;*/
+                opacity: 80%;
+}
+
+/* Estilo para el botón del header */
+.header-action-btn {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    transition: opacity 0.3s;
+}
+
+.header-action-btn:hover { opacity: 0.7; }
+
+/* Modal Simple (Ajusta las clases a tu diseño Nexus) */
+.nexus-modal {
+    position: fixed;
+    z-index: 9999;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: #1a1a1a; /* Color oscuro como tu app */
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #444;
+}
+
+.hidden { display: none !important; }
+
+
+#translate-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* background: rgba(0, 0, 0, 0.5); Fondo semi-transparente oscuro */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+	overflow: hidden; /* Evitar scroll en el fondo */
+	backdrop-filter: blur(3px);
+	-webkit-backdrop-filter: blur(2px);
+	background-image: url(https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/refs/heads/master/adjuntos/BabelX.webp);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+	filter: brightness(90%) contrast(113%);
+	opacity: 0.96;
+}
+
+.overlay-content {
+	
+    margin-top: 4px;
+    z-index: 1000;
+    background: #ffffffad;
+    border: 1px solid var(--primary-accent);
+    padding: 15px 20px 11px 20px;
+    border-radius: 10px;
+    box-shadow: -9px 9px 10px rgb(0 0 0 / 50%);
+    text-align: center;
+    overflow: hidden;
+    margin-top: 17px;
+}
+
+#close-translate-overlay {
+    /*position: absolute;*/
+    top: 10%;
+    bottom: 19px;
+    z-index: 9999;
+    padding: 5px 4px;
+    display: inline;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+	font-size: 18px;
+    transition: all 0.3s ease;
+    background: rgb(235 42 42 / 61%);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    color: #fffdfd;
+        box-shadow: 0px 3px 7px rgb(0 0 0 / 68%);
+    border-radius: 2rem;
+    font-size: 20px;
+    backdrop-filter: blur(2px);
+	height: 35px;
+    width: 35px;
+	margin-top: 10px;
+}
+
+
+
+
+// ============ HIDE TOP BAR ============ 
+
+
+
+/* Estilos del menú de idiomas */
+.custom-language-selector {
+    display: none; /* Oculto por defecto */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Fondo semi-transparente oscuro */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    overflow: hidden; /* Evitar scroll en el fondo */
+	backdrop-filter: blur(2px);
+	-webkit-backdrop-filter: blur(3px);
+	background-image: url(https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgoUS-MS9KREQm5Ld1vIsl2EDGTkXbVRkaUIxYMtgIOSxdZ-TFGO9Z7wMnooHneaQMELuFMHa8yFv-Sg8aqd0IRPvY2IvA13xvRH5vz-etIklrWe7Dny8AzUyqvMNjVLwdOrdlCn-frd9rd2egJNLWJ5KM-CtjgOiGHbaUqUvC5dNK4AY56-b234mW6pt0_/s16000/TextToKid.png);
+    -webkit-backdrop-filter: blur(3px);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.language-list-container {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 3px;
+	padding: 10px;
+    border-radius: 15px;
+    max-width: 95%;
+    max-height: 95%;
+    overflow-y: auto;
+    text-align: center;
+    color: var(--text-color); /* Texto blanco */
+	transition: background 0.3s ease;
+	
+	
+}
+
+.request-language-link {
+    text-align: center;
+    cursor: pointer;
+    color: white;
+    text-decoration: underline;
+    font-variant: all-petite-caps;
+    font-size: 23px;
+}
+
+.language-list-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+.close-btn {
+    
+    position: absolute;
+    top: 12px;
+    right: 9px;
+    font-size: 27px;;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #fff;
+	background: #ed1616;
+    padding-left: 10px;
+    padding-right: 12px;
+    border-radius: 8px;
+    box-shadow: -8px 9px 6px rgb(0 0 0 / 41%);
+    z-index: 1000;
+}
+
+.close-btn:hover {
+     color: var(--main-color); Cambio de color al pasar el ratón */
+}
+
+.language-columns {
+    display: flex;
+    gap: 28px; /* Espacio entre las columnas */
+}
+
+.language-column {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    /* width: 50%; /* Cada columna ocupa el 50% del contenedor */
+}
+
+.language-column li {
+        padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    cursor: pointer;
+    border: 1px solid var(--main-color);
+    border-radius: 4px;
+    background: #cb1818cf;
+    text-align: center;
+    margin-bottom: 10px;
+    color: white;
+    transition: background 0.3s ease;
+    font-size: 20px;
+    box-shadow: 1px 3px 9px black;
+    opacity: 0.9;
+}
+
+.language-column li:hover {
+    background: var(--main-color); /* Cambio de fondo al pasar el ratón */
+	color: var(--dark-bg);
+}
+
+/* Estilo para el selector de idioma oscuro */
+.goog-te-gadget-simple {
+    background-color: var(--gray-bg);
+    border: 1px solid var(--header-color);
+    padding: 2px;
+    border-radius: 4px;
+    color: var(--header-color);
+}
+
+.goog-te-gadget-simple .goog-te-menu-value {
+    color: var(--header-color);
+}
+
+.goog-te-gadget-icon {
+   background-image: none;
+   margin-right: 5px;
+}
+
+.goog-te-combo{
+  
+   color: var(--primary-accent);
+	font-family: 'Barlow Condensed';
+    text-transform: uppercase;
+    font-weight: 700;
+    text-align: center;
+	    padding-top: 12px;
+    padding-bottom: 10px;
+    background: var(--dark-bg);
+    margin-bottom: 10px;
+    box-shadow: -1px 7px 10px rgb(0 0 0 / 53%);
+    margin-top: 10px;
+    border-radius: 5px;
+	padding-left: 5px;
+    padding-right: 5px;
+	border: 2px solid var(--primary-accent);
+
+}
+
+
+
+.goog-te-gadget {
+    font-family: 'Barlow Condensed';
+    font-size: 13px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #000;
+    white-space: nowrap;
+    }
+
+.goog-te-gadget-simple .goog-te-menu-value span{
+    font-family: 'Material Icons Round';
+    content: '\e5d2';
+}
+
+.VIpgJd-yAWNEb-VIpgJd-fmcmS-sn54Q {
+    color: black;
+}
+
+.translate-toggle{display:flex;align-items:center;justify-content:center;width:34px;height:34px;background-color:var(--gray-bg);color:var(--header-color);font-size:24px}
+.translate-toggle:before{display:block;content:'\e927';font-family:'Material Icons Round';font-weight:400}
+.translate-toggle:hover{color:var(--header-hover-color)}
+
+/* Ocultar el spinner de carga y el banner de estado de Google */
+div[class*="VIpgJd-ZVi9od"], 
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf-ti6hGc,
+.goog-te-spinner-pos,
+#goog-gt-tt {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: -1000 !important;
+}
+
+/* Evitar que el cuerpo de la página se desplace por el banner */
+body {
+    top: 0 !important;
+}
+
+/* Forzar scroll en el menú desplegable de Google Translate */
+.VIpgJd-ZVi9od-vOpiUe-adS9D-pdS6S {
+    max-height: 70vh !important; /* No permite que exceda el 70% de la pantalla */
+    overflow-y: auto !important;  /* Activa el scroll vertical */
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important; /* Scroll suave en iOS */
+}
+
+/* Ajuste para el contenedor de la lista de idiomas */
+.VIpgJd-ZVi9od-vOpiUe-adS9D-pdS6S-container {
+    max-height: 70vh !important;
 }
