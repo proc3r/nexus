@@ -10,6 +10,22 @@ let lastSubtitleIndex = -1; // Control para evitar parpadeos
 const SUBTITLE_OFFSET = 0.35; // Ajuste de sincronización (adelanto de 0.35s)
 let translatedSubtitlesCache = []; // Nueva variable para guardar las frases ya traducidas
 let currentPodSpeed = 0.8; // Velocidad inicial deseada
+const podcastVoiceMap = {
+    'es': 'es-ES', 'en': 'en-GB', 'de': 'de-DE', 'fr': 'fr-FR', 'it': 'it-IT', 
+    'pt': 'pt-BR', 'ru': 'ru-RU', 'nl': 'nl-NL', 'pl': 'pl-PL', 'uk': 'uk-UA',
+    'sv': 'sv-SE', 'no': 'nb-NO', 'da': 'da-DK', 'fi': 'fi-FI', 'el': 'el-GR',
+    'hu': 'hu-HU', 'cs': 'cs-CZ', 'ro': 'ro-RO', 'tr': 'tr-TR', 'zh': 'zh-CN', 
+    'ja': 'ja-JP', 'ko': 'ko-KR', 'hi': 'hi-IN', 'bn': 'bn-BD', 'id': 'id-ID', 
+    'vi': 'vi-VN', 'th': 'th-TH', 'ms': 'ms-MY', 'ta': 'ta-IN', 'te': 'te-IN', 
+    'mr': 'mr-IN', 'gu': 'gu-IN', 'kn': 'kn-IN', 'ml': 'ml-IN', 'pa': 'pa-IN', 
+    'ur': 'ur-PK', 'tl': 'tl-PH', 'ar': 'ar-SA', 'fa': 'fa-IR', 'he': 'he-IL', 
+    'sw': 'sw-KE', 'am': 'am-ET', 'yo': 'yo-NG', 'ig': 'ig-NG', 'zu': 'zu-ZA'
+};
+
+function getBestVoice(targetLang) {
+    const baseLang = targetLang.split('-')[0];
+    return podcastVoiceMap[baseLang] || targetLang;
+}
 
 // Canal de comunicación para evitar audios simultáneos en varias pestañas
 const podcastChannel = new BroadcastChannel('nexus_podcast_sync');
@@ -174,9 +190,18 @@ function updatePlaybackUI() {
     if (subIndex === lastSubtitleIndex) return;
     lastSubtitleIndex = subIndex;
 
-    if (subIndex !== -1) {
+     if (subIndex !== -1) {
         subTextEl.classList.add('notranslate');
         
+        // REFUERZO: 
+        // Primero intentamos leer la dirección del documento
+        const currentDir = document.documentElement.dir || 'ltr';
+        subTextEl.style.direction = currentDir;
+        
+        // Alineación: Si es RTL, a la derecha. Si es LTR, centrado.
+        subTextEl.style.textAlign = (currentDir === 'rtl') ? 'right' : 'center';
+        // ------------------
+
         // --- MOTOR DE TEXTO ---
         // 1. Prioridad: Caché de traducción (para idiomas extranjeros)
         // 2. Fallback: Texto original (para Español)
@@ -576,3 +601,4 @@ function changePodSpeed() {
         speedBtn.style.borderColor = (currentPodSpeed === 1.0) ? "rgba(255,255,255,0.3)" : "#00e676";
     }
 }
+

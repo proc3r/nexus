@@ -3,6 +3,17 @@ html {
     text-rendering: optimizeLegibility;
 }
 
+/* Bloquea el reordenamiento automático de la estructura */
+body, #main-wrapper, .sidebar, .nav-menu {
+    direction: ltr !important;
+    unicode-bidi: bidi-override !important;
+}
+
+/* Permite que el contenido del lector se adapte dinámicamente */
+#reader-content, #pod-subtitle-text {
+    unicode-bidi: plaintext !important; /* El navegador detecta el idioma por párrafo */
+}
+
 /* Evita que el texto se mueva mientras carga la fuente */
 body {
     font-display: optional;
@@ -3906,3 +3917,4 @@ button {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+

@@ -336,19 +336,25 @@
             
         </div>
     </footer>
+	
+	
+	
 	<div class="reader-controls-wrapper">
-                <button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
-                    <span class="mi-round notranslate">&#xef71;</span>
-                </button>
-                <div class="main-audio-trigger">
-                    <button id="tts-btn" onclick="startSpeech()" class="btn-float-red">
-                        <span class="mi-round notranslate">&#xe91f;</span>
-                    </button>
-                    <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden" title="Si la lectura no reanuda, presione STOP y luego PLAY nuevamente">
-                        <span id="pause-icon" class="mi-round notranslate">&#xe1a2;</span>
-                    </button>
-                </div>
-            </div>
+    <button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
+        <span class="material-icons notranslate">stop</span>
+    </button>
+    <div class="main-audio-trigger">
+        <button id="tts-btn" onclick="startSpeech()" class="btn-float-red">
+            <span class="material-icons notranslate">play_arrow</span>
+        </button>
+        <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden" title="Si la lectura no reanuda, presione STOP y luego PLAY nuevamente">
+            <span id="pause-icon" class="material-icons notranslate">pause</span>
+        </button>
+    </div>
+</div>
+	
+	
+	
 </main>
 	
 			

@@ -102,7 +102,8 @@ window.googleTranslateElementInit = function() {
         autoDisplay: false,
         // CLAVE: Se elimina 'es' de esta lista para que el usuario use "Mostrar Original" 
         // y así evitar el bug de colisión del widget de Google.
-        includedLanguages: "en,zh-CN,hi,fr,ar,bn,pt,ru,id,ur,de,ja,it,tr,sw,ko,vi"
+        // includedLanguages: "en,zh-CN,hi,fr,ar,bn,pt,ru,id,ur,de,ja,it,tr,sw,ko,vi"
+		
     }, "google_translate_element");
 
     setTimeout(() => {
@@ -123,7 +124,8 @@ window.googleTranslateElementInit = function() {
                 }
 
                 localStorage.setItem('nexus_preferred_lang', selectedLang);
-
+				aplicarDireccionGlobal(); 
+				
                 // Cerramos interfaces
                 const portal = document.getElementById("welcome-portal");
                 const overlay = document.getElementById("translate-overlay");
@@ -342,16 +344,36 @@ function getTTSLanguageCode() {
 
     const baseLang = lang.split('-')[0];
     const map = {
-        'es': 'es-ES', 'en': 'en-GB', 'de': 'de-DE', 'fr': 'fr-FR',
-        'it': 'it-IT', 'pt': 'pt-BR', 'ja': 'ja-JP', 'zh': 'zh-CN',
-        'ru': 'ru-RU', 'hi': 'hi-IN', 'ar': 'ar-SA', 'ko': 'ko-KR',
-        'id': 'id-ID', 'bn': 'bn-BD', 'vi': 'vi-VN', 'tr': 'tr-TR',
-        'ur': 'ur-PK', 'sw': 'sw-KE'
-    };
+    // Europa
+    'es': 'es-ES', 'en': 'en-GB', 'de': 'de-DE', 'fr': 'fr-FR', 'it': 'it-IT', 
+    'pt': 'pt-BR', 'ru': 'ru-RU', 'nl': 'nl-NL', 'pl': 'pl-PL', 'uk': 'uk-UA',
+    'sv': 'sv-SE', 'no': 'nb-NO', 'da': 'da-DK', 'fi': 'fi-FI', 'el': 'el-GR',
+    'hu': 'hu-HU', 'cs': 'cs-CZ', 'ro': 'ro-RO', 'tr': 'tr-TR',
+
+    // Asia & Oceanía
+    'zh': 'zh-CN', 'ja': 'ja-JP', 'ko': 'ko-KR', 'hi': 'hi-IN', 'bn': 'bn-BD',
+    'id': 'id-ID', 'vi': 'vi-VN', 'th': 'th-TH', 'ms': 'ms-MY', 'ta': 'ta-IN',
+    'te': 'te-IN', 'mr': 'mr-IN', 'gu': 'gu-IN', 'kn': 'kn-IN', 'ml': 'ml-IN',
+    'pa': 'pa-IN', 'ur': 'ur-PK', 'tl': 'tl-PH',
+
+    // Medio Oriente & África
+    'ar': 'ar-SA', 'fa': 'fa-IR', 'he': 'he-IL', 'sw': 'sw-KE', 'am': 'am-ET',
+    'yo': 'yo-NG', 'ig': 'ig-NG', 'zu': 'zu-ZA'
+};
     
     return map[baseLang] || map[lang] || 'es-ES';
 }
 
+function getBestVoice(targetLang) {
+    const baseLang = targetLang.split('-')[0];
+    
+    // 1. Intentar el mapa experto
+    if (map[baseLang]) return map[baseLang];
+    
+    // 2. Si no está en el mapa, devolver el código base 
+    // (Ej: si eligen 'ca' de Catalán, intentará buscar voz 'ca')
+    return targetLang; 
+}
 
 async function cambiarIdioma(langCode) {
     const idiomaFinal = langCode || 'es';
@@ -396,15 +418,29 @@ async function cambiarIdioma(langCode) {
     }
 }
 
-function seleccionarIdiomaInicio(langCode) {
-    // Guardamos la elección para que no vuelva a aparecer el portal
-    localStorage.setItem('nexus_preferred_lang', langCode);
-    
-    if (langCode === 'es') {
-        restaurarOriginalYRefrescar(); // Reutiliza tu lógica de limpieza
-    } else {
-        const portal = document.getElementById("welcome-portal");
-        if (portal) portal.style.display = "none";
-    }
+function aplicarDireccionGlobal() {
+    const rtlLangs = ['ar', 'he', 'fa', 'ur', 'ps', 'sd', 'yi'];
+    const currentLang = localStorage.getItem('nexus_preferred_lang') || 'es';
+    const isRTL = rtlLangs.includes(currentLang.split('-')[0]);
+
+    // 1. FORZAMOS el documento a mantenerse LTR para que no se muevan los menús ni el scroll
+    document.documentElement.dir = "ltr"; 
+    document.body.dir = "ltr";
+
+    // 2. Aplicamos RTL solo a los contenedores de texto específicos
+    // Agrega aquí los IDs de los contenedores que SI deben leerse de derecha a izquierda
+    const textContainers = [
+        document.getElementById('pod-subtitle-text'), // Subtítulos podcast
+        document.getElementById('reader-content'),      // El texto del libro
+        document.querySelector('.synopsis-content')    // La sinopsis
+    ];
+
+    textContainers.forEach(container => {
+        if (container) {
+            container.style.direction = isRTL ? 'rtl' : 'ltr';
+            container.style.textAlign = isRTL ? 'right' : 'center'; // O 'justify' si prefieres
+        }
+    });
 }
 
+document.addEventListener("DOMContentLoaded", aplicarDireccionGlobal);
