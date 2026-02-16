@@ -1,9 +1,12 @@
 // EJECUCIÓN INMEDIATA
+// REEMPLAZO SEGURO PARA document.write
 (function() {
     const preferredLang = localStorage.getItem('nexus_preferred_lang');
-    // Si ya existe idioma, ocultamos el portal antes de que el usuario lo vea
     if (preferredLang) {
-        document.write('<style>#welcome-portal { display: none !important; }</style>');
+        // En lugar de document.write, inyectamos un estilo al head de forma limpia
+        const style = document.createElement('style');
+        style.innerHTML = '#welcome-portal { display: none !important; }';
+        document.head.appendChild(style);
     }
 })();
 
@@ -322,6 +325,7 @@ function getCurrentGoogleLang() {
 /**
  * Mapea el código de Google al formato de idioma de las voces TTS
  */
+
 function getTTSLanguageCode() {
     // CLAVE: Si Google no tiene estas clases, el usuario está viendo el ORIGINAL
     const isTranslated = document.documentElement.classList.contains('translated-ltr') || 
@@ -344,22 +348,22 @@ function getTTSLanguageCode() {
 
     const baseLang = lang.split('-')[0];
     const map = {
-    // Europa
-    'es': 'es-ES', 'en': 'en-GB', 'de': 'de-DE', 'fr': 'fr-FR', 'it': 'it-IT', 
-    'pt': 'pt-BR', 'ru': 'ru-RU', 'nl': 'nl-NL', 'pl': 'pl-PL', 'uk': 'uk-UA',
-    'sv': 'sv-SE', 'no': 'nb-NO', 'da': 'da-DK', 'fi': 'fi-FI', 'el': 'el-GR',
-    'hu': 'hu-HU', 'cs': 'cs-CZ', 'ro': 'ro-RO', 'tr': 'tr-TR',
+        // Europa
+        'es': 'es-ES', 'en': 'en-GB', 'de': 'de-DE', 'fr': 'fr-FR', 'it': 'it-IT', 
+        'pt': 'pt-BR', 'ru': 'ru-RU', 'nl': 'nl-NL', 'pl': 'pl-PL', 'uk': 'uk-UA',
+        'sv': 'sv-SE', 'no': 'nb-NO', 'da': 'da-DK', 'fi': 'fi-FI', 'el': 'el-GR',
+        'hu': 'hu-HU', 'cs': 'cs-CZ', 'ro': 'ro-RO', 'tr': 'tr-TR',
 
-    // Asia & Oceanía
-    'zh': 'zh-CN', 'ja': 'ja-JP', 'ko': 'ko-KR', 'hi': 'hi-IN', 'bn': 'bn-BD',
-    'id': 'id-ID', 'vi': 'vi-VN', 'th': 'th-TH', 'ms': 'ms-MY', 'ta': 'ta-IN',
-    'te': 'te-IN', 'mr': 'mr-IN', 'gu': 'gu-IN', 'kn': 'kn-IN', 'ml': 'ml-IN',
-    'pa': 'pa-IN', 'ur': 'ur-PK', 'tl': 'tl-PH',
+        // Asia & Oceanía
+        'zh': 'zh-CN', 'ja': 'ja-JP', 'ko': 'ko-KR', 'hi': 'hi-IN', 'bn': 'bn-BD',
+        'id': 'id-ID', 'vi': 'vi-VN', 'th': 'th-TH', 'ms': 'ms-MY', 'ta': 'ta-IN',
+        'te': 'te-IN', 'mr': 'mr-IN', 'gu': 'gu-IN', 'kn': 'kn-IN', 'ml': 'ml-IN',
+        'pa': 'pa-IN', 'ur': 'ur-PK', 'tl': 'tl-PH',
 
-    // Medio Oriente & África
-    'ar': 'ar-SA', 'fa': 'fa-IR', 'he': 'he-IL', 'sw': 'sw-KE', 'am': 'am-ET',
-    'yo': 'yo-NG', 'ig': 'ig-NG', 'zu': 'zu-ZA'
-};
+        // Medio Oriente & África
+        'ar': 'ar-SA', 'fa': 'fa-IR', 'he': 'he-IL', 'sw': 'sw-KE', 'am': 'am-ET',
+        'yo': 'yo-NG', 'ig': 'ig-NG', 'zu': 'zu-ZA'
+    };
     
     return map[baseLang] || map[lang] || 'es-ES';
 }
@@ -411,36 +415,44 @@ async function cambiarIdioma(langCode) {
                 if (typeof prepareAndStartSpeech === 'function') {
                     // Actualizamos el contador visual al nuevo idioma inmediatamente
                     if (estaEnImagen) updateTimerDisplay();
-                    prepareAndStartSpeech();
+					// Usamos startSpeech en lugar de prepareAndStartSpeech 
+					// porque startSpeech ahora ya sabe limpiar la barra y elegir el modo correcto
+					startSpeech();
                 }
             }
         }, delay); 
     }
 }
 
+// Función para actualizar la dirección global de la app y sincronizar soporte de voz
 function aplicarDireccionGlobal() {
     const rtlLangs = ['ar', 'he', 'fa', 'ur', 'ps', 'sd', 'yi'];
     const currentLang = localStorage.getItem('nexus_preferred_lang') || 'es';
     const isRTL = rtlLangs.includes(currentLang.split('-')[0]);
 
-    // 1. FORZAMOS el documento a mantenerse LTR para que no se muevan los menús ni el scroll
+    // 1. FORZAMOS el diseño a mantenerse LTR (Evita que los menús se muevan de lugar)
     document.documentElement.dir = "ltr"; 
     document.body.dir = "ltr";
 
-    // 2. Aplicamos RTL solo a los contenedores de texto específicos
-    // Agrega aquí los IDs de los contenedores que SI deben leerse de derecha a izquierda
+    // 2. Aplicamos RTL solo a los contenedores de lectura específicos
     const textContainers = [
-        document.getElementById('pod-subtitle-text'), // Subtítulos podcast
-        document.getElementById('reader-content'),      // El texto del libro
-        document.querySelector('.synopsis-content')    // La sinopsis
+        document.getElementById('pod-subtitle-text'), 
+        document.getElementById('reader-content'),      
+        document.querySelector('.synopsis-content')    
     ];
 
     textContainers.forEach(container => {
         if (container) {
             container.style.direction = isRTL ? 'rtl' : 'ltr';
-            container.style.textAlign = isRTL ? 'right' : 'center'; // O 'justify' si prefieres
+            container.style.textAlign = isRTL ? 'right' : 'center';
         }
     });
+
+    // 3. Notificar al sistema de voces para detectar si hay audio disponible
+    if (typeof syncLanguageSupport === 'function') {
+        syncLanguageSupport();
+    }
 }
 
+// Ejecutar al cargar la página
 document.addEventListener("DOMContentLoaded", aplicarDireccionGlobal);

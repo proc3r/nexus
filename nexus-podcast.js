@@ -9,7 +9,7 @@ let currentSubtitles = []; // Almacena los subtítulos del libro activo
 let lastSubtitleIndex = -1; // Control para evitar parpadeos
 const SUBTITLE_OFFSET = 0.35; // Ajuste de sincronización (adelanto de 0.35s)
 let translatedSubtitlesCache = []; // Nueva variable para guardar las frases ya traducidas
-let currentPodSpeed = 0.8; // Velocidad inicial deseada
+let currentPodSpeed = 0.9; // Velocidad inicial deseada
 const podcastVoiceMap = {
     'es': 'es-ES', 'en': 'en-GB', 'de': 'de-DE', 'fr': 'fr-FR', 'it': 'it-IT', 
     'pt': 'pt-BR', 'ru': 'ru-RU', 'nl': 'nl-NL', 'pl': 'pl-PL', 'uk': 'uk-UA',
@@ -111,11 +111,11 @@ function initPodcast(bookId) {
         document.getElementById('pod-progress').max = Math.floor(podAudioInstance.duration);
         
 		// --- CONTROL DE VELOCIDAD INICIAL ---
-			currentPodSpeed = 0.8;
+			currentPodSpeed = 0.9;
 				podAudioInstance.playbackRate = currentPodSpeed;
 				const speedBtn = document.getElementById('pod-speed-btn');
 				if (speedBtn) {
-					speedBtn.innerText = "0.8x";
+					speedBtn.innerText = "0.9x";
 					speedBtn.style.color = "#00e676"; // Color de "modo estudio" activo
 					speedBtn.style.borderColor = "#00e676";
 				}
@@ -231,7 +231,7 @@ function togglePodcastPlay(forcePlay = false) {
         podcastChannel.postMessage('pause_others');
         
         // --- AJUSTE DE VELOCIDAD ---
-        // Aseguramos que use la velocidad guardada (ej. 0.8) antes de arrancar
+        // Aseguramos que use la velocidad guardada (ej. 0.9) antes de arrancar
         podAudioInstance.playbackRate = currentPodSpeed;
         // ---------------------------
         
@@ -584,8 +584,8 @@ window.stopAndHidePodcast = closePodcast;
 function changePodSpeed() {
     if (!podAudioInstance) return;
     
-    // Toggle simple entre 0.8 y 1.0
-    currentPodSpeed = (currentPodSpeed === 0.8) ? 1.0 : 0.8;
+    // Toggle simple entre 0.9 y 1.0
+    currentPodSpeed = (currentPodSpeed === 0.9) ? 1.0 : 0.9;
     
     // Aplicar al audio
     podAudioInstance.playbackRate = currentPodSpeed;

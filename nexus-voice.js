@@ -33,15 +33,15 @@ async function loadExternalDictionary() {
 
 // --- CONTROLADOR DE VOZ DEL LECTOR ---
 
-	function setReaderSpeed(rate) {
+function setReaderSpeed(rate) {
     window.readerSpeechRate = rate;
     const label = document.getElementById('reader-speed-label');
     if (label) label.innerText = rate + 'x';
-
-    const speedMenu = document.getElementById('reader-speed-menu');
-    if (speedMenu) speedMenu.classList.add('hidden');
+    document.getElementById('reader-speed-menu')?.classList.add('hidden');
     
-    // Se eliminan referencias a Synopsis para evitar errores de referencia nula
+    if (typeof updateVisualTimerSpeed === 'function') {
+        updateVisualTimerSpeed();
+    }
 }
 	
 	function filterTextForVoice(text) {
@@ -63,46 +63,102 @@ async function loadExternalDictionary() {
 			menu.classList.toggle('hidden');
 	}
 	
-	
-function startSpeech() {
+		
+
+
+
+async function startSpeech() {
     if (typeof launchFullScreen === 'function') {
         launchFullScreen(document.documentElement);
     }
     
-    // Limpieza preventiva
+    // 1. LIMPIEZA TOTAL DE AMBOS MODOS
+    // Detenemos cualquier audio en curso inmediatamente
     window.synth.cancel();
-    window.isImageTimerPaused = false; 
+    
+    // Matamos la barra visual y su temporizador (setTimeout)
+    if (typeof stopVisualTimer === 'function') {
+        stopVisualTimer(); 
+    }
+
+    // RESET DE ESTADOS CRÍTICOS
+    // Limpiamos residuos de pausas o tiempos de idiomas anteriores
+    window.visualPausedTime = null; 
+    window.visualStartTime = null;
+    if (window.visualTimerInterval) {
+        clearTimeout(window.visualTimerInterval);
+        window.visualTimerInterval = null;
+    }
     
     window.isSpeaking = true; 
     window.isPaused = false;
     
+    // 2. SINCRONIZACIÓN FORZADA
+    // Aquí es donde se decide si el nuevo idioma tiene voz o no
+    if (typeof syncLanguageSupport === 'function') {
+        await syncLanguageSupport(); 
+    }
+
+    // 3. ACTUALIZAR UI
     document.getElementById('tts-btn').classList.add('hidden'); 
     document.getElementById('pause-btn').classList.remove('hidden'); 
     document.getElementById('stop-btn').classList.remove('hidden'); 
-    updatePauseUI(false);
+    if (typeof updatePauseUI === 'function') updatePauseUI(false);
 
     const currentText = chunks[currentChunkIndex] || "";
     const isImage = currentText.match(/!\[\[(.*?)\]\]/);
     
     if (isImage) {
         if (typeof clearImageTimer === 'function') clearImageTimer();
-        startImageTimer(); 
+        if (typeof startImageTimer === 'function') startImageTimer(); 
     } else {
+        // 4. INTERRUPTOR DE MODO (Modo Visual vs Modo Audio)
+        if (window.hasAvailableVoice === false) {
+            console.log("Nexus Vocal: Iniciando Modo Visual (Barra de progreso).");
+            if (typeof showVisualTimer === 'function' && typeof calculateReadingTime === 'function') {
+                const duration = calculateReadingTime(currentText);
+                showVisualTimer(duration);
+            }
+            return; 
+        }
+
+        // 5. MODO AUDIO (Inglés, Español, etc.)
+        // Si llegamos aquí, el idioma tiene voz. 
+        // Por seguridad, confirmamos que el temporizador visual esté apagado 
+        // para que no interrumpa el evento 'onend' del TTS.
+        if (typeof stopVisualTimer === 'function') stopVisualTimer();
+        
+        console.log("Nexus Voice: Iniciando lectura con voz.");
         prepareAndStartSpeech();
     }
 }
 
+
 function pauseSpeech() { 
     if (!isSpeaking) return;
 
-    // 1. DETECCIÓN DE MÓVIL
+    // 1. DETECCIÓN DE MÓVIL (Tu lógica original intacta)
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     if (isMobile) {
         stopSpeech();
         return;
     }
 
-    // 2. LÓGICA PARA IMAGEN
+    // 2. LÓGICA PARA MODO VISUAL (Sin Voz) - AJUSTADA
+    if (window.hasAvailableVoice === false) {
+        if (!isPaused) {
+            // Llamamos a la pausa que congela la barra y guarda el tiempo restante
+            if (typeof pauseVisualTimer === 'function') pauseVisualTimer();
+            isPaused = true;
+            updatePauseUI(true);
+            console.log("Nexus Vocal: Barra visual pausada");
+        } else {
+            resumeSpeech();
+        }
+        return;
+    }
+
+    // 3. LÓGICA PARA IMAGEN (Tu lógica original intacta)
     const timerEl = document.getElementById('image-timer');
     const isImageActive = timerEl && !timerEl.classList.contains('hidden');
 
@@ -110,46 +166,60 @@ function pauseSpeech() {
         if (typeof togglePauseImageTimer === 'function') {
             togglePauseImageTimer();
         } else {
-            // Fallback por si la función no existe
             window.isImageTimerPaused = !window.isImageTimerPaused;
             updatePauseUI(window.isImageTimerPaused);
         }
     } else {
-        // 3. LÓGICA PARA TEXTO
+        // 4. LÓGICA PARA TEXTO (TTS Normal)
         if (!isPaused) { 
             synth.pause(); 
             isPaused = true; 
             updatePauseUI(true); 
-            console.log("Nexus Voice: Pausado");
+            console.log("Nexus Voice: Audio pausado");
         } else {
             resumeSpeech(); 
         }
     }
 
-    // 4. Timer de seguridad: 15s (Ahora detecta también pausa de imagen)
+    // Timer de seguridad de 15 segundos (Tu lógica original intacta)
     clearTimeout(window.pauseTimer);
     window.pauseTimer = setTimeout(() => {
-        // Verificamos si cualquiera de los dos sistemas sigue pausado
         const imageIsPaused = (typeof NexusImage !== 'undefined' && NexusImage.isPaused);
         if (window.isPaused || imageIsPaused) {
-            console.log("Nexus Voice: Tiempo de pausa excedido (15s), ejecutando Stop.");
             stopSpeech(); 
         }
     }, 15000); 
 }
 
+
+
 function resumeSpeech() { 
     clearTimeout(window.pauseTimer);
     
-    // VERIFICACIÓN DE IMAGEN
+    // MODO VISUAL (Sin Voz) - AJUSTADA
+    if (!window.hasAvailableVoice) {
+        isPaused = false;
+        updatePauseUI(false);
+        
+        // Verificamos si existe la función para reanudar el tiempo restante
+        if (typeof resumeVisualTimer === 'function') {
+            resumeVisualTimer();
+        } else {
+            // Si por algún motivo no existe, fallback al reinicio normal
+            const currentText = chunks[currentChunkIndex] || "";
+            if (typeof showVisualTimer === 'function') {
+                showVisualTimer(calculateReadingTime(currentText));
+            }
+        }
+        return;
+    }
+
+    // VERIFICACIÓN DE IMAGEN (Tu lógica original intacta)
     const timerEl = document.getElementById('image-timer');
     const isImageActive = timerEl && !timerEl.classList.contains('hidden');
 
     if (isImageActive) {
-        // Si el conteo de la imagen está pausado, lo despertamos
-        if (isImageTimerPaused) {
-            togglePauseImageTimer();
-        }
+        if (isImageTimerPaused) togglePauseImageTimer();
     } else {
         // LÓGICA NORMAL DE TEXTO
         synth.resume(); 
@@ -157,15 +227,10 @@ function resumeSpeech() {
         updatePauseUI(false); 
     }
     
-    // Limpieza de UI
     const pauseBtn = document.getElementById('pause-btn');
     if (pauseBtn) pauseBtn.title = "";
-
-    // Aseguramos que el timer visual siga si es una imagen
-    if ((chunks[currentChunkIndex] || "").match(/!\[\[(.*?)\]\]/)) { 
-        if (!imageTimer && !isImageTimerPaused) startImageTimer(); 
-    } 
 }
+
 
 function updatePauseUI(paused) { 
     const icon = document.getElementById('pause-icon'); 
@@ -186,19 +251,25 @@ function updatePauseUI(paused) {
     }
 }
 
+
 function stopSpeech() { 
     clearTimeout(window.pauseTimer);
-    if (window.nexusSpeechTimeout) clearTimeout(window.nexusSpeechTimeout);
+    if (window.nexusSpeechTimeout) {
+        clearTimeout(window.nexusSpeechTimeout);
+        window.nexusSpeechTimeout = null;
+    }
+    
+    // DETENCIÓN DE BARRA VISUAL
+    if (typeof stopVisualTimer === 'function') stopVisualTimer();
     
     window.synth.cancel(); 
     window.isSpeaking = false; 
     window.isPaused = false; 
     
-    // RESET CRUCIAL PARA IMÁGENES (Sincronización con nexus-functions.js)
     window.isImageTimerPaused = false; 
     if (typeof NexusImage !== 'undefined') {
         NexusImage.isPaused = false;
-        NexusImage.secondsLeft = 5; // Resetear también el tiempo por seguridad
+        NexusImage.secondsLeft = 5;
     }
     
     window.speechSubChunks = [];
@@ -216,7 +287,7 @@ function stopSpeech() {
         pauseBtn.title = "";
     }
     updatePauseUI(false); 
-    console.log("Nexus Voice: Stop total. Estados de voz e imagen reseteados.");
+    console.log("Nexus Voice: Stop total ejecutado.");
 }
 	
 
@@ -339,7 +410,9 @@ function prepareAndStartSpeech() {
 	
 	
 	
-	function speakSubChunk() {
+	
+
+function speakSubChunk() {
     if (!window.isSpeaking || window.isPaused) return;
 
     // 1. GESTIÓN DE SALTO DE PÁRRAFO (Automático)
@@ -348,10 +421,8 @@ function prepareAndStartSpeech() {
         window.currentSubChunkIndex = 0;
 
         if (!(currentChunkIndex === chunks.length - 1 && currentChapterIndex === currentBook.chapters.length - 1)) {
-            // Detenemos audio actual
             window.synth.cancel(); 
             
-            // --- CLAVE: MATAR CUALQUIER REINTENTO DE VALIDACIÓN PENDIENTE ---
             if (window.nexusSpeechTimeout) {
                 clearTimeout(window.nexusSpeechTimeout);
                 window.nexusSpeechTimeout = null;
@@ -359,14 +430,10 @@ function prepareAndStartSpeech() {
 
             setTimeout(async () => { 
                 console.log("Nexus Voice: Ejecutando salto automático...");
-                
-                // Aseguramos estado limpio para el nuevo párrafo
                 window.navDirection = 'next'; 
                 window.romanceRetryCount = 0; 
-
-                // El await asegura que el contenido se renderice antes de disparar la nueva validación
                 await nextChunk(); 
-            }, 600); // Reducido a 600ms para mejorar la fluidez tras unificar procesos
+            }, 600); 
         } else {
             stopSpeech();
         }
@@ -380,21 +447,61 @@ function prepareAndStartSpeech() {
         return; 
     }
 
-    // 3. CONFIGURACIÓN DE LA LOCUCIÓN
+    // --- BLOQUEO CRÍTICO MODO VISUAL ---
+    // Si ya sabemos que no hay voz, salimos antes de configurar la locución.
+    // Esto evita que lea números en español y que los eventos 'onend' interfieran con la barra.
+    if (window.hasAvailableVoice === false) {
+        console.log("Nexus Voice: Modo Visual activo. TTS bloqueado para evitar interferencias.");
+        return; 
+    }
+    // ------------------------------------
+
+    // 3. CONFIGURACIÓN DE LA LOCUCIÓN (Forzado de Voz Regional)
     const utterance = new SpeechSynthesisUtterance(speechSubChunks[currentSubChunkIndex]);
     window.currentUtterance = utterance;
 
-    utterance.lang = (typeof getTTSLanguageCode === 'function') ? getTTSLanguageCode() : 'es-ES';
+    const langCode = (typeof getTTSLanguageCode === 'function') ? getTTSLanguageCode() : (localStorage.getItem('nexus_preferred_lang') || 'es-ES');
+    utterance.lang = langCode;
     utterance.rate = window.readerSpeechRate || 1.0;
+    utterance.volume = 1.0; 
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        let targetVoice = voices.find(v => v.lang.toLowerCase().replace('_', '-') === langCode.toLowerCase());
+        if (!targetVoice) {
+            targetVoice = voices.find(v => v.lang.toLowerCase().startsWith(langCode.split('-')[0].toLowerCase()));
+        }
+        if (targetVoice) {
+            utterance.voice = targetVoice;
+            console.log("Nexus Voice: Voz asignada ->", targetVoice.name, "[" + targetVoice.lang + "]");
+        }
+    }
+
+    const startTime = Date.now();
 
     // 4. MANEJO DE EVENTOS
     utterance.onend = () => {
+        const duration = Date.now() - startTime;
+
         if (window.isSpeaking && !window.isPaused) {
+            // Este bloque captura fallos inesperados (ej: cuando creíamos que había voz pero no)
+            if (duration < 100 && !langCode.startsWith('es')) {
+                console.warn("Nexus Voice: Audio demasiado corto. Activando Modo Lectura.");
+                window.hasAvailableVoice = false;
+                
+                if (typeof showVisualTimer === 'function') {
+                    const textToMeasure = speechSubChunks.join(" ");
+                    showVisualTimer(calculateReadingTime(textToMeasure));
+                } else {
+                    stopSpeech();
+                }
+                return;
+            }
+
             currentSubChunkIndex++;
             const targetLang = getCurrentGoogleLang();
             const isTranslated = targetLang !== 'es';
             
-            // Delay entre frases
             setTimeout(() => { 
                 if (window.isSpeaking && !window.isPaused) speakSubChunk(); 
             }, isTranslated ? 300 : 150); 
@@ -408,12 +515,11 @@ function prepareAndStartSpeech() {
         }
     };
 
-    // 5. EJECUCIÓN DEL AUDIO (Unificada)
-    // Cancelamos cualquier audio residual y damos un micro-delay de 50ms 
-    // para que el motor de síntesis del navegador no se colapse.
+    // 5. EJECUCIÓN DEL AUDIO
     window.synth.cancel();
     setTimeout(() => { 
-        if (window.isSpeaking && !window.isPaused) {
+        // Doble seguridad: solo hablamos si sigue habiendo voz disponible
+        if (window.isSpeaking && !window.isPaused && window.hasAvailableVoice !== false) {
             window.synth.speak(utterance);
         }
     }, 50);

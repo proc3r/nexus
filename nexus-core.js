@@ -26,38 +26,38 @@
 // --- 2. FUNCIONES DE CONTROL DE INTERFAZ (MOVER AQUÍ ARRIBA) ---
 
 function renderLibrary() {
-    // Si estamos en el lector o no existe el grid, abortamos para evitar errores
     const grid = document.getElementById('library-grid');
     if (window.isLectorFijo || !grid) return;
+
+    // Si la librería está vacía, esperamos un poco y reintentamos (por si el fetch de GitHub es lento)
+    if (library.length === 0) {
+        console.warn("Nexus Core: Librería vacía, reintentando render en 500ms...");
+        setTimeout(renderLibrary, 500);
+        return;
+    }
 
     console.log("Renderizando librería...");
     grid.innerHTML = ''; 
 
-    // Dibujar los libros en el grid
     library.forEach(book => {
-        const card = createBookCard(book);
-        grid.appendChild(card);
+        // Buscamos la función en window por si se cargó en otro script
+        const createFn = window.createBookCard || createBookCard;
+        
+        if (typeof createFn === 'function') {
+            const card = createFn(book);
+            grid.appendChild(card);
+        } else {
+            console.error("Nexus Core: No se encuentra la función createBookCard.");
+        }
     });
 
-    // --- GESTIÓN DE INTERFAZ ---
-    
-    // 1. Ocultar el spinner viejo del header
+    // ... resto del código (quitar spinners y splash) ...
     document.getElementById('main-spinner')?.classList.add('hidden');
-    const oldStatus = document.getElementById('status-text');
-    if (oldStatus) oldStatus.innerText = "Sincronizado";
-
-    // 2. CERRAR EL SPLASH (Index)
     const splash = document.getElementById('nexus-splash') || document.getElementById('auto-loader');
-    
     if (splash) {
-        setTimeout(() => {
-            splash.style.opacity = "0";
-            setTimeout(() => {
-                splash.style.display = "none";
-            }, 800);
-        }, 500);
-    
-}
+        splash.style.opacity = "0";
+        setTimeout(() => { splash.style.display = "none"; }, 800);
+    }
 }
 
 // --- CAPTURA INMEDIATA DE TÍTULO PARA EL SPINNER ---
@@ -666,10 +666,11 @@ function closeReader() {
         }
 	 
 
-
-
 async function renderChunk() {
     clearImageTimer();
+    // Limpieza de barra visual para que no se duplique en el nuevo párrafo
+    if (typeof stopVisualTimer === 'function') stopVisualTimer();
+
     const container = document.getElementById('reading-container-fixed');
     let content = document.getElementById('book-content');
     if (!content) return;
@@ -727,11 +728,9 @@ async function renderChunk() {
         isImage = true;
         const rawImageUrl = currentBook.rawBase + encodeURIComponent(originalFileName);
         
-        // --- LÓGICA DE GIF ANIMADO ---
-        // Si es GIF, usamos la URL cruda. Si no, usamos el optimizador.
         const finalImageUrl = fileNameLower.endsWith('.gif') 
             ? rawImageUrl 
-            : getOptimizedImageUrl(rawImageUrl, 700);
+            : (typeof getOptimizedImageUrl === 'function' ? getOptimizedImageUrl(rawImageUrl, 700) : rawImageUrl);
 
         finalHtml = `<div class="reader-image-container">
             <img src="${finalImageUrl}" 
@@ -757,17 +756,13 @@ async function renderChunk() {
     if (isTranslated) {
         const validator = document.createElement('div');
         validator.id = 'nexus-validation-anchor';
-        // Mantenemos visibilidad mínima para que Google no lo descarte
         validator.style.cssText = "height:1px; font-size:1px; color:transparent; position:absolute; pointer-events:none; overflow:hidden;";
         validator.innerHTML = '<span>manzana</span>'; 
         content.appendChild(validator);
         
-        // TRUCO PARA DESPERTAR A GOOGLE (Simula la interacción del usuario)
-        // Forzamos un evento que Google Translate suele escuchar para re-traducir
         setTimeout(() => {
             content.dispatchEvent(new Event('input', { bubbles: true }));
             content.dispatchEvent(new Event('change', { bubbles: true }));
-            // Añadimos una mutación física mínima
             const trigger = document.createElement('span');
             trigger.innerHTML = "&nbsp;";
             content.appendChild(trigger);
@@ -809,20 +804,33 @@ async function renderChunk() {
         nextBtn.innerHTML = isLast ? "FIN" : "NEXT ▶";
     }
 
-    // 7. SINCRONIZACIÓN DE VOZ (Nexus Voice)
+    // 7. SINCRONIZACIÓN DE VOZ / MODO VISUAL (Nexus Voice)
     if (window.isSpeaking) { 
         if (isImage) {
             startImageTimer();
         } else {
-            // Un poco más de margen para que el disparador de Google funcione
-            setTimeout(() => {
-                prepareAndStartSpeech();
-            }, 200);
+            // --- NUEVA LÓGICA DE SALTO HÍBRIDO ---
+            if (window.hasAvailableVoice === false) {
+                // Si no hay voz, lanzamos la barra directamente al renderizar el nuevo párrafo
+                console.log("Nexus Vocal: Iniciando barra visual en nuevo párrafo.");
+                setTimeout(() => {
+                    if (typeof showVisualTimer === 'function' && typeof calculateReadingTime === 'function') {
+                        const text = content.innerText || "";
+                        showVisualTimer(calculateReadingTime(text));
+                    }
+                }, 300);
+            } else {
+                // Si hay voz, esperamos la validación de Google normal
+                setTimeout(() => {
+                    prepareAndStartSpeech();
+                }, 250);
+            }
         } 
     }
     
     return Promise.resolve();
 }
+
 
 /**
  * Divide el texto en partes manejables para el motor de síntesis de voz

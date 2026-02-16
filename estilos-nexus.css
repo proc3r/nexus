@@ -3918,3 +3918,50 @@ button {
     to { transform: rotate(360deg); }
 }
 
+/* barra modo lectura avance automatico */
+
+/* FUERZA LA VISIBILIDAD DE LA BARRA */
+/* En tu archivo de estilos CSS */
+
+	footer {
+    position: relative; /* Obligatorio para que la barra se pegue aquí */
+}
+
+#visual-timer-wrapper {
+    position: absolute;
+    /* -3px para que la barra de 6px quede a caballito sobre el borde */
+    top: -8px; 
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: #6666663d; /* Sin fondo para que no se vea el "corte" */
+    overflow: visible !important;
+    z-index: 9997;
+    pointer-events: none;
+	opacity: 0.8;
+    padding-left: 8px;
+}
+
+#visual-timer-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 10px;
+    /* Mantenemos el brillo para que se note que flota */
+    box-shadow: 0 0 8px rgba(0,0,0,0.5); 
+}
+
+#visual-timer-concept {
+    position: absolute;
+    /* Ajusta este valor para que el @N flote sobre la barra */
+    top: -7px;
+    left: 0%;
+    transform: translateX(-50%);
+    font-size: 13px;
+    font-family: 'Barlow Condensed';
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 3px black;
+    white-space: nowrap;
+    z-index: 10000;
+	font-style: italic;
+}
