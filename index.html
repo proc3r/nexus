@@ -42,6 +42,35 @@
 </head>
 <body>
 
+
+<body>
+    <div id='welcome-portal' class="portal-wrapper">
+        <div class='portal-box'>
+            <button id="btn-portal-es" class="notranslate portal-btn" onclick="seleccionarIdiomaInicio('es')">
+                <span class="material-icons" style="font-size: 18px;">auto_fix_high</span>
+                CONTINUE IN SPANISH (ORIGINAL)
+            </button>
+            <div id='google_portal_element'></div> <p class="notranslate portal-footer">Choose a language to enter</p>
+        </div>
+    </div>
+	
+	
+	<!--<div id='translate-overlay' style='display: none;'>
+    <div class='overlay-content'>
+        <button id="btn-restore-original" class="notranslate" onclick="restaurarOriginalYRefrescar()">
+            <span class="material-icons" style="font-size: 18px;">auto_fix_high</span>
+            MOSTRAR ORIGINAL (ESPAÑOL)
+        </button>
+		
+        <div id='google_translate_element'/>
+		
+    </div>
+	<button id='close-translate-overlay'>
+            <span class="material-icons notranslate">close</span></button>
+</div>-->
+
+
+
 <div id="nexus-splash" class="nexus-splash-container">
     <div class="splash-layout">
         <div class="section-top">
@@ -118,11 +147,10 @@
                 <div class="absolute inset-0 bg-black/40"></div>
                 <div class="p-4 flex flex-col justify-between h-full relative z-10">
                     <div class="flex justify-between pb-3 items-start">
-                        <button onclick="closeReader()" class="mi-round text-[40px] notranslate" style="
-    animation: pause-tts 3s infinite ease-in-out;
-">home</button>
+                        <button onclick="closeReader()" class="mi-round text-[40px] text-[#00000] notranslate" style="
+								animation: pause-tts 3s infinite ease-in-out;">home</button>
                         <div class="flex items-center px-3 gap-4 bg-black/40 backdrop-blur-sm p-1 rounded-lg border border-white/10">
-                            <button id="expand-mode-btn" onclick="toggleExpandMode()" class="mi-round text-lg notranslate">expand</button>
+                            <button id="expand-mode-btn" onclick="toggleExpandMode()" class="mi-round text-lg text-[#00000] notranslate">expand</button>
                             
 							
 							<button id="pin-btn" onclick="togglePin()" class="text-gray-300 opacity-90 hover:opacity-100">📌</button>
@@ -254,10 +282,25 @@
     <footer class="flex-shrink-0 px-4 py-1 border-t border-white/10 bg-black/15">
         <div class="max-w-4xl mx-auto">
             <div class="zen-hide-group">
-                <div class="flex justify-between text-[14px] uppercase font-bold opacity-70 mb-2 condensed tracking-widest notranslate">
-                    <span id="time-remaining" class="text-[19px] font-bold italic opacity-100" style="letter-spacing: 0.5px;">Calculando tiempo...</span>
-                    <span style="letter-spacing: 0.2px; font-style: italic;font-size: 19px;"><span id="current-p-num">0</span> / <span id="total-p-num">0</span> • <span id="progress-percent">0%</span></span>
-                </div>
+			
+			
+                <div class="flex flex-col mb-1 condensed tracking-widest leading-none">
+					<div class="flex justify-between items-end text-[18px] italic">
+						<div>
+							<span style="letter-spacing: 0.2px;">PÁRRAFO:</span> 
+							<span class="notranslate" style="font-weight: bold; letter-spacing: 0.4px;">
+								<span id="current-p-num">0</span> / <span id="total-p-num">0</span>
+							</span>
+						</div>
+						
+						<span id="progress-percent" class="notranslate font-bold">0%</span>
+					</div>
+					<div id="time-remaining" class="text-[16px] italic opacity-90 mb-[1px] uppercase" style="letter-spacing: 0.5px;">
+						Calculando tiempo...
+					</div>
+				</div>
+				
+				
                 <div class="progress-bar-container mb-3">
                     <div id="reading-progress-bar"></div>
                     <div id="progress-markers-container"></div>
@@ -295,14 +338,14 @@
     </footer>
 	<div class="reader-controls-wrapper">
                 <button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
-                    <span class="mi-round">&#xef71;</span>
+                    <span class="mi-round notranslate">&#xef71;</span>
                 </button>
                 <div class="main-audio-trigger">
                     <button id="tts-btn" onclick="startSpeech()" class="btn-float-red">
-                        <span class="mi-round">&#xe91f;</span>
+                        <span class="mi-round notranslate">&#xe91f;</span>
                     </button>
                     <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden" title="Si la lectura no reanuda, presione STOP y luego PLAY nuevamente">
-                        <span id="pause-icon" class="mi-round">&#xe1a2;</span>
+                        <span id="pause-icon" class="mi-round notranslate">&#xe1a2;</span>
                     </button>
                 </div>
             </div>
@@ -417,11 +460,22 @@
 </div>
 
 	
+	<div id="pod-subtitles-window" class="hidden">
+    <p id="pod-subtitle-text"></p>
+</div>
+	
 <div id="podcast-player-container" class="podcast-floating-bar hidden">
-    <div class="pod-row-top">
-        <span id="podcast-book-title">Título del Podcast</span>
-        <button onclick="closePodcast()" class="pod-close"><span class="material-icons notranslate">close</span></button>
+    	
+	<div class="pod-row-top">
+    <span id="podcast-book-title">Título del Podcast</span>
+    
+    <div class="pod-controls-group">
+        <button id="pod-speed-btn" class="notranslate" onclick="changePodSpeed()">0.8x</button>
+        <button onclick="closePodcast()" class="pod-close">
+            <span class="material-icons notranslate">close</span>
+        </button>
     </div>
+</div>
 
    
 	
@@ -429,7 +483,7 @@
         <div class="pod-mid-left">
             <div class="pod-volume-container">
                 <button id="pod-mute-btn" class="pod-control-btn">
-                    <span class="material-icons">volume_up</span>
+                    <span class="material-icons notranslate">volume_up</span>
                 </button>
                 <div class="volume-slider-wrapper">
                     <input type="range" id="pod-volume-slider" min="0" max="1" step="0.1" value="1">
@@ -439,11 +493,11 @@
 
         <div class="pod-mid-center">
             <div class="pod-controls">
-                <button onclick="rewindAudio()" class="pod-btn"><span class="material-icons notranslate">replay_10</span></button>
+                <button onclick="rewindAudio()" class="pod-btn notranslate"><span class="material-icons notranslate">replay_10</span></button>
                 <button id="pod-play-pause" onclick="togglePodcastPlay()" class="pod-btn-main notranslate">
                     <span class="material-icons notranslate">play_arrow</span>
                 </button>
-                <button onclick="forwardAudio()" class="pod-btn"><span class="material-icons notranslate">forward_30</span></button>
+                <button onclick="forwardAudio()" class="pod-btn notranslate"><span class="material-icons notranslate">forward_30</span></button>
             </div>
         </div>
 
@@ -456,8 +510,12 @@
         <input type="range" id="pod-progress" min="0" value="0" step="1" oninput="seekAudio(this.value)">
     </div>
     
+	
+	
 	<audio id="main-podcast-audio" preload="none"></audio>
 </div>
+
+
 
 
 <div id="nexus-portal-container" class="portal-overlay hidden">
@@ -529,12 +587,23 @@
 
 <div id='translate-overlay' style='display: none;'>
     <div class='overlay-content'>
-        
+        <button id="btn-restore-original" class="notranslate" onclick="restaurarOriginalYRefrescar()">
+            <span class="material-icons" style="font-size: 18px;">auto_fix_high</span>
+            MOSTRAR ORIGINAL (ESPAÑOL)
+        </button>
+		
         <div id='google_translate_element'/>
 		
     </div>
 	<button id='close-translate-overlay'>
             <span class="material-icons notranslate">close</span></button>
+</div>
+
+<div id="nexus-translation-store" style="display:none;" aria-hidden="true">
+    <span id="store-comenzando">Comenzando en </span>
+    <span id="store-pausado">Pausado. Presione REANUDAR o NEXT.</span>
+    <span id="store-btn-pausar">Pausar</span>
+    <span id="store-btn-reanudar">Reanudar</span>
 </div>
 
 <script>

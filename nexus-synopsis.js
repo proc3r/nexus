@@ -85,70 +85,115 @@ function renderLibrary() {
 
 // --- GESTIÓN DE MODAL DE SINOPSIS ---
 
-	function showSynopsis(bookId) {
-		
-		if (typeof launchFullScreen === 'function') {
+function showSynopsis(bookId) {
+    if (typeof launchFullScreen === 'function') {
         setTimeout(() => {
             launchFullScreen(document.documentElement);
         }, 0);
     }
-	
-		const book = library.find(b => b.id === bookId);
-		if (!book) return;
-		const startIndex = book.chapters.findIndex(ch => 
-			ch.content && ch.content.some(t => (t || "").trim().startsWith('# Sinopsis'))
-		);
-		if (startIndex !== -1) {
-			const modal = document.getElementById('synopsis-modal');
-			const body = document.getElementById('synopsis-body');
-			let rawText = book.chapters.slice(startIndex)
-				.map(ch => ch.content.join('\n'))
-				.join('\n\n');
-			const lines = rawText.split('\n');
-			let formattedHtml = "";
-			lines.forEach(line => {
-				let cleanLine = line.trim();
-				if (!cleanLine || cleanLine.toLowerCase().startsWith('# sinopsis')) return;
-				const processMD = (str) => {
-					return str
-						.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
-						.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-						.replace(/\*(.*?)\*/g, '<em>$1</em>')
-						.replace(/_(.*?)_/g, '<em>$1</em>');
-				};
-				if (cleanLine.startsWith('##')) {
-					formattedHtml += `<h2 class="synopsis-h2">${cleanLine.replace(/^#+\s*/, '')}</h2>`;
-				} else if (cleanLine.startsWith('>')) {
-					let quoteText = processMD(cleanLine.replace(/^>\s*/, ''));
-					formattedHtml += `<blockquote class="synopsis-quote">${quoteText}</blockquote>`;
-				} else {
-					let text = processMD(cleanLine);
-					formattedHtml += `<p class="synopsis-p">${text}</p>`;
-				}
-			});
+    
+    const book = library.find(b => b.id === bookId);
+    if (!book) return;
+    const startIndex = book.chapters.findIndex(ch => 
+        ch.content && ch.content.some(t => (t || "").trim().startsWith('# Sinopsis'))
+    );
 
-			body.innerHTML = formattedHtml;
-			modal.classList.remove('hidden');
-			document.body.style.overflow = 'hidden';
-			setTimeout(() => {
-				body.scrollTop = 0;
-			}, 10);
-			const readBtn = document.getElementById('btn-synopsis-read');
-			readBtn.onclick = (e) => {
-				e.preventDefault();
-									
-				closeSynopsis();
-				openReader(bookId);
-			};
-			modal.classList.remove('hidden');
-			document.body.style.overflow = 'hidden';
-			modal.onclick = (e) => {
-				if (e.target.id === 'synopsis-modal') {
-					closeSynopsis();
-				}
-			};
-		}
-	}
+    if (startIndex !== -1) {
+        const modal = document.getElementById('synopsis-modal');
+        const body = document.getElementById('synopsis-body');
+        const btnPlay = document.getElementById('btn-synopsis-tts');
+
+        // --- DETECCIÓN DE IDIOMA ---
+        const isTranslated = document.documentElement.lang !== 'es';
+
+        if (isTranslated) {
+            // Solo creamos y mostramos el loader si la página NO está en español
+            let loader = document.getElementById('synopsis-loader');
+            if (!loader) {
+                loader = document.createElement('div');
+                loader.id = 'synopsis-loader';
+                loader.innerHTML = `
+                    <div class="synopsis-spinner"></div>
+                    <div class="synopsis-loader-text">SINCRONIZANDO...</div>
+                `;
+                const modalContent = modal.querySelector('.relative.bg-white\\/5') || modal.children[0];
+                modalContent.appendChild(loader);
+            }
+            loader.style.opacity = '1';
+            loader.classList.remove('hidden');
+            if (btnPlay) btnPlay.disabled = true;
+        }
+
+        // Bloqueo de selección (siempre activo por seguridad visual)
+        if (body) {
+            body.style.userSelect = 'none';
+            body.style.webkitUserSelect = 'none';
+        }
+
+        // (Tu lógica de formateo rawText y lines se mantiene igual...)
+        let rawText = book.chapters.slice(startIndex).map(ch => ch.content.join('\n')).join('\n\n');
+        const lines = rawText.split('\n');
+        let formattedHtml = "";
+        lines.forEach(line => {
+            let cleanLine = line.trim();
+            if (!cleanLine || cleanLine.toLowerCase().startsWith('# sinopsis')) return;
+            const processMD = (str) => {
+                return str
+                    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/_(.*?)_/g, '<em>$1</em>');
+            };
+            if (cleanLine.startsWith('##')) {
+                formattedHtml += `<h2 class="synopsis-h2">${cleanLine.replace(/^#+\s*/, '')}</h2>`;
+            } else if (cleanLine.startsWith('>')) {
+                let quoteText = processMD(cleanLine.replace(/^>\s*/, ''));
+                formattedHtml += `<blockquote class="synopsis-quote">${quoteText}</blockquote>`;
+            } else {
+                let text = processMD(cleanLine);
+                formattedHtml += `<p class="synopsis-p">${text}</p>`;
+            }
+        });
+
+        body.innerHTML = formattedHtml;
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // --- BARRIDO CONDICIONAL ---
+        if (isTranslated) {
+            setTimeout(() => {
+                const totalHeight = body.scrollHeight;
+                body.scrollTo({ top: totalHeight, behavior: 'smooth' });
+                
+                setTimeout(() => {
+                    body.scrollTo({ top: 0, behavior: 'instant' });
+                    const loader = document.getElementById('synopsis-loader');
+                    if (loader) {
+                        loader.style.opacity = '0';
+                        setTimeout(() => loader.classList.add('hidden'), 400);
+                    }
+                    if (btnPlay) btnPlay.disabled = false;
+                }, 900);
+            }, 200);
+        } else {
+            // Si está en español, aseguramos que el botón esté habilitado y no haya scroll
+            if (btnPlay) btnPlay.disabled = false;
+            body.scrollTop = 0;
+        }
+        
+        // (Eventos readBtn y modal.onclick se mantienen igual...)
+        const readBtn = document.getElementById('btn-synopsis-read');
+        readBtn.onclick = (e) => {
+            e.preventDefault();
+            closeSynopsis();
+            openReader(bookId);
+        };
+								
+        modal.onclick = (e) => {
+            if (e.target.id === 'synopsis-modal') closeSynopsis();
+        };
+    }
+}
 	
 	function toggleSynopsisSpeedMenu(event) {
 		if (event) event.stopPropagation(); // ¡Importante! Evita el cierre inmediato
@@ -211,77 +256,128 @@ function closeSynopsis() {
 
 // --- LÓGICA DE VOZ PARA SINOPSIS ---
 
-	function startSynopsisTTS() {
-		
-		if (typeof podAudioInstance !== 'undefined' && podAudioInstance && !podAudioInstance.paused) {
-        // Guardamos una bandera para saber que debemos reanudarlo después
-			window.wasPodcastPlayingBeforeTTS = true;
-			togglePodcastPlay(false);
-		} else {
-			window.wasPodcastPlayingBeforeTTS = false;
-		}
-	
-		const body = document.getElementById('synopsis-body');
-		if (!body) return;
-		
-		window.speechSynthesis.cancel();
-		synth.cancel();
-		synopsisSubChunks = [];
-		currentSynopsisIdx = 0;
-		let textToRead = body.innerText;
-		textToRead = textToRead.replace(/^>\s*-\s*/gm, "… ");
-		textToRead = textToRead.replace(/^-\s+/gm, "… ");
-		textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ])\s*-\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1 … $2");
-		textToRead = textToRead.replace(/\*\*\*/g, '')
-							   .replace(/\*\*/g, '')
-							   .replace(/\*/g, '')
-							   .replace(/_/g, '');
-		textToRead = textToRead.replace(/\s+-\s+([a-zA-Z])/g, " … $1");
-		textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ0-9])\s*—\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1,$2");
-		document.getElementById('btn-synopsis-tts').classList.add('hidden');
-		document.getElementById('btn-synopsis-stop').classList.remove('hidden');
-		synopsisSubChunks = splitTextSmartly(textToRead, 140);
-		function speakNextSynopsis() {
-			const modalVisible = !document.getElementById('synopsis-modal').classList.contains('hidden');
-			if (!modalVisible || currentSynopsisIdx >= synopsisSubChunks.length) {
-				stopSynopsisTTS();
-				 if (window.wasPodcastPlayingBeforeTTS) {
-					togglePodcastPlay(true);
-					window.wasPodcastPlayingBeforeTTS = false;
-				}
-				
-				return;
-			}
-			const currentText = synopsisSubChunks[currentSynopsisIdx].trim();
-			if (currentText.length === 0) {
-				currentSynopsisIdx++;
-				speakNextSynopsis();
-				return;
-			}
-			const utter = new SpeechSynthesisUtterance(currentText);
-			utter.lang = 'es-ES';
-			utter.rate = synopsisSpeechRate; // <--- Cambiado de 1.0 a la variable
-			utter.onend = () => {
-				currentSynopsisIdx++;
-				speakNextSynopsis();
-			};
-			utter.onerror = () => stopSynopsisTTS();
-			window.speechSynthesis.speak(utter);
-		}
-		speakNextSynopsis();
-	}
-
-	function stopSynopsisTTS() {
-		window.speechSynthesis.cancel();
-		synopsisSubChunks = [];
-		currentSynopsisIdx = 0;
-		document.getElementById('btn-synopsis-stop').classList.add('hidden');
-		document.getElementById('btn-synopsis-tts').classList.remove('hidden');
-		
-		if (window.wasPodcastPlayingBeforeTTS) {
-        togglePodcastPlay(true);
+function startSynopsisTTS() {
+    // 1. GESTIÓN DE AUDIO PREVIO (Podcast)
+    // Guardamos el estado para reanudarlo al terminar la lectura
+    if (typeof podAudioInstance !== 'undefined' && podAudioInstance && !podAudioInstance.paused) {
+        window.wasPodcastPlayingBeforeTTS = true;
+        if (typeof togglePodcastPlay === 'function') togglePodcastPlay(false);
+    } else {
         window.wasPodcastPlayingBeforeTTS = false;
     }
 
-	}
+    const body = document.getElementById('synopsis-body');
+    if (!body) return;
+    
+    // 2. LIMPIEZA DE SÍNTESIS PREVIA
+    window.speechSynthesis.cancel();
+    if (window.synth) window.synth.cancel();
+    synopsisSubChunks = [];
+    currentSynopsisIdx = 0;
 
+    // 3. PREPARACIÓN DEL TEXTO 
+    // Captura el texto del DOM (si hubo barrido de traducción, ya vendrá traducido)
+    let textToRead = body.innerText; 
+
+    // Limpieza de formato Markdown y caracteres especiales
+    textToRead = textToRead.replace(/^>\s*-\s*/gm, "… ");
+    textToRead = textToRead.replace(/^-\s+/gm, "… ");
+    textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ])\s*-\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1 … $2");
+    textToRead = textToRead.replace(/\*\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/_/g, '');
+    textToRead = textToRead.replace(/\s+-\s+([a-zA-Z])/g, " … $1");
+    textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ0-9])\s*—\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1,$2");
+
+    // Gestión de Interfaz: Ocultar Play, Mostrar Stop
+    const btnPlay = document.getElementById('btn-synopsis-tts');
+    const btnStop = document.getElementById('btn-synopsis-stop');
+    if (btnPlay) btnPlay.classList.add('hidden');
+    if (btnStop) btnStop.classList.remove('hidden');
+
+    // Segmentación inteligente (usando el límite de 140 caracteres para mejor entonación)
+    if (typeof splitTextSmartly === 'function') {
+        synopsisSubChunks = splitTextSmartly(textToRead, 140);
+    } else {
+        synopsisSubChunks = [textToRead];
+    }
+
+    // 4. FUNCIÓN INTERNA DE LOCUCIÓN (Recursiva)
+    function speakNextSynopsis() {
+        const modal = document.getElementById('synopsis-modal');
+        const modalVisible = modal && !modal.classList.contains('hidden');
+        
+        // Finalización por fin de texto o cierre del modal
+        if (!modalVisible || currentSynopsisIdx >= synopsisSubChunks.length) {
+            stopSynopsisTTS(); // Esta función debe encargarse de reanudar el podcast
+            return;
+        }
+
+        const currentText = synopsisSubChunks[currentSynopsisIdx].trim();
+        if (currentText.length === 0) {
+            currentSynopsisIdx++;
+            speakNextSynopsis();
+            return;
+        }
+
+        const utter = new SpeechSynthesisUtterance(currentText);
+
+        // --- AJUSTE DE IDIOMA DINÁMICO ---
+        // Ahora usará la versión corregida que detecta si el original está abierto
+        utter.lang = (typeof getTTSLanguageCode === 'function') ? getTTSLanguageCode() : 'es-ES';
+        
+        // --- AJUSTE DE VELOCIDAD ---
+        // Sincronizamos con el lector principal (window.readerSpeechRate) 
+        // o con la de la sinopsis si esa falla.
+       // utter.rate = window.readerSpeechRate || synopsisSpeechRate || 1.1;
+		utter.rate = synopsisSpeechRate; // <--- Cambiado de 1.0 a la variable
+		
+        utter.onend = () => {
+            currentSynopsisIdx++;
+            speakNextSynopsis();
+        };
+
+        utter.onerror = (e) => {
+            if (e.error !== 'interrupted') {
+                console.error("Synopsis TTS Error:", e.error);
+                stopSynopsisTTS();
+            }
+        };
+
+        // Limpieza de cualquier audio residual justo antes de hablar
+        window.speechSynthesis.cancel(); 
+        window.speechSynthesis.speak(utter);
+    }
+
+    // Iniciar la cadena de locución
+    speakNextSynopsis();
+}
+
+
+	function stopSynopsisTTS() {
+    // Detención total de síntesis
+    window.speechSynthesis.cancel();
+    synopsisSubChunks = [];
+    currentSynopsisIdx = 0;
+
+    // Gestión de Interfaz
+    const btnStop = document.getElementById('btn-synopsis-stop');
+    const btnPlay = document.getElementById('btn-synopsis-tts');
+    if (btnStop) btnStop.classList.add('hidden');
+    if (btnPlay) btnPlay.classList.remove('hidden');
+    
+    // Reanudación de podcast si estaba activo
+    if (window.wasPodcastPlayingBeforeTTS) {
+        if (typeof togglePodcastPlay === 'function') {
+            togglePodcastPlay(true);
+        }
+        window.wasPodcastPlayingBeforeTTS = false;
+    }
+}
+
+function renderSynopsisContent(content) {
+    const synopsisBody = document.getElementById('synopsis-body-content'); // Ajusta al ID real
+    if (synopsisBody) {
+        // Añadimos 'notranslate' para evitar que Google inyecte etiquetas que capten clics
+        synopsisBody.classList.add('notranslate');
+        synopsisBody.innerHTML = content;
+    }
+}

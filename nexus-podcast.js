@@ -5,9 +5,16 @@
 let podAudioInstance = null; // Evita conflicto con TTS
 let podActiveBookId = null;
 let podTimer = null;
+let currentSubtitles = []; // Almacena los subtítulos del libro activo
+let lastSubtitleIndex = -1; // Control para evitar parpadeos
+const SUBTITLE_OFFSET = 0.35; // Ajuste de sincronización (adelanto de 0.35s)
+let translatedSubtitlesCache = []; // Nueva variable para guardar las frases ya traducidas
+let currentPodSpeed = 0.8; // Velocidad inicial deseada
 
 // Canal de comunicación para evitar audios simultáneos en varias pestañas
 const podcastChannel = new BroadcastChannel('nexus_podcast_sync');
+let isTranslationPending = false; // Bloqueador de audio
+
 
 podcastChannel.onmessage = (event) => {
     if (event.data === 'pause_others') {
@@ -18,13 +25,14 @@ podcastChannel.onmessage = (event) => {
     }
 };
 
+
+
 function initPodcast(bookId) {
-	
-	// --- NUEVO: ACTIVAR FULLSCREEN AL INICIAR PODCAST ---
-    if (typeof launchFullScreen === 'function') {
+    // --- NUEVO: ACTIVAR FULLSCREEN AL INICIAR PODCAST ---
+    /* if (typeof launchFullScreen === 'function') {
         launchFullScreen(document.documentElement);
-    }
-	
+    }*/
+    
     // Buscamos el libro en la librería global
     const book = library.find(b => b.id === bookId);
     if (!book || !book.podcastUrl) return;
@@ -38,11 +46,19 @@ function initPodcast(bookId) {
         return;
     }
 
-    // Limpiar instancia previa
+    // Limpiar instancia previa y resetear subtítulos anteriores
     if (podAudioInstance) {
         podAudioInstance.pause();
         clearInterval(podTimer);
     }
+    
+    // --- AJUSTE PARA SUBTÍTULOS: Reset de estados antes de cargar el nuevo libro ---
+    currentSubtitles = []; 
+    lastSubtitleIndex = -1; // Reset del control de parpadeo
+    const subTextEl = document.getElementById('pod-subtitle-text');
+    if (subTextEl) subTextEl.innerText = "";
+    const subWindow = document.getElementById('pod-subtitles-window');
+    if (subWindow) subWindow.classList.add('hidden'); // Ocultar ventana mientras carga el nuevo
 
     // Actualizar badges visuales en la biblioteca
     document.querySelectorAll('.podcast-badge-btn').forEach(btn => btn.classList.remove('active'));
@@ -55,13 +71,16 @@ function initPodcast(bookId) {
 
     const fullUrl = book.podcastUrl.startsWith('http') ? book.podcastUrl : (typeof AUDIO_BASE_URL !== 'undefined' ? AUDIO_BASE_URL + book.podcastUrl : book.podcastUrl);
     
+    // Genera la URL del SRT reemplazando la extensión del audio
+    const srtUrl = fullUrl.replace(/\.(mp3|m4a|wav|ogg)$/i, '.srt');
+    
     podAudioInstance.src = fullUrl;
     document.getElementById('podcast-book-title').innerText = book.title;
     
     playerContainer.classList.remove('hidden');
     playerContainer.style.display = 'flex';
 
-    // NUEVO: Detector de finalización para abrir el Portal
+    // Detector de finalización para abrir el Portal
     podAudioInstance.onended = () => {
         showPodcastEndPortal(podActiveBookId);
     };
@@ -70,32 +89,109 @@ function initPodcast(bookId) {
     const savedTime = localStorage.getItem(`pod-pos-${bookId}`);
     
     podAudioInstance.load();
-    podAudioInstance.onloadedmetadata = () => {
+   
+   podAudioInstance.onloadedmetadata = () => {
         if (savedTime) podAudioInstance.currentTime = parseFloat(savedTime);
         document.getElementById('pod-progress').max = Math.floor(podAudioInstance.duration);
         
-        // Sincronizar volumen actual del slider con la instancia de audio
-        const volSlider = document.getElementById('pod-volume-slider');
-        if (volSlider) podAudioInstance.volume = volSlider.value;
+		// --- CONTROL DE VELOCIDAD INICIAL ---
+			currentPodSpeed = 0.8;
+				podAudioInstance.playbackRate = currentPodSpeed;
+				const speedBtn = document.getElementById('pod-speed-btn');
+				if (speedBtn) {
+					speedBtn.innerText = "0.8x";
+					speedBtn.style.color = "#00e676"; // Color de "modo estudio" activo
+					speedBtn.style.borderColor = "#00e676";
+				}
+	
+        // Determinamos el idioma real
+        const targetLang = localStorage.getItem('nexus_preferred_lang') || 'es';
         
+        // --- LÓGICA DIRECTA PARA ESPAÑOL ---
+        if (targetLang === 'es' || targetLang === 'es-ES') {
+            console.log("Nexus: Modo Español Directo.");
+            isTranslationPending = false; 
+            
+            // Ocultamos cualquier mensaje de "Processing"
+            const subWindow = document.getElementById('pod-subtitles-window');
+            if (subWindow) subWindow.classList.add('hidden');
+
+            // Cargamos el SRT normalmente (sin traducir)
+            if (typeof cargarSubtitulos === 'function') {
+                cargarSubtitulos(srtUrl);
+            }
+
+            togglePodcastPlay(true);
+            startPodTimer();
+        } 
+        // --- LÓGICA PARA OTROS IDIOMAS ---
+        else {
+            isTranslationPending = true;
+            const subTextEl = document.getElementById('pod-subtitle-text');
+            if (subTextEl) subTextEl.innerText = "Synchronizing transcription...";
+            
+            podAudioInstance.pause();
+            if (typeof cargarSubtitulos === 'function') {
+                cargarSubtitulos(srtUrl);
+            }
+        }
         updatePlaybackUI();
     };
-
-    togglePodcastPlay(true);
-    startPodTimer();
+    
     setupMediaSession(book);
 }
 
+
 function updatePlaybackUI() {
     if (!podAudioInstance) return;
-    const currentTime = podAudioInstance.currentTime;
-    const duration = podAudioInstance.duration || 0;
     
+    const currentTime = podAudioInstance.currentTime;
     const progressEl = document.getElementById('pod-progress');
     if (progressEl) progressEl.value = Math.floor(currentTime);
-    
     const timeEl = document.getElementById('pod-time');
-    if (timeEl) timeEl.innerText = `${formatPodTime(currentTime)} / ${formatPodTime(duration)}`;
+    if (timeEl) timeEl.innerText = `${formatPodTime(currentTime)} / ${formatPodTime(podAudioInstance.duration || 0)}`;
+
+    const subTextEl = document.getElementById('pod-subtitle-text');
+    const subWindow = document.getElementById('pod-subtitles-window');
+    if (!subTextEl || !subWindow) return;
+
+    // SEGURIDAD: Si no hay subtítulos, ocultamos y salimos
+    if (!currentSubtitles || currentSubtitles.length === 0) {
+        if (!subWindow.classList.contains('hidden')) subWindow.classList.add('hidden');
+        return;
+    }
+
+    // Mientras se traduce, mostramos el mensaje de espera
+    if (typeof isTranslationPending !== 'undefined' && isTranslationPending) {
+        subTextEl.innerText = "Synchronizing transcription...";
+        subWindow.classList.remove('hidden');
+        return;
+    }
+
+    const lookupTime = currentTime + SUBTITLE_OFFSET;
+    const subIndex = currentSubtitles.findIndex(s => lookupTime >= s.start && lookupTime <= s.end);
+    
+    if (subIndex === lastSubtitleIndex) return;
+    lastSubtitleIndex = subIndex;
+
+    if (subIndex !== -1) {
+        subTextEl.classList.add('notranslate');
+        
+        // --- MOTOR DE TEXTO ---
+        // 1. Prioridad: Caché de traducción (para idiomas extranjeros)
+        // 2. Fallback: Texto original (para Español)
+        let textToDisplay = translatedSubtitlesCache[subIndex] || currentSubtitles[subIndex].text;
+        
+        if (textToDisplay) {
+            subTextEl.innerText = textToDisplay;
+            subWindow.classList.remove('hidden');
+        } else {
+            subWindow.classList.add('hidden');
+        }
+    } else {
+        subTextEl.innerText = "";
+        subWindow.classList.add('hidden');
+    }
 }
 
 function togglePodcastPlay(forcePlay = false) {
@@ -103,10 +199,30 @@ function togglePodcastPlay(forcePlay = false) {
     const btn = document.getElementById('pod-play-pause');
     
     if (podAudioInstance.paused || forcePlay) {
-        podcastChannel.postMessage('pause_others');
-        podAudioInstance.play().catch(e => console.log("Error play:", e));
+        // 1. Feedback visual imediato
         if (btn) btn.innerHTML = '<span class="material-icons">pause</span>';
+        
+        // Notificar outros canais para pausar
+        podcastChannel.postMessage('pause_others');
+        
+        // --- AJUSTE DE VELOCIDAD ---
+        // Aseguramos que use la velocidad guardada (ej. 0.8) antes de arrancar
+        podAudioInstance.playbackRate = currentPodSpeed;
+        // ---------------------------
+        
+        // 2. Iniciamos a tentativa de reprodução
+        const playPromise = podAudioInstance.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log("Nexus: Audio iniciado correctamente a " + currentPodSpeed + "x");
+            }).catch(e => {
+                console.log("Nexus: Error en play controlado:", e);
+                if (btn) btn.innerHTML = '<span class="material-icons">play_arrow</span>';
+            });
+        }
     } else {
+        // Pause normal
         podAudioInstance.pause();
         if (btn) btn.innerHTML = '<span class="material-icons">play_arrow</span>';
     }
@@ -168,25 +284,32 @@ function togglePodMute() {
 }
 
 function closePodcast() {
-     if (podAudioInstance) {
+    if (podAudioInstance) {
         podAudioInstance.pause();
-        podAudioInstance.src = ""; // Limpia la fuente para que no quede "cargado"
+        podAudioInstance.src = ""; 
         clearInterval(podTimer);
     }
+    
+    // Borramos el almacén temporal de traducción
+    const preTranslateDiv = document.getElementById('pod-pre-translate');
+    if (preTranslateDiv) preTranslateDiv.remove();
+    
+    translatedSubtitlesCache = [];
+    isTranslationReady = false;
+
     const playerContainer = document.getElementById('podcast-player-container');
     if (playerContainer) {
         playerContainer.classList.add('hidden');
         playerContainer.style.display = 'none';
     }
+    
+    const subWindow = document.getElementById('pod-subtitles-window');
+    if (subWindow) subWindow.classList.add('hidden');
+
     document.querySelectorAll('.podcast-badge-btn').forEach(btn => btn.classList.remove('active'));
     podActiveBookId = null;
+    lastSubtitleIndex = -1;
 }
-
-window.stopAndHidePodcast = function() {
-    if (podAudioInstance) {
-        closePodcast();
-    }
-};
 
 /**
  * FUNCIONALIDADES DEL PORTAL DE RESONANCIA
@@ -294,3 +417,162 @@ document.addEventListener('DOMContentLoaded', () => {
         muteBtn.addEventListener('click', togglePodMute);
     }
 });
+
+// --- FUNCIONES DE SOPORTE PARA SUBTÍTULOS SRT ---
+
+// --- ACTUALIZA ESTA FUNCIÓN (Ajuste para forzar la traducción de Google) ---
+
+
+
+
+async function cargarSubtitulos(url) {
+    try {
+        // Reset de estados para la nueva carga/traducción
+        lastSubtitleIndex = -1;
+        currentSubtitles = [];
+        translatedSubtitlesCache = [];
+        isTranslationPending = true;
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            console.log("Nexus: SRT no encontrado.");
+            isTranslationPending = false;
+            // Solo intentamos dar play si el audio existe y está pausado
+            if (podAudioInstance && podAudioInstance.paused) { 
+                togglePodcastPlay(true); 
+                startPodTimer(); 
+            }
+            return;
+        }
+
+        const data = await response.text();
+        currentSubtitles = parseSRT(data);
+
+        // DETERMINACIÓN DE IDIOMA
+        let targetLang = localStorage.getItem('nexus_preferred_lang') || 'es';
+        
+        // --- BLINDAJE PARA ESPAÑOL (FLUJO RÁPIDO) ---
+        if (targetLang === 'es' || targetLang === 'es-ES' || targetLang === '') {
+            console.log("Nexus: [FLUJO RÁPIDO] Español detectado. Saltando traducción.");
+            
+            isTranslationPending = false; 
+
+            if (podAudioInstance && podActiveBookId) {
+                // CAMBIO DINÁMICO: Solo damos Play si estaba pausado. 
+                // Si ya estaba sonando (cambio de idioma en vivo), no lo tocamos.
+                if (podAudioInstance.paused) {
+                    togglePodcastPlay(true);
+                }
+                startPodTimer();
+            }
+            return; 
+        }
+
+        // --- FLUJO TRADUCCIÓN (IDIOMAS EXTRANJEROS) ---
+        console.log("Nexus: [FLUJO TRADUCCIÓN] Idioma: " + targetLang);
+        ejecutarFlujoTraduccion();
+
+    } catch (e) {
+        console.error("Nexus: Error en carga:", e);
+        isTranslationPending = false;
+        if (podAudioInstance && podAudioInstance.paused) { 
+            togglePodcastPlay(true); 
+            startPodTimer(); 
+        }
+    }
+}
+
+
+function ejecutarFlujoTraduccion() {
+    let preTranslateDiv = document.getElementById('pod-pre-translate');
+    if (preTranslateDiv) preTranslateDiv.remove();
+
+    preTranslateDiv = document.createElement('div');
+    preTranslateDiv.id = 'pod-pre-translate';
+    preTranslateDiv.setAttribute('style', 'position:fixed; top:0; left:0; width:400px; height:400px; overflow-y:scroll; opacity:0.01; z-index:10000; background:white; color:black; pointer-events:none;');
+    
+    preTranslateDiv.innerHTML = currentSubtitles.map((s, i) => 
+        `<p id="pre-sub-${i}" style="margin:10px 0; display:block;">${s.text}</p>`
+    ).join('');
+    
+    document.body.appendChild(preTranslateDiv);
+
+    let scrollStep = 0;
+    const scrollInterval = setInterval(() => {
+        scrollStep++;
+        preTranslateDiv.scrollTop = (preTranslateDiv.scrollHeight / 5) * scrollStep;
+        if (scrollStep >= 5) clearInterval(scrollInterval);
+    }, 300);
+
+    let attempts = 0;
+    const checkTranslation = setInterval(() => {
+        attempts++;
+        let translatedCount = 0;
+
+        currentSubtitles.forEach((sub, i) => {
+            const el = document.getElementById(`pre-sub-${i}`);
+            if (el) {
+                const hasTags = el.innerHTML.includes('<font') || el.innerHTML.includes('<span');
+                const textChanged = el.innerText.trim() !== sub.text.trim();
+                if (hasTags || textChanged) {
+                    translatedSubtitlesCache[i] = el.innerText;
+                    translatedCount++;
+                }
+            }
+        });
+
+        if (translatedCount >= currentSubtitles.length * 0.90 || attempts > 20) {
+            clearInterval(checkTranslation);
+            isTranslationPending = false;
+            preTranslateDiv.style.display = 'none';
+            console.log("Nexus: Traducción completa.");
+            if (podAudioInstance && podActiveBookId) {
+                togglePodcastPlay(true);
+                startPodTimer();
+            }
+        }
+    }, 600);
+}
+
+function parseSRT(data) {
+    const regex = /(\d+)\n(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})\n([\s\S]*?)(?=\n{2}|\n$|$)/g;
+    let match;
+    const subs = [];
+    while ((match = regex.exec(data)) !== null) {
+        subs.push({
+            start: srtTimeToSeconds(match[2]),
+            end: srtTimeToSeconds(match[3]),
+            text: match[4].replace(/\n/g, ' ').trim()
+        });
+    }
+    return subs;
+}
+
+function srtTimeToSeconds(timeStr) {
+    const [hms, ms] = timeStr.split(',');
+    const [h, m, s] = hms.split(':').map(Number);
+    return h * 3600 + m * 60 + s + Number(ms) / 1000;
+}
+
+window.stopAndHidePodcast = closePodcast;
+
+function changePodSpeed() {
+    if (!podAudioInstance) return;
+    
+    // Toggle simple entre 0.8 y 1.0
+    currentPodSpeed = (currentPodSpeed === 0.8) ? 1.0 : 0.8;
+    
+    // Aplicar al audio
+    podAudioInstance.playbackRate = currentPodSpeed;
+    
+    // Actualizar el texto del botón
+    const speedBtn = document.getElementById('pod-speed-btn');
+    if (speedBtn) {
+        speedBtn.innerText = currentPodSpeed + "x";
+        
+        // Cambio visual: si está en 1.0x (normal) se ve estándar, 
+        // si está en 0.8x (estudio) resalta un poco más
+        speedBtn.style.color = (currentPodSpeed === 1.0) ? "#fff" : "#00e676";
+        speedBtn.style.borderColor = (currentPodSpeed === 1.0) ? "rgba(255,255,255,0.3)" : "#00e676";
+    }
+}

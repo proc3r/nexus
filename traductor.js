@@ -1,12 +1,34 @@
+// EJECUCIÓN INMEDIATA
+(function() {
+    const preferredLang = localStorage.getItem('nexus_preferred_lang');
+    // Si ya existe idioma, ocultamos el portal antes de que el usuario lo vea
+    if (preferredLang) {
+        document.write('<style>#welcome-portal { display: none !important; }</style>');
+    }
+})();
+
+let isNexusProcessingLang = false;
+
 // traductor.js - Adaptación fiel del código original para Nexus
 
 document.addEventListener("DOMContentLoaded", function () {
     let googleTranslateInitialized = false; 
 
     const translateOverlay = document.getElementById("translate-overlay");
+    const welcomePortal = document.getElementById('welcome-portal');
+    const isNewUser = !localStorage.getItem('nexus_preferred_lang');
+
+    // Mover el widget al portal si es un usuario nuevo (Al cargar la página)
+    if (isNewUser && welcomePortal) {
+        const googleElement = document.getElementById('google_translate_element');
+        const portalContainer = document.getElementById('google_portal_element');
+        if (googleElement && portalContainer) {
+            portalContainer.appendChild(googleElement);
+			
+        }
+    }
 
     // 1. GESTIÓN DE EVENTOS (Mapeo de botones .translate-toggle)
-    // Usamos delegación para que funcione en el Header y en el Lector Interno
     document.body.addEventListener("click", function (event) {
         const btnAbrir = event.target.closest(".translate-toggle");
         
@@ -14,7 +36,25 @@ document.addEventListener("DOMContentLoaded", function () {
             event.preventDefault();
             console.log("Botón de traducción presionado.");
 
-            // Alternar interfaz de traducción (Lógica original)
+            // MEJORA: Si el portal de bienvenida estaba abierto, lo cerramos
+            if (welcomePortal) {
+                welcomePortal.style.display = "none";
+            }
+
+            // Al abrir el modal normal, aseguramos que el widget de Google regrese a él
+            const googleElement = document.getElementById('google_translate_element');
+            const normalContainer = translateOverlay.querySelector('.overlay-content');
+            if (googleElement && normalContainer) {
+                // Lo insertamos antes del botón de cierre para que no pierda el estilo
+                const btnCerrarOriginal = document.getElementById('close-translate-overlay');
+                if (btnCerrarOriginal) {
+                    normalContainer.insertBefore(googleElement, btnCerrarOriginal);
+                } else {
+                    normalContainer.appendChild(googleElement);
+                }
+            }
+
+            // Alternar interfaz de traducción
             translateOverlay.style.display = translateOverlay.style.display === "none" ? "flex" : "none";
 
             if (!googleTranslateInitialized) {
@@ -22,59 +62,88 @@ document.addEventListener("DOMContentLoaded", function () {
                 googleTranslateInitialized = true;
             }
 
-            // Permitir interacción temporal con Google Translate (Lógica original)
             desactivarRestriccionesGoogleTranslate();
-
-            // Agregar el listener para cerrar el menú al hacer scroll
             window.addEventListener("scroll", cerrarMenuAlScroll);
         }
 
-        // Mapeo del botón de cierre
+        // Mapeo del botón de cierre del modal NORMAL
         const btnCerrar = event.target.closest("#close-translate-overlay");
         if (btnCerrar && translateOverlay) {
             console.log("Botón de cierre presionado. Ocultando el menú de selección de idiomas.");
             translateOverlay.style.display = "none";
-            // Reactivamos restricciones al cerrar manualmente
             activarRestriccionesGoogleTranslate();
             window.removeEventListener("scroll", cerrarMenuAlScroll);
         }
     });
 
-    // 2. FUNCIÓN DE SCROLL (Original)
-    function cerrarMenuAlScroll() {
+   
+
+   
+
+// 2. FUNCIÓN DE SCROLL (Corregida para ser global)
+    // Al quitar "function" y usar window. la hacemos visible para todo el archivo
+    window.cerrarMenuAlScroll = function() {
+        const translateOverlay = document.getElementById("translate-overlay"); // Aseguramos referencia
         if (translateOverlay && translateOverlay.style.display === "flex") {
             console.log("Scroll detectado. Cerrando el menú de selección de idiomas.");
             translateOverlay.style.display = "none";
-            activarRestriccionesGoogleTranslate();
-            window.removeEventListener("scroll", cerrarMenuAlScroll);
-        }
-    }
-
-    // 3. INICIALIZACIÓN DE GOOGLE (Configuración original)
-    window.googleTranslateElementInit = function() {
-        console.log("Inicializando Google Translate...");
-        new google.translate.TranslateElement({
-            pageLanguage: "es",
-            layout: google.translate.TranslateElement.InlineLayout.VERTICAL,
-            autoDisplay: false,
-            includedLanguages: "en,zh-CN,es,hi,fr,ar,bn,pt,ru,id,ur,de,ja,it,tr,sw,ko,vi"
-        }, "google_translate_element");
-
-        // Observar cambios en el idioma seleccionado
-        setTimeout(() => {
-            const googleTranslateDropdown = document.querySelector('.goog-te-combo');
-            if (googleTranslateDropdown) {
-                googleTranslateDropdown.addEventListener('change', async () => {
-                    console.log("Idioma seleccionado. Ocultando el menú.");
-
-                    translateOverlay.style.display = "none"; // Ocultar automáticamente
-
-                    // Reactivar restricciones tras seleccionar
-                    activarRestriccionesGoogleTranslate();
-                });
+            if (typeof activarRestriccionesGoogleTranslate === 'function') {
+                activarRestriccionesGoogleTranslate();
             }
-        }, 800);
-    }
+            window.removeEventListener("scroll", window.cerrarMenuAlScroll);
+        }
+    };
+	
+// 3. INICIALIZACIÓN DE GOOGLE (Configuración original - Ajuste: Sin 'es' en la lista)
+window.googleTranslateElementInit = function() {
+    new google.translate.TranslateElement({
+        pageLanguage: "es",
+        layout: google.translate.TranslateElement.InlineLayout.VERTICAL,
+        autoDisplay: false,
+        // CLAVE: Se elimina 'es' de esta lista para que el usuario use "Mostrar Original" 
+        // y así evitar el bug de colisión del widget de Google.
+        includedLanguages: "en,zh-CN,hi,fr,ar,bn,pt,ru,id,ur,de,ja,it,tr,sw,ko,vi"
+    }, "google_translate_element");
+
+    setTimeout(() => {
+        const googleTranslateDropdown = document.querySelector('.goog-te-combo');
+        if (googleTranslateDropdown) {
+            googleTranslateDropdown.addEventListener('change', async () => {
+                // Bloqueo de re-entrada para evitar que Google anule el cambio
+                if (isNexusProcessingLang) return;
+                isNexusProcessingLang = true;
+
+                const selectedLang = googleTranslateDropdown.value;
+                console.log("Nexus: Google Widget detectó cambio a:", selectedLang);
+
+                // Si es español, aseguramos limpieza total de cookies
+                if (selectedLang === 'es') {
+                    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.host;
+                }
+
+                localStorage.setItem('nexus_preferred_lang', selectedLang);
+
+                // Cerramos interfaces
+                const portal = document.getElementById("welcome-portal");
+                const overlay = document.getElementById("translate-overlay");
+                if (portal) portal.style.display = "none";
+                if (overlay) overlay.style.display = "none";
+                
+                // Aumentamos el delay a 400ms para que Google asiente el DOM
+                // antes de que nexus-voice intente leerlo
+                setTimeout(() => {
+                    cambiarIdioma(selectedLang);
+                    isNexusProcessingLang = false; // Liberamos el bloqueo
+                }, 400); 
+
+                if (typeof activarRestriccionesGoogleTranslate === 'function') {
+                    activarRestriccionesGoogleTranslate();
+                }
+            });
+        }
+    }, 800);
+}
 
     // 4. ELIMINAR TOOLTIPS (MutationObserver original)
     function eliminarGoogleTranslateTooltips() {
@@ -100,6 +169,9 @@ document.addEventListener("DOMContentLoaded", function () {
             googleTranslateDropdown.style.pointerEvents = 'auto';
         }
     }
+	
+	
+	
 
     function activarRestriccionesGoogleTranslate() {
         // Evitar duplicados
@@ -108,7 +180,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const styleTag = document.createElement("style");
         styleTag.id = "custom-google-translate-style";
         styleTag.innerHTML = `
-            .goog-te-banner-frame {
+            .goog-te-banner-frame, #goog-gt-tt, .goog-te-balloon-frame, .goog-tooltip {
                 display: none !important;
                 visibility: hidden !important;
                 opacity: 0 !important;
@@ -122,8 +194,10 @@ document.addEventListener("DOMContentLoaded", function () {
 			}
             .skiptranslate {
                 pointer-events: none !important;
-                opacity: 60%;
+                opacity: 10%;
             }
+			
+			
         `;
         document.head.appendChild(styleTag);
 
@@ -134,7 +208,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Activar restricciones iniciales
-    activarRestriccionesGoogleTranslate();
+    
 });
 
 // Carga del motor de Google
@@ -159,3 +233,178 @@ document.getElementById("translate-overlay").addEventListener("click", function 
         console.log("Modal de traducción cerrado al hacer clic en el fondo.");
     }
 });
+
+/**
+ * Limpia las cookies de traducción y recarga la página
+ * para forzar que el texto vuelva a ser el original del archivo .md
+ */
+function restaurarOriginalYRefrescar() {
+    console.log("Nexus: Eliminando rastro de traducción y refrescando...");
+
+    // NUEVO: Forzamos que la preferencia sea español antes de recargar
+    localStorage.setItem('nexus_preferred_lang', 'es'); 
+
+    // 1. Borrar la cookie 'googtrans'
+    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.host;
+    
+    location.reload();
+}
+
+// Variable global para controlar la espera
+window.isWaitingForTranslation = false;
+
+/**
+ * Función que "promete" esperar a la traducción
+ * @param {HTMLElement} targetNode - El contenedor del texto (#reading-container)
+ */
+function waitForTranslation(targetNode) {
+    return new Promise((resolve) => {
+        // Si no hay traducción activa (el html no tiene clase 'translated'), resolvemos de inmediato
+        if (!document.documentElement.classList.contains('translated') && 
+            document.cookie.indexOf('googtrans=/es/es') !== -1) {
+            resolve();
+            return;
+        }
+
+        const observer = new MutationObserver((mutations, obs) => {
+            // Google Translate suele añadir clases o cambiar el texto
+            // Verificamos si el nodo ya no tiene el texto original en español
+            // o si Google ha inyectado sus etiquetas <font>
+            const hasBeenTranslated = targetNode.querySelector('font') || 
+                                     !targetNode.innerText.includes(window.originalTextSent);
+
+            if (hasBeenTranslated) {
+                obs.disconnect();
+                setTimeout(resolve, 100); // Un pequeño margen de seguridad
+            }
+        });
+
+        observer.observe(targetNode, { childList: true, subtree: true, characterData: true });
+        
+        // Timeout de seguridad: si en 3 segundos no traduce, lee lo que haya
+        setTimeout(() => {
+            observer.disconnect();
+            resolve();
+        }, 3000);
+    });
+}
+
+/**
+ * Obtiene el código de idioma actual de la cookie de Google Translate
+ * Retorna el código (ej: 'en', 'fr', 'de') o 'es' por defecto.
+ */
+function getCurrentGoogleLang() {
+    // 1. Prioridad: Revisar si la página YA está traducida visualmente
+    const isTranslated = document.documentElement.classList.contains('translated-ltr') || 
+                         document.documentElement.classList.contains('translated-rtl');
+    
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; googtrans=`);
+    
+    if (parts.length === 2) {
+        const langPath = parts.pop().split(';').shift(); 
+        const lang = langPath.split('/').pop();
+        if (lang === 'es') return 'es';
+        return lang;
+    }
+    
+    // Si no hay cookie pero la clase existe, intentamos sacar el idioma del localStorage
+    if (isTranslated) {
+        return localStorage.getItem('nexus_preferred_lang') || 'es';
+    }
+
+    return 'es'; 
+}
+
+/**
+ * Mapea el código de Google al formato de idioma de las voces TTS
+ */
+function getTTSLanguageCode() {
+    // CLAVE: Si Google no tiene estas clases, el usuario está viendo el ORIGINAL
+    const isTranslated = document.documentElement.classList.contains('translated-ltr') || 
+                         document.documentElement.classList.contains('translated-rtl');
+
+    if (!isTranslated) {
+        return 'es-ES'; // Forzamos español si no hay traducción activa
+    }
+
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; googtrans=`);
+    let lang = 'es';
+    
+    if (parts.length === 2) {
+        lang = parts.pop().split(';').shift().split('/').pop();
+    } else {
+        const preferred = localStorage.getItem('nexus_preferred_lang');
+        if (preferred) lang = preferred;
+    }
+
+    const baseLang = lang.split('-')[0];
+    const map = {
+        'es': 'es-ES', 'en': 'en-GB', 'de': 'de-DE', 'fr': 'fr-FR',
+        'it': 'it-IT', 'pt': 'pt-BR', 'ja': 'ja-JP', 'zh': 'zh-CN',
+        'ru': 'ru-RU', 'hi': 'hi-IN', 'ar': 'ar-SA', 'ko': 'ko-KR',
+        'id': 'id-ID', 'bn': 'bn-BD', 'vi': 'vi-VN', 'tr': 'tr-TR',
+        'ur': 'ur-PK', 'sw': 'sw-KE'
+    };
+    
+    return map[baseLang] || map[lang] || 'es-ES';
+}
+
+
+async function cambiarIdioma(langCode) {
+    const idiomaFinal = langCode || 'es';
+    console.log("Nexus: Sincronizando audio para: " + idiomaFinal);
+    
+    localStorage.setItem('nexus_preferred_lang', idiomaFinal);
+
+    if (window.synth) window.synth.cancel();
+
+    // Sincronización de Podcast
+    if (typeof podAudioInstance !== 'undefined' && podAudioInstance && podActiveBookId) {
+        const srtUrl = podAudioInstance.src.replace(/\.(mp3|m4a|wav|ogg)$/i, '.srt');
+        if (typeof cargarSubtitulos === 'function') cargarSubtitulos(srtUrl);
+    }
+
+    // Detectar si estamos en una imagen para no romper el flujo
+    const estaEnImagen = (NexusImage.timer !== null || NexusImage.isPaused);
+
+    if (window.isSpeaking) {
+    if (window.synth) window.synth.cancel();
+    window.shouldResumeAfterTranslation = true;
+
+    // Si hay un mensaje de timer de imagen, lo borramos.
+    // Al reanudarse prepareAndStartSpeech(), se volverá a escribir en el nuevo idioma.
+    const imageMsg = document.getElementById('image-timer-message');
+    if (imageMsg) imageMsg.innerText = "";
+}
+
+    const delay = (idiomaFinal === 'es' || idiomaFinal === 'es-ES') ? 200 : 1500;
+
+    if (window.shouldResumeAfterTranslation) {
+        setTimeout(() => {
+            window.shouldResumeAfterTranslation = false;
+            if (window.isSpeaking) {
+                if (typeof prepareAndStartSpeech === 'function') {
+                    // Actualizamos el contador visual al nuevo idioma inmediatamente
+                    if (estaEnImagen) updateTimerDisplay();
+                    prepareAndStartSpeech();
+                }
+            }
+        }, delay); 
+    }
+}
+
+function seleccionarIdiomaInicio(langCode) {
+    // Guardamos la elección para que no vuelva a aparecer el portal
+    localStorage.setItem('nexus_preferred_lang', langCode);
+    
+    if (langCode === 'es') {
+        restaurarOriginalYRefrescar(); // Reutiliza tu lógica de limpieza
+    } else {
+        const portal = document.getElementById("welcome-portal");
+        if (portal) portal.style.display = "none";
+    }
+}
+

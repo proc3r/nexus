@@ -72,33 +72,89 @@
     }
 }
 	
-	function startImageTimer() {
-		clearImageTimer();
-		const timerEl = document.getElementById('image-timer');
-		timerEl.classList.remove('hidden');
-		imageSecondsLeft = 5;
-		isImageTimerPaused = false;
-		updateTimerDisplay();
-		imageTimer = setInterval(() => {
-			if (!isImageTimerPaused) {
-				imageSecondsLeft--;
-				updateTimerDisplay();
-				if (imageSecondsLeft <= 0) { clearImageTimer(); nextChunk(); }
-			}
-		}, 1000);
-	}
+	
+	
+	// Usamos un objeto para no ensuciar el espacio global y evitar errores de carga
+const NexusImage = {
+    timer: null,
+    secondsLeft: 10,
+    isPaused: false
+};
 
-	function updateTimerDisplay() {
-		const textEl = document.getElementById('timer-text');
-		const btnEl = document.querySelector('.timer-pause-btn');
-		if (isImageTimerPaused) { textEl.innerText = "Pausado. Presione REANUDAR o NEXT."; if(btnEl) btnEl.innerText = "Reanudar"; }
-		else { textEl.innerText = `Comenzando en ${imageSecondsLeft}s`; if(btnEl) btnEl.innerText = "Pausar"; }
-	}
+function startImageTimer() {
+    // Si el usuario pausó, no reiniciamos el contador al traducir
+    if (NexusImage.isPaused) {
+        updateTimerDisplay();
+        return;
+    }
 
-	function togglePauseImageTimer() { isImageTimerPaused = !isImageTimerPaused; isPaused = isImageTimerPaused; updatePauseUI(isPaused); updateTimerDisplay(); }
-	function clearImageTimer() { if (imageTimer) clearInterval(imageTimer); imageTimer = null; document.getElementById('image-timer').classList.add('hidden'); }
-	function processFormatting(str) { return str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/[*_](.*?)[*_]/g, '<em>$1</em>'); }
+    clearImageTimer();
+    const timerEl = document.getElementById('image-timer');
+    if (timerEl) timerEl.classList.remove('hidden');
 
+    NexusImage.secondsLeft = 10;
+    NexusImage.isPaused = false;
+    updateTimerDisplay();
+
+    NexusImage.timer = setInterval(() => {
+        if (!NexusImage.isPaused) {
+            NexusImage.secondsLeft--;
+            updateTimerDisplay();
+            if (NexusImage.secondsLeft <= 0) {
+                clearImageTimer();
+                if (typeof nextChunk === 'function') nextChunk();
+            }
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const textEl = document.getElementById('timer-text');
+    const btnEl = document.querySelector('.timer-pause-btn');
+    if (!textEl) return;
+
+    // Extraemos traducciones del almacén
+    const storeComenzando = document.getElementById('store-comenzando');
+    const storePausado = document.getElementById('store-pausado');
+    const storeBtnPausar = document.getElementById('store-btn-pausar');
+    const storeBtnReanudar = document.getElementById('store-btn-reanudar');
+
+    const getTxt = (el) => el ? el.innerHTML : "...";
+
+    if (NexusImage.isPaused) {
+        textEl.innerHTML = getTxt(storePausado);
+        if (btnEl) btnEl.innerHTML = getTxt(storeBtnReanudar);
+    } else {
+        // Solo el número tiene 'notranslate' para evitar el parpadeo
+        textEl.innerHTML = `${getTxt(storeComenzando)} <span class="notranslate">${NexusImage.secondsLeft}</span>`;
+        if (btnEl) btnEl.innerHTML = getTxt(storeBtnPausar);
+    }
+}
+
+function togglePauseImageTimer() {
+    NexusImage.isPaused = !NexusImage.isPaused;
+    // Sincronizar con el estado de pausa del lector si existe
+    if (typeof isPaused !== 'undefined') isPaused = NexusImage.isPaused;
+    if (typeof updatePauseUI === 'function') updatePauseUI(NexusImage.isPaused);
+    updateTimerDisplay();
+}
+
+function clearImageTimer() {
+    if (NexusImage.timer) clearInterval(NexusImage.timer);
+    NexusImage.timer = null;
+    
+    // ESTA ES LA LÍNEA CLAVE QUE FALTA:
+    NexusImage.isPaused = false; 
+    
+    const timerEl = document.getElementById('image-timer');
+    if (timerEl) timerEl.classList.add('hidden');
+}
+
+
+function processFormatting(str) { 
+    return str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+              .replace(/[*_](.*?)[*_]/g, '<em>$1</em>'); 
+}
 
 	function jumpToChapter(idx) { let wasSpeaking = isSpeaking; stopSpeech(); loadChapter(idx);
     if (!isPinned) closeSidebar();

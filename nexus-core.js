@@ -485,9 +485,9 @@ function openReader(id) {
     if (globalHeader) globalHeader.classList.add('header-hidden');
     
     // --- INTEGRACIÓN PODCAST: Detener audio al entrar al lector ---
-    if (typeof window.stopAndHidePodcast === 'function') {
-        window.stopAndHidePodcast();
-    }
+    if (typeof closePodcast === 'function') {
+		closePodcast(); 
+	}
 
     const book = library.find(b => b.id === id);
     if (!book) return;
@@ -666,36 +666,80 @@ function closeReader() {
         }
 	 
 
-function renderChunk() {
+
+
+async function renderChunk() {
     clearImageTimer();
-    const content = document.getElementById('book-content');
+    const container = document.getElementById('reading-container-fixed');
+    let content = document.getElementById('book-content');
     if (!content) return;
 
-    // 1. LIMPIEZA TOTAL DE CLASES
-    content.classList.remove('slide-in-right', 'slide-in-left', 'desktop-fade');
+    // 1. DETECCIÓN DE TRADUCCIÓN
+    const isTranslated = document.cookie.includes('googtrans') && !document.cookie.includes('/es/es');
+
+    // --- MEJORA: LIMPIEZA INMEDIATA ---
+    if (window.isSpeaking) window.synth.cancel();
+
+    // 2. LIMPIEZA PROFUNDA (Atomic Reset)
+    if (isTranslated) {
+        const newContent = document.createElement('div');
+        newContent.id = 'book-content';
+        newContent.className = 'reader-content-area custom-scrollbar';
+        
+        newContent.style.opacity = "0"; 
+        newContent.style.visibility = "hidden";
+        newContent.style.transition = "none"; 
+        
+        content.parentNode.replaceChild(newContent, content);
+        content = newContent; 
+    } else {
+        content.classList.remove('slide-in-right', 'slide-in-left', 'desktop-fade');
+        content.style.transition = ""; 
+        content.style.visibility = "visible";
+        content.style.opacity = "1";
+        content.innerHTML = ""; 
+    }
 
     let rawText = chunks[currentChunkIndex] || "";
     
     if (rawText.trim() === ">") { 
-        if (window.navDirection === 'prev') prevChunk(); 
-        else nextChunk(); 
-        return; 
+        if (window.navDirection === 'prev') return prevChunk(); 
+        else return nextChunk(); 
     }
 
+    // 3. PROCESAMIENTO DE CONTENIDO
     let finalHtml = "";
     let isImage = false;
     const embedMatch = rawText.match(/!\[\[(.*?)\]\]/);
 
     if (embedMatch) {
-        // ... (Tu lógica existente de multimedia e imágenes se mantiene igual) ...
-        const fileName = embedMatch[1].split('|')[0].trim().toLowerCase();
-        const isAudio = fileName.endsWith('.m4a') || fileName.endsWith('.mp3') || fileName.endsWith('.wav') || fileName.endsWith('.ogg');
-        const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.webm') || fileName.endsWith('.mkv');
-        if (isAudio || isVideo) { if (window.navDirection === 'prev') prevChunk(); else nextChunk(); return; }
+        const originalFileName = embedMatch[1].split('|')[0].trim();
+        const fileNameLower = originalFileName.toLowerCase();
+        
+        const isAudio = fileNameLower.endsWith('.m4a') || fileNameLower.endsWith('.mp3') || fileNameLower.endsWith('.wav') || fileNameLower.endsWith('.ogg');
+        const isVideo = fileNameLower.endsWith('.mp4') || fileNameLower.endsWith('.mov') || fileNameLower.endsWith('.webm') || fileNameLower.endsWith('.mkv');
+        
+        if (isAudio || isVideo) { 
+            if (window.navDirection === 'prev') return prevChunk(); 
+            else return nextChunk(); 
+        }
+        
         isImage = true;
-        const rawImageUrl = currentBook.rawBase + encodeURIComponent(embedMatch[1].split('|')[0].trim());
-        const optimizedUrl = getOptimizedImageUrl(rawImageUrl, 700); 
-        finalHtml = `<div class="reader-image-container"><img src="${optimizedUrl}" class="reader-image cursor-zoom-in" alt="${fileName}" onclick="openImageModal('${rawImageUrl}', '${fileName}')"><p class="reader-text">Click para ampliar</p></div>`;
+        const rawImageUrl = currentBook.rawBase + encodeURIComponent(originalFileName);
+        
+        // --- LÓGICA DE GIF ANIMADO ---
+        // Si es GIF, usamos la URL cruda. Si no, usamos el optimizador.
+        const finalImageUrl = fileNameLower.endsWith('.gif') 
+            ? rawImageUrl 
+            : getOptimizedImageUrl(rawImageUrl, 700);
+
+        finalHtml = `<div class="reader-image-container">
+            <img src="${finalImageUrl}" 
+                 class="reader-image cursor-zoom-in" 
+                 alt="${originalFileName}" 
+                 onclick="openImageModal('${rawImageUrl}', '${originalFileName}')">
+            <p class="reader-text">Click para ampliar</p>
+        </div>`;
     } else if (rawText.trim().startsWith('#')) {
         finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
     } else if (rawText.trim().startsWith('>')) {
@@ -706,80 +750,155 @@ function renderChunk() {
         finalHtml = processFormatting(cleanMarkdown(rawText));
     }
 
-    // 2. INSERCIÓN DE CONTENIDO
+    // 4. INSERCIÓN DE CONTENIDO
     content.innerHTML = finalHtml;
 
-    // 3. DISPARAR ANIMACIÓN SEGÚN DISPOSITIVO
-    void content.offsetWidth; // Forzar reflow
+    // --- MEJORA DEL ANCLA DE VALIDACIÓN ---
+    if (isTranslated) {
+        const validator = document.createElement('div');
+        validator.id = 'nexus-validation-anchor';
+        // Mantenemos visibilidad mínima para que Google no lo descarte
+        validator.style.cssText = "height:1px; font-size:1px; color:transparent; position:absolute; pointer-events:none; overflow:hidden;";
+        validator.innerHTML = '<span>manzana</span>'; 
+        content.appendChild(validator);
+        
+        // TRUCO PARA DESPERTAR A GOOGLE (Simula la interacción del usuario)
+        // Forzamos un evento que Google Translate suele escuchar para re-traducir
+        setTimeout(() => {
+            content.dispatchEvent(new Event('input', { bubbles: true }));
+            content.dispatchEvent(new Event('change', { bubbles: true }));
+            // Añadimos una mutación física mínima
+            const trigger = document.createElement('span');
+            trigger.innerHTML = "&nbsp;";
+            content.appendChild(trigger);
+            setTimeout(() => trigger.remove(), 10);
+        }, 50);
+    }
+
+    // 5. ANIMACIÓN Y VISIBILIDAD
+    void content.offsetWidth; 
+
+    if (isTranslated) {
+        content.style.transition = "opacity 0.3s ease";
+        content.style.visibility = "visible";
+        content.style.opacity = "1";
+    }
 
     const isMobile = window.innerWidth <= 768;
-
-
-	const loader = document.getElementById('auto-loader');
+    const loader = document.getElementById('auto-loader');
     if (loader) {
         loader.style.opacity = "0";
         setTimeout(() => { loader.style.display = "none"; }, 800);
     }
-	
+    
     if (isMobile) {
-        // Efecto Barrido Lateral para Móvil
         if (window.navDirection === 'next') content.classList.add('slide-in-right');
         else if (window.navDirection === 'prev') content.classList.add('slide-in-left');
     } else {
-        // Efecto "Emerger y Difuminar" para Escritorio
         content.classList.add('desktop-fade');
     }
 
-    // 4. FINALIZACIÓN
-    document.getElementById('reading-container-fixed').scrollTop = 0;
+    // 6. ACTUALIZACIÓN DE INTERFAZ Y PROGRESO
+    container.scrollTop = 0;
     updateProgress();
     saveProgress();
 
     const nextBtn = document.getElementById('next-btn');
     if (nextBtn) {
-        nextBtn.innerHTML = (currentChunkIndex === chunks.length - 1 && currentChapterIndex === currentBook.chapters.length - 1) ? "FIN" : "NEXT ▶";
+        const isLast = (currentChunkIndex === chunks.length - 1 && currentChapterIndex === currentBook.chapters.length - 1);
+        nextBtn.innerHTML = isLast ? "FIN" : "NEXT ▶";
     }
 
-    if (isSpeaking) { 
-        if (isImage) startImageTimer(); 
-        else prepareAndStartSpeech(); 
+    // 7. SINCRONIZACIÓN DE VOZ (Nexus Voice)
+    if (window.isSpeaking) { 
+        if (isImage) {
+            startImageTimer();
+        } else {
+            // Un poco más de margen para que el disparador de Google funcione
+            setTimeout(() => {
+                prepareAndStartSpeech();
+            }, 200);
+        } 
     }
+    
+    return Promise.resolve();
+}
+
+/**
+ * Divide el texto en partes manejables para el motor de síntesis de voz
+ */
+function splitTextSmartly(text, limit) {
+    const result = [];
+    let remaining = text;
+    while (remaining.length > 0) {
+        if (remaining.length <= limit) { 
+            result.push(remaining.trim()); 
+            break; 
+        }
+        let slice = remaining.substring(0, limit);
+        let lastBreak = Math.max(slice.lastIndexOf(','), slice.lastIndexOf('.'), slice.lastIndexOf(';'));
+        if (lastBreak === -1) lastBreak = slice.lastIndexOf(' ');
+        
+        // Si no hay espacios ni puntuación, cortamos al límite
+        if (lastBreak === -1) lastBreak = limit;
+
+        result.push(remaining.substring(0, lastBreak + 1).trim());
+        remaining = remaining.substring(lastBreak + 1).trim();
+    }
+    return result.filter(s => s.length > 0);
 }
 
 	
-	function splitTextSmartly(text, limit) {
-		const result = [];
-		let remaining = text;
-		while (remaining.length > 0) {
-			if (remaining.length <= limit) { result.push(remaining.trim()); break; }
-			let slice = remaining.substring(0, limit);
-			let lastBreak = Math.max(slice.lastIndexOf(','), slice.lastIndexOf('.'), slice.lastIndexOf(';'));
-			if (lastBreak === -1) lastBreak = slice.lastIndexOf(' ');
-			result.push(remaining.substring(0, lastBreak + 1).trim());
-			remaining = remaining.substring(lastBreak + 1).trim();
-		}
-		return result.filter(s => s.length > 0);
-	}
+async function nextChunk() { 
+    window.navDirection = 'next'; 
+    if (typeof clearImageTimer === 'function') clearImageTimer(); 
+    
+    // Si el usuario está en modo lectura, limpiamos el audio actual
+    if (window.isSpeaking) {
+        window.synth.cancel();
+        if (window.nexusSpeechTimeout) clearTimeout(window.nexusSpeechTimeout);
+        window.isPaused = false; 
+        updatePauseUI(false);
+    }
 
-	function nextChunk() { 
-		window.navDirection = 'next'; 
-		clearImageTimer(); 
-		if (isSpeaking && isPaused) { synth.resume(); isPaused = false; updatePauseUI(false); }
-		if (isSpeaking) synth.cancel(); 
+    if (currentChunkIndex < chunks.length - 1) { 
+        currentChunkIndex++; 
+        
+        // Renderizamos el contenido
+        await renderChunk(); 
+        
+        // --- DECISIÓN INTELIGENTE ---
+        // Si venía leyendo, verificamos si el nuevo chunk es imagen o texto
+        if (window.isSpeaking) {
+            const currentText = chunks[currentChunkIndex] || "";
+            const isImage = currentText.match(/!\[\[(.*?)\]\]/);
 
-		if (currentChunkIndex < chunks.length - 1) { currentChunkIndex++; renderChunk(); }
-								 
-						   
-		else if (currentChapterIndex < currentBook.chapters.length - 1) { loadChapter(currentChapterIndex + 1); } 
-												  
-		  
+            if (isImage) {
+                // Si es imagen, forzamos el inicio del timer de imagen
+                if (typeof startImageTimer === 'function') startImageTimer();
+            } else {
+                // Si es texto, el renderChunk() original suele disparar prepareAndStartSpeech.
+                // Pero para mayor seguridad y control de flujo, lo llamamos aquí:
+                prepareAndStartSpeech();
+            }
         }
+    }
+    else if (currentChapterIndex < currentBook.chapters.length - 1) { 
+        // Si saltamos de capítulo, loadChapter se encarga del resto
+        loadChapter(currentChapterIndex + 1); 
+    } 
+}
 
 
-function prevChunk() { 
+async function prevChunk() { 
+    // --- 1. FRENO DE EMERGENCIA INMEDIATO (Para navegación rápida) ---
+    window.synth.cancel(); 
+    if (window.nexusSpeechTimeout) clearTimeout(window.nexusSpeechTimeout);
+    if (typeof clearImageTimer === 'function') clearImageTimer(); 
+    
     window.navDirection = 'prev'; // Seteamos dirección atrás
     
-    // --- NUEVA LÓGICA DE RETORNO AL INICIO ---
+    // --- 2. LÓGICA DE RETORNO AL INICIO (MANTENIDA ÍNTEGRA) ---
     if (currentChunkIndex === 0 && currentChapterIndex === 0) {
         console.log("Inicio alcanzado: Retornando a la biblioteca.");
         
@@ -790,7 +909,7 @@ function prevChunk() {
             window.speechSynthesis.cancel();
         }
 
-        // Cerramos el lector (Asegúrate de tener esta función definida)
+        // Cerramos el lector
         if (typeof closeReader === 'function') {
             closeReader();
         } else {
@@ -800,22 +919,23 @@ function prevChunk() {
         }
         return; // Salimos de la función para no ejecutar el resto
     }
-    // ------------------------------------------
 
-    if (typeof clearImageTimer === 'function') clearImageTimer(); 
-    
+    // --- 3. CAPTURA DE ESTADO Y LIMPIEZA DE ÍNDICES ---
+    const wasSpeaking = window.isSpeaking;
+
+    // Reset de índices de voz para evitar que arrastre datos del chunk anterior
+    window.currentSubChunkIndex = 0; 
+    window.speechSubChunks = [];
+
     if (isSpeaking && isPaused) { 
-        synth.resume(); 
         isPaused = false; 
         updatePauseUI(false); 
     }
-    if (isSpeaking) synth.cancel(); 
 
+    // --- 4. NAVEGACIÓN HACIA ATRÁS (Lógica de índices y Capítulos) ---
     if (currentChunkIndex > 0) { 
         currentChunkIndex--; 
-        renderChunk(); 
     } else if (currentChapterIndex > 0) { 
-        // Retrocedemos el índice del capítulo
         currentChapterIndex--; 
         
         // Cargamos los datos del nuevo capítulo
@@ -823,20 +943,64 @@ function prevChunk() {
         chunks = chapter.content; 
         currentChunkIndex = chunks.length - 1; // Vamos al final del capítulo anterior
         
-        // Actualizamos la interfaz
+        // Actualizamos la interfaz (Indicador y TOC)
         const indicator = document.getElementById('chapter-indicator');
         if (indicator) indicator.innerText = stripHtml(chapter.title);
         
         document.querySelectorAll('.toc-item').forEach(el => el.classList.remove('active'));
         const activeItem = document.getElementById(`toc-item-${currentChapterIndex}`);
         if (activeItem) activeItem.classList.add('active');
-
-        // Renderizamos (usará la dirección 'prev')
-        renderChunk(); 
     } 
+
+    // RENDERIZADO DEL NUEVO CHUNK
+    await renderChunk(); 
+
+    // --- 5. REINICIO INTELIGENTE DEL MOTOR ---
+    if (wasSpeaking) {
+        // Micro-delay de 60ms para dar tiempo al navegador a limpiar el buffer de audio
+        // Esto evita que se escuche "Click para ampliar" al navegar rápido
+        setTimeout(() => {
+            const currentText = chunks[currentChunkIndex] || "";
+            const isImage = currentText.match(/!\[\[(.*?)\]\]/);
+
+            if (isImage) {
+                // Si es imagen, forzamos el inicio del timer de imagen y NADA de voz
+                console.log("Retroceso detectado: Iniciando timer de imagen.");
+                if (typeof startImageTimer === 'function') startImageTimer();
+            } else {
+                // Si es texto, iniciamos la voz normalmente
+                prepareAndStartSpeech();
+            }
+        }, 60); 
+    }
 }
 
 
+
+
+
+async function renderChunkWithTranslation() {
+    // 1. Renderizamos el texto (ya es async)
+    await renderChunk();
+
+    // 2. ¿Hay traducción activa real?
+    // Si la cookie no existe, o es /es/es, NO es una traducción
+    const isTranslated = document.cookie.includes('googtrans') && 
+                        !document.cookie.includes('/es/es') && 
+                        !document.cookie.includes('/es/auto');
+
+    if (isTranslated) {
+        return new Promise((resolve) => {
+            console.log("Nexus: Esperando traducción de Google...");
+            setTimeout(() => {
+                resolve();
+            }, 600); // Tiempo para que el DOM cambie
+        });
+    }
+    
+    // Si es español, resolvemos de inmediato para que la voz no se detenga
+    return Promise.resolve();
+}
     
 
 

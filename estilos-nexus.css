@@ -392,7 +392,7 @@ body.sidebar-open {
     border-left: 4px solid var(--primary-accent);
     padding: 0.5em 0.8em;
     margin: 0;
-    background: rgba(0, 0, 0, 0.04);
+    background: rgb(211 202 202 / 11%); /*rgba(0, 0, 0, 0.04);*/
     border-radius: 0 8px 8px 0;
     font-style: italic;
 	box-shadow: 9px 7px 13px rgb(0 0 0 / 20%);
@@ -1019,7 +1019,15 @@ body.sidebar-open {
 /* Asegura que el modal use Flex al mostrarse */
 #synopsis-modal:not(.hidden) {
     display: flex !important;
-	backdrop-filter: blur(3px);
+	
+	backdrop-filter: blur(1px);
+    background-image: url(https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/refs/heads/master/adjuntos/BabelX.webp);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: brightness(98%) contrast(125%);
+    opacity: 0.95;
+    animation: aparecer 0.5s ease-in-out forwards;
 }
 
 /* Estilo del scroll interno de la sinopsis */
@@ -1045,6 +1053,29 @@ body.sidebar-open {
    /* color: #ffcc00;   */
 }
 
+/* 1. Evita el fondo de Google Translate pero respeta el atributo 'color' de la etiqueta */
+#synopsis-body font, 
+#synopsis-body span {
+    background-color: transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    /* NO usamos inherit !important aquí para no machacar el atributo color="" */
+}
+
+/* 2. Si la etiqueta NO tiene un atributo color, entonces sí que herede el blanco */
+#synopsis-body font:not([color]), 
+#synopsis-body span:not([style*="color"]) {
+    color: inherit;
+}
+
+/* 3. Protección contra el resaltado al pasar el mouse (hover) */
+#synopsis-body font:hover, 
+#synopsis-body span:hover {
+    background-color: transparent !important;
+    /* Esto evita que Google cambie el color del texto a negro al posicionarse */
+    color: unset !important; 
+}
+
 /* Scrollbar personalizado para el modal */
 .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
@@ -1061,7 +1092,8 @@ body.sidebar-open {
 #synopsis-modal .modal-container {
     padding: 0.5rem 0.5rem 1rem 0.5rem !important;
 	box-shadow: 0 0 18px rgb(63 219 17 / 81%);
-    background: rgba(15, 17, 21, 0.8);
+    background: rgb(15 17 21 / 65%);
+    backdrop-filter: blur(5px);
 }
 
 /* Encabezado en una sola línea */
@@ -1467,7 +1499,7 @@ body.sidebar-open {
     left: 50% !important;
     right: auto !important;
     transform: translateX(-50%) !important;
-    bottom: 80px; /* Altura para móvil */
+    bottom: 95px; /* Altura para móvil */
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -1546,7 +1578,8 @@ body.sidebar-open {
 @media (min-width: 1023px) {
 #synopsis-modal .modal-container {
     padding: 2rem 1rem 2rem 1rem !important;
-    background: rgba(15, 17, 21, 0.8);
+        background: rgb(15 17 21 / 65%);
+    backdrop-filter: blur(5px);
 }
 }
 
@@ -2176,7 +2209,7 @@ body.sidebar-open {
 
     /* ESTADO SINCRONIZADO: Cuando el header se oculta */
     .podcast-floating-bar.header-hidden-state {
-        top: 4px !important; /* Se pega arriba cuando la barra desaparece */
+        top: 40px !important; /* Se pega arriba cuando la barra desaparece */
     }
 }
 
@@ -2243,11 +2276,37 @@ body.sidebar-open {
     cursor: pointer;
     padding: 0;
     transition: color 0.2s;
+	padding-top: 5px;
 }
 .pod-close:hover { color: #ef4444; }
 
 /* FILA 2: Controles Centrales y Tiempo */
 
+.pod-controls-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+/* Botón de velocidad tipo Etiqueta/Cápsula */
+#pod-speed-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 12px;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 45px;
+}
+
+#pod-speed-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: white;
+}
 
 .pod-controls {
     display: flex;
@@ -3091,7 +3150,7 @@ body.sidebar-open {
     top: 0; left: 0;
     width: 100%; height: 100%;
     background: #0b0e14;
-    z-index: 999999;
+    z-index: 999995;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3163,29 +3222,11 @@ body.sidebar-open {
     pointer-events: auto !important;
 }
 }
-/*
-.zen-btn-mobile {
-    position: fixed;
-    bottom: 120px; 
-    right: 12px;
-    z-index: 60;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    width: 42px;
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffcc00;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-}*/
+
 
 .zen-btn-mobile {
     position: fixed;
-    bottom: 119px;
+    bottom: 125px;
     right: 8px;
     z-index: 60;
     background: rgba(0, 0, 0, 0.05);
@@ -3254,7 +3295,8 @@ body { top: 0px !important; }
 
 .skiptranslate {
                /* pointer-events: none !important;*/
-                opacity: 80%;
+                opacity: 60%;
+				top: -200px !important;
 }
 
 /* Estilo para el botón del header */
@@ -3303,34 +3345,54 @@ body { top: 0px !important; }
     align-items: center;
     z-index: 9999;
 	overflow: hidden; /* Evitar scroll en el fondo */
-	backdrop-filter: blur(3px);
+	backdrop-filter: blur(1px);
 	-webkit-backdrop-filter: blur(2px);
 	background-image: url(https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/refs/heads/master/adjuntos/BabelX.webp);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-	filter: brightness(90%) contrast(113%);
-	opacity: 0.96;
+	filter: brightness(98%) contrast(125%);
+    opacity: 0.95;
+	animation: aparecer 0.5s ease-in-out forwards;
+	
 }
+
+/* Definición de la animación */
+@keyframes aparecer {
+  from {opacity: 0;} to {opacity: 1;}
+}
+
+
 
 .overlay-content {
 	
     margin-top: 4px;
+    height: 308px;
     z-index: 1000;
-    background: #ffffffad;
-    border: 1px solid var(--primary-accent);
-    padding: 15px 20px 11px 20px;
+    border: 1px solid #ffa3009e;
+    padding: 15px 11px 11px 11px;
     border-radius: 10px;
-    box-shadow: -9px 9px 10px rgb(0 0 0 / 50%);
     text-align: center;
     overflow: hidden;
-    margin-top: 17px;
+    background-image: url(https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: popIn 0.5s ease-out forwards;
+    filter: brightness(100%) contrast(128%);
+    box-shadow: 0px 0px 8px rgb(241 182 8 / 98%);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0); opacity: 0; }
+  70% { transform: scale(1.1); } /* Pequeño rebote */
+  100% { transform: scale(1); opacity: 1; }
 }
 
 #close-translate-overlay {
     /*position: absolute;*/
     top: 10%;
-    bottom: 19px;
+    bottom: 2px;
     z-index: 9999;
     padding: 5px 4px;
     display: inline;
@@ -3339,7 +3401,7 @@ body { top: 0px !important; }
     cursor: pointer;
 	font-size: 18px;
     transition: all 0.3s ease;
-    background: rgb(235 42 42 / 61%);
+        background: rgb(201 55 55 / 72%);
     border: 1px solid rgba(255, 68, 68, 0.3);
     color: #fffdfd;
         box-shadow: 0px 3px 7px rgb(0 0 0 / 68%);
@@ -3558,4 +3620,289 @@ body {
 /* Ajuste para el contenedor de la lista de idiomas */
 .VIpgJd-ZVi9od-vOpiUe-adS9D-pdS6S-container {
     max-height: 70vh !important;
+}
+
+#btn-restore-original {
+    width: 100%;
+	margin-top: 13px;
+    font-family: 'Barlow Condensed';
+    padding: 5px 0px 5px 0px;
+    margin-bottom: 55px;
+    background: rgb(75 45 133 / 85%);
+    border: 2px solid rgb(132 83 189 / 30%);
+    border-radius: 5px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 15px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.3s ease;
+	opacity: 0.8;
+}
+
+/* Animación de Latido para cuando la música suena */
+@keyframes original-text {
+    0% { transform: scale(1); box-shadow: 0px 0px 6px rgb(210 73 253 / 95%);}
+    50% { transform: scale(0.98); box-shadow: 0px 0px 3px rgb(255 255 255 / 90%);}
+    100% { transform: scale(1); box-shadow: 0px 0px 6px rgb(210 73 253 / 95%);}
+}
+
+#btn-restore-original:hover {
+    background: rgb(185 79 187);
+    box-shadow: 0px 0px 9px rgb(68 14 80 / 93%);
+    color: #ffffff;
+}
+
+/* 1. Aseguramos que el contenedor sea una referencia de posicionamiento */
+#book-content {
+    position: relative !important;
+}
+
+/* 2. Creamos el escudo invisible que bloquea solo el clic al texto */
+#book-content::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10; /* Suficiente para estar sobre el texto, pero bajo tus botones flotantes */
+    background: transparent;
+    pointer-events: auto; /* Este elemento sí atrapa los clics */
+}
+
+/* 3. Aseguramos que tus botones y controles reales estén por encima del escudo */
+.reader-image, 
+.reader-image-container,
+#next-btn, 
+#prev-btn,
+.audio-controls, /* Ajusta según tus clases reales */
+button {
+    position: relative;
+    z-index: 20 !important; 
+    pointer-events: auto !important;
+}
+
+
+/*portal lenguale*/
+
+/* CAPA SUPERIOR TOTAL */
+
+
+
+
+
+.portal-wrapper {
+	
+    position: fixed;
+	inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+	background: rgb(0 0 0 / 35%);
+    /* background: rgba(0, 0, 0, 0.5); Fondo semi-transparente oscuro */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+	overflow: hidden; /* Evitar scroll en el fondo */
+	backdrop-filter: blur(1px);
+	-webkit-backdrop-filter: blur(2px);
+	background-image: url(https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/refs/heads/master/adjuntos/BabelX.webp);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+	filter:  brightness(105%) contrast(124%);
+    /*opacity: 0.98;*/
+	/*animation: portalFadeIn 0.5s ease-out backward	*/
+	animation: aparecer 5s ease-in-out forwards;
+	/*transition: opacity 0.5s ease;  Para que aparezca suavemente */
+}
+
+
+/* Caja de contenido (Clon visual de tu overlay-content) */
+.portal-box {
+	margin-top: 4px;
+    height: 308px;
+    z-index: 1000;
+    border: 1px solid #ffa3009e;
+    padding: 15px 11px 11px 11px;
+    border-radius: 10px;
+    text-align: center;
+    overflow: hidden;
+    background-image: url(https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: aparecer 1s ease-out 3s forwards;
+    filter: brightness(100%) contrast(128%);
+    box-shadow: 0px 0px 8px rgb(241 182 8 / 98%);
+	opacity: 0;
+	}
+
+.portal-title {
+    color: #161615;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    font-family: 'Barlow Condensed';
+    font-weight: 400;
+    font-size: 20px;
+}
+
+.portal-btn{
+    width: 100%;
+	margin-top: 13px;
+    font-family: 'Barlow Condensed';
+    padding: 5px 0px 5px 0px;
+    margin-bottom: 55px;
+    background: rgb(75 45 133 / 85%);
+    border: 2px solid rgb(132 83 189 / 30%);
+    border-radius: 5px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 15px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.3s ease;
+	opacity: 0.8;
+	
+}
+
+
+.portal-btn:hover :hover {
+    background: rgb(185 79 187);
+    box-shadow: 0px 0px 9px rgb(68 14 80 / 93%);
+    color: #ffffff;
+}
+
+
+
+.portal-footer {
+         color: #fff;
+    font-size: 21px;
+    font-weight: 400;
+    padding: 0px 10px 0px 10px;
+    text-transform: uppercase;
+    font-family: 'Barlow Condensed';
+    backdrop-filter: blur(6px);
+    animation: waiting-pulse 2s infinite;
+    border-radius: 19px;
+    text-shadow: 2px 2px 2px #565656cf;
+}
+
+/* Animación de entrada */
+.shadow-animation {
+    animation: portalFadeIn 0.5s ease-out forwards;
+}
+
+@keyframes portalFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+/*SUBTITULOS PODCAST*/
+
+/* Contenedor principal de los subtítulos */
+/* Estilo Base (Móvil) */
+/* Contenedor Externo */
+#pod-subtitles-window {
+    position: fixed;
+    top: 3px; /* Ajusta según la altura de tu barra para que quede justo encima o debajo */
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    pointer-events: none; /* Permite clicks a través del div si es necesario */
+    display: flex;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+	
+}
+
+#pod-subtitle-text {
+        background: rgb(0 0 0 / 61%);
+    color: #ffcc00 !important;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-align: center;
+    line-height: 30px;
+    max-width: 98%;
+    font-size: 23px;
+    font-family: 'Barlow Condensed';
+    text-shadow: 1px 1px 4px #000000;
+    backdrop-filter: blur(4px);
+    /* box-shadow: 0px 0px 8px rgb(11 73 255 / 98%); */
+    /* border: 1px solid rgb(7 74 255); */
+    /* box-shadow: 0px 0px 7px rgb(24 46 213); */
+    /* background: rgb(6 15 74 / 65%); */
+    box-shadow: -3px -2px 14px rgb(0 0 0 / 67%);
+}
+
+/* En escritorio: Estilo centrado tipo YouTube en la parte inferior */
+@media (min-width: 768px) {
+    #pod-subtitles-window {
+        top: 0.5%;            /* Cancela el top: 7px de móvil */
+        
+        left: 0;              /* Asegura que empiece desde el borde izquierdo */
+        width: 100%;          /* Ocupa todo el ancho para permitir el centrado */
+        justify-content: center; /* Centra el texto horizontalmente */
+    }
+
+    #pod-subtitle-text {
+        font-size: 2.2rem;
+    max-width: 70%;
+    background: rgb(0 0 0 / 52%);
+    padding: 2px 15px;
+    }
+}
+
+
+/* Capa de carga para el barrido de traducción */
+#synopsis-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.4s ease;
+    border-radius: 0.5rem;
+}
+
+/* Spinner centrado */
+.synopsis-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255, 204, 0, 0.1);
+    border-top: 3px solid #ffcc00;
+    border-radius: 50%;
+    animation: spin-loader 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+.synopsis-loader-text {
+    color: #ffcc00;
+    font-family: 'Condensed', sans-serif;
+    letter-spacing: 2px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+@keyframes spin-loader {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }

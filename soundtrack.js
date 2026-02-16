@@ -13,7 +13,7 @@ const DEFAULT_SOUNDTRACK = "wJ2tGxjTjuI";
 
 // --- LÓGICA DE VALOR ALEATORIO ---
 function refrescarValorAleatorio() {
-    window.currentRandomTime = Math.floor(Math.random() * 3001);
+    window.currentRandomTime = Math.floor(Math.random() * 1501);
     window.yaSalto = false; 
     console.log("%c 🎲 VALOR GLOBAL REFRESCADO: " + window.currentRandomTime, "color: #000; background: #ffff00; font-weight: bold;");
 }
