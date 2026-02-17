@@ -4287,3 +4287,76 @@ button {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+
+/* Ajustes para bloquear error google al pasar sobre continuar lectura*/
+
+
+/* 1. Aplicamos a los botones del modal específico */
+.nx-resume-btn-main, 
+.nx-resume-btn-sub, 
+.nx-resume-btn-minimal {
+    /* Permitimos que el botón reciba el foco para la lógica de voz */
+    pointer-events: auto !important;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+/* 2. Bloqueo "Fantasma": Esto evita que el mouse 'atraviese' hacia los nodos <font> 
+   que mete Google, que es lo que causa el TypeError, pero permite que 
+   el script de voz lea el innerText perfectamente. */
+.nx-resume-btn-main::after, 
+.nx-resume-btn-sub::after, 
+.nx-resume-btn-minimal::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10;
+    background: transparent;
+    pointer-events: auto; /* La capa invisible recibe el click/hover */
+}
+
+/* 3. Aseguramos que el texto sea visible para el motor de voz */
+.nx-resume-btn-main {
+    speak: speaks;
+}
+
+/* Ajustes para bloquear error google al pasar sobre toc*/
+
+/* 1. Escudo para el Título del Libro */
+#reader-title {
+    position: relative; /* Necesario para el ::after */
+    pointer-events: auto !important;
+}
+
+#reader-title::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10;
+    background: transparent;
+    pointer-events: auto;
+}
+
+/* 2. Escudo para los elementos del TOC (Tabla de Contenidos) */
+/* Asumiendo que tus capítulos dentro de #chapter-list son <div> o <a> */
+#chapter-list > div, 
+#chapter-list > a {
+    position: relative !important;
+    pointer-events: auto !important;
+}
+
+#chapter-list > div::after, 
+#chapter-list > a::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10;
+    background: transparent;
+    pointer-events: auto;
+}
+
+/* Asegurar que el texto sea "visible" para el motor de voz a través del escudo */
+#reader-title, .sidebar-content {
+    speak: speaks;
+}
