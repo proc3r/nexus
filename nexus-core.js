@@ -437,18 +437,18 @@ function parseMarkdown(text) {
 	}
 	
 	
-	
+
 async function openReader(id, forceCh = null, forceCk = null) {
     // --- 1. CONFIGURACIÓN DE INTERFAZ ---
     if (typeof launchFullScreen === 'function') {
         launchFullScreen(document.documentElement);
     }
     
-     const globalHeader = document.getElementById('nexus-header-global');
+    const globalHeader = document.getElementById('nexus-header-global');
     if (globalHeader) {
         globalHeader.classList.add('header-hidden');
         globalHeader.style.opacity = "0";
-        globalHeader.style.pointerEvents = "none"; // Evita que bloquee clics aunque sea invisible
+        globalHeader.style.pointerEvents = "none"; 
     }
     
     if (typeof closePodcast === 'function') {
@@ -460,21 +460,20 @@ async function openReader(id, forceCh = null, forceCk = null) {
     
     currentBook = book;
     
-    // Asegurar datos para el compartir e historial
     if (currentBook.repoIdx === undefined) currentBook.repoIdx = 0;
     if (!currentBook.fileName) currentBook.fileName = currentBook.title + ".md";
 
     // --- 2. LÓGICA DE POSICIONAMIENTO HÍBRIDA ---
     let targetChapter = 0;
     let targetChunk = 0;
+    let hasSavedProgress = false; 
+    let savedData = null;
 
-    // Prioridad 1: Parámetros forzados (vienen de la URL en lector.html o enlaces compartidos)
     if (forceCh !== null && forceCh !== undefined) {
         console.log("Nexus: Prioridad URL detectada (Link compartido o Lector Fijo)");
         targetChapter = parseInt(forceCh);
         targetChunk = parseInt(forceCk) || 0;
     } 
-    // Prioridad 2: Memoria Local (Historial personal en index.html)
     else {
         const history = JSON.parse(localStorage.getItem('nexus_reading_history') || '{}');
         const saved = history[currentBook.fileName];
@@ -483,6 +482,11 @@ async function openReader(id, forceCh = null, forceCk = null) {
             console.log("Nexus: Posición recuperada de memoria para " + currentBook.fileName, saved);
             targetChapter = saved.chapterIndex;
             targetChunk = saved.chunk;
+            savedData = saved;
+            
+            if (targetChapter > 0 || targetChunk > 0) {
+                hasSavedProgress = true;
+            }
         } else {
             console.log("Nexus: Sin historial previo, iniciando en 0");
             targetChapter = 0;
@@ -490,7 +494,6 @@ async function openReader(id, forceCh = null, forceCk = null) {
         }
     }
 
-    // Actualizamos los índices globales con los valores seleccionados
     currentChapterIndex = targetChapter;
     currentChunkIndex = targetChunk;
 
@@ -508,7 +511,7 @@ async function openReader(id, forceCh = null, forceCk = null) {
     document.getElementById('reader-view').classList.remove('hidden');
     document.getElementById('resume-card')?.classList.add('hidden');
     
-    // --- 4. PREFERENCIAS VISUALES ---
+    // --- 4. PREFERENCIAS VISUALES (RESTAURADAS COMPLETAS) ---
     const isMobile = window.innerWidth <= 768;
     const deviceSuffix = isMobile ? '-mobile' : '-desktop';
 
@@ -529,17 +532,139 @@ async function openReader(id, forceCh = null, forceCk = null) {
 
     syncVisualSettings();
 
-    // --- 5. CARGA DE CONTENIDO ---
-    // Usamos loadChapter con ambos parámetros para que la carga sea atómica y exacta
+    // --- 5. CARGA DE CONTENIDO Y ACTUALIZACIÓN DE DATOS ---
     await loadChapter(currentChapterIndex, currentChunkIndex);
+    
+    // IMPORTANTE: Llamamos a tus funciones de nexus-function.js para procesar los datos reales
+    if (typeof updateProgress === 'function') {
+        updateProgress(); 
+    }
 
-    // --- 6. INTEGRACIÓN SOUNDTRACK ---
+    // --- 6. MOSTRAR/INYECTAR MODAL CON DATOS SINCRONIZADOS ---
+    if (hasSavedProgress) {
+        // Aumentamos ligeramente el delay para asegurar que el porcentaje de updateProgress() se escriba en el DOM
+        setTimeout(() => {
+            const progPercentText = document.getElementById('progress-percent')?.innerText || "0%";
+            const timeLeft = document.getElementById('time-remaining')?.innerText || "-- min";
+            const currentCap = document.getElementById('reader-chapter-indicator')?.innerText || savedData?.chapterTitle || "Capítulo actual";
+
+            if (!document.getElementById('resume-modal')) {
+                const modalHTML = `
+					<div id="nx-resume-modal" class="nx-resume-overlay">
+						<div class="nx-resume-card">
+							<div class="nx-resume-header">
+							
+								<h2 class="nx-resume-book-title">${currentBook.title}</h2>
+								<p class="nx-resume-chapter-name">${currentCap}</p>
+							</div>
+
+							<div class="nx-resume-progress-track">
+								<div id="nx-resume-bar-fill" class="nx-resume-progress-fill" style="width: ${progPercentText};"></div>
+							</div>
+							
+							<div class="nx-resume-stats-row">
+								<span><b style="color:#fff;">${progPercentText}</b> completado</span>
+								<span>${timeLeft}</span>
+							</div>
+
+							<div class="nx-resume-actions">
+								
+								<div class="nx-resume-grid-alt">
+									<button onclick="confirmResume('restart')" class="nx-resume-btn-minimal">Comenzar desde cero</button>
+									<button onclick="confirmResume('section')" class="nx-resume-btn-sub">Reiniciar sección</button>
+									<button onclick="confirmResume('continue')" class="nx-resume-btn-main">Continuar leyendo</button>
+									
+								</div>
+							</div>
+						</div>
+					</div>`;
+				document.body.insertAdjacentHTML('beforeend', modalHTML);
+				
+				
+				// --- 1. FUNCIÓN DE APOYO PARA CERRAR (Añadir o actualizar) ---
+					function closeNxResume() {
+						const modal = document.getElementById('nx-resume-modal');
+						if (modal) {
+							modal.style.opacity = '0';
+							setTimeout(() => modal.remove(), 300);
+							window.pendingProgress = null;
+							// Quitamos el listener de teclado cuando el modal desaparece
+							document.removeEventListener('keydown', handleNxResumeKeys);
+						}
+					}
+
+					// --- 2. MANEJADOR DE TECLAS EXCLUSIVO ---
+					 function handleNxResumeKeys(e) {
+						const modal = document.getElementById('nx-resume-modal');
+						if (!modal) return;
+
+						// 1. Bloqueamos las teclas para que no afecten al lector de fondo
+						const keysToBlock = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Enter', 'Escape'];
+						if (keysToBlock.includes(e.key)) {
+							e.preventDefault();
+							e.stopPropagation();
+						}
+
+						// 2. Escape para cerrar
+						if (e.key === 'Escape') {
+							closeNxResume();
+							return;
+						}
+
+						// 3. Navegación vertical exclusiva
+						const buttons = Array.from(modal.querySelectorAll('button'));
+						let currentIndex = buttons.findIndex(b => b === document.activeElement);
+
+						// Si por alguna razón no hay foco, empezamos en el primero
+						if (currentIndex === -1) {
+							buttons[0].focus();
+							return;
+						}
+
+						if (e.key === 'ArrowDown') {
+							// Solo baja si no es el último botón
+							if (currentIndex < buttons.length - 1) {
+								buttons[currentIndex + 1].focus();
+							}
+						} 
+						else if (e.key === 'ArrowUp') {
+							// Solo sube si no es el primer botón
+							if (currentIndex > 0) {
+								buttons[currentIndex - 1].focus();
+							}
+						} 
+						else if (e.key === 'Enter' || e.key === ' ') {
+							// Ejecuta la acción del botón enfocado
+							buttons[currentIndex].click();
+						}
+					  }
+
+					// --- 3. INTEGRACIÓN EN EL OPENREADER ---
+					// Justo después de: document.body.insertAdjacentHTML('beforeend', modalHTML);
+					// Añade estas líneas:
+					const firstBtn = document.querySelector('.nx-resume-btn-main');
+					if (firstBtn) firstBtn.focus(); // Pone el foco para que el usuario pueda dar Enter
+					document.addEventListener('keydown', handleNxResumeKeys, true); // El 'true' es clave para capturar antes que nadie
+
+
+            } else {
+                // Actualización de seguridad si el modal ya estaba inyectado
+                const bar = document.getElementById('modal-progress-bar');
+                if (bar) bar.style.width = progPercentText;
+                document.getElementById('resume-modal').style.display = 'flex';
+            }
+        }, 300); // 300ms garantiza que el cálculo de updateTimeRemaining() y updateProgress() haya impactado el DOM
+    }
+
+    // --- 7. INTEGRACIÓN SOUNDTRACK ---
     setTimeout(() => {
         if (typeof updateSoundtrack === 'function') {
             updateSoundtrack(currentBook.soundtrack);
         }
     }, 300); 
 }
+
+
 
 
 
@@ -1194,40 +1319,74 @@ function checkBookProgress(fileName) {
     }
 }
 
-	async function confirmResume(shouldResume) {
-    // Usamos el nuevo ID único para evitar conflictos de CSS
-    const modal = document.getElementById('resume-modal');
-    if (modal) modal.classList.add('hidden');
 
-    if (shouldResume && window.pendingProgress) {
-        console.log("Nexus Progress: Restaurando posición...");
-        
-        // 1. Sincronizamos los índices con lo guardado
-        currentChapterIndex = window.pendingProgress.chapterIndex;
-        currentChunkIndex = window.pendingProgress.chunk;
-        
-        // 2. Cargamos el capítulo (esto actualiza la variable 'chunks')
-        await loadChapter(currentChapterIndex);
-        
-        // 3. Renderizamos el fragmento específico
-        await renderChunk(); 
-        
-        // 4. Iniciar lectura automática si estaba activo
-        if (typeof startSpeech === 'function') {
-            // Un pequeño delay para que el DOM se asiente
-            setTimeout(startSpeech, 400); 
-        }
-    } else {
-        // Si elige reiniciar o no hay progreso, guardamos la posición 0,0
-        saveProgress();
+
+async function confirmResume(option) {
+    // 1. Detener cualquier audio que esté sonando AHORA mismo para evitar el doble hilo
+    if (typeof stopSpeech === 'function') {
+        stopSpeech(); 
     }
-    window.pendingProgress = null;
+
+    const modal = document.getElementById('nx-resume-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        if (typeof handleNxResumeKeys === 'function') {
+            document.removeEventListener('keydown', handleNxResumeKeys, true);
+        }
+        setTimeout(() => modal.remove(), 300);
+    }
+
+    // 2. Pequeña pausa para dejar que el motor de síntesis de Google se limpie
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    switch (option) {
+        case 'continue':
+            console.log("Nexus: Continuando lectura...");
+            // No hacemos nada más, startSpeech se encarga abajo
+            break;
+
+        case 'section':
+            console.log("Nexus: Reiniciando sección...");
+            currentChunkIndex = 0;
+            await renderChunk();
+            break;
+
+        case 'restart':
+            console.log("Nexus: Reiniciando libro completo...");
+            currentChapterIndex = 0;
+            currentChunkIndex = 0;
+            await loadChapter(0, 0);
+            break;
+    }
+    
+    // 3. Guardar progreso y disparar una ÚNICA vez el audio
+    if (typeof saveProgress === 'function') saveProgress();
+    
+    // Usamos un pequeño delay tras el renderizado para evitar el error de setAttribute de Google
+    setTimeout(() => {
+        if (typeof startSpeech === 'function') {
+            console.log("Nexus: Disparo de voz único iniciado.");
+            startSpeech();
+        }
+    }, 200);
+
+    window.scrollTo(0, 0);
 }
 
 window.addEventListener('click', (e) => {
-    const modal = document.getElementById('resume-modal');
+    // 1. Buscamos el modal por su nuevo ID único
+    const modal = document.getElementById('nx-resume-modal');
+    
+    // 2. Si el clic fue exactamente en el fondo (overlay) y no en la tarjeta
     if (e.target === modal) {
-        modal.classList.add('hidden');
-        window.pendingProgress = null; // Queda en la posición actual sin disparar audio
+        // Aplicamos una salida suave antes de remover
+        modal.style.opacity = '0';
+        
+        setTimeout(() => {
+            modal.remove(); // Eliminamos el elemento del DOM
+            window.pendingProgress = null; // Limpiamos la lectura pendiente
+        }, 300);
+        
+        console.log("Nexus: Modal cerrado por clic externo.");
     }
 });

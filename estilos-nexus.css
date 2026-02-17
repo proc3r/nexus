@@ -4109,3 +4109,181 @@ button {
 .btn-resume-main:active, .btn-resume-alt:active {
     transform: scale(0.96);
 }
+
+
+/* PANTALA DE RESUMIR LECTURA*/
+
+/* Contenedor principal con efecto de desenfoque */
+.nx-resume-overlay {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgb(0 0 0 / 28%);
+    z-index: 999999;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+    backdrop-filter: blur(4px);
+    animation: nx-resume-fade 0.3s ease;
+	transition: opacity 1s ease, visibility 0.3s;
+}
+
+/* Tarjeta del Modal */
+.nx-resume-card {
+    background: #1a1a1ad1;
+    padding: 30px 30px 30px 30px;
+    border-radius: 24px;
+    text-align: center;
+    border: 1px solid #333;
+    max-width: 420px;
+    width: 92%;
+    box-shadow: 0 25px 60px rgb(0 0 0 / 90%);
+    backdrop-filter: blur(4px);
+	box-shadow: 0 0px 11px rgb(249 230 11 / 86%);
+
+}
+
+.nx-resume-header { margin-bottom: 24px; }
+
+
+
+.nx-resume-book-title { 
+        color: #fbfbfb;
+    margin: 0 0 12px 0;
+    font-size: 34px;
+    text-transform: uppercase;
+    font-style: italic;
+    line-height: 33px;
+    text-shadow: 0px 0px 7px rgb(23 214 233 / 80%);
+    font-family: fantasy;
+    font-weight: 100;
+	padding: 0 10px;
+}
+
+.nx-resume-chapter-name {
+    font-size: 22px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    font-family: 'Barlow Condensed';
+    color: #27ff00;
+	    padding-bottom: 30px;
+}
+
+
+/* Barra de progreso técnica */
+.nx-resume-progress-track {
+    background: #2a2a2a;
+    height: 9px;
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 3px;
+    overflow: hidden;
+}
+
+.nx-resume-progress-fill {
+    background: linear-gradient(90deg, rgb(96 5 5 / 65%) 0%, rgb(19 219 25) 100%);
+    height: 100%;
+    border-radius: 12px;
+    transition: width 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nx-resume-stats-row {
+        display: flex;
+    justify-content: space-between;
+    color: #d7d7d7;
+    font-size: 19px;
+    margin-bottom: 32px;
+    font-family: 'Barlow Condensed';
+}
+
+/* Sistema de botones nx */
+.nx-resume-actions { display: flex; flex-direction: column; gap: 17px; }
+
+.nx-resume-btn-main {
+    color: #8af188;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 20px;
+    cursor: pointer;
+    font-family: 'Barlow Condensed';
+    text-transform: uppercase;
+    transition: transform 0.2s, background 0.2s;
+    background-color: rgb(26 255 6 / 9%);
+    box-shadow: 0 0px 5px rgb(48 249 11 / 95%);
+    border: 1px solid rgb(41 255 0 / 26%);
+	transition: all 0.2s;
+}
+
+
+
+.nx-resume-btn-main:active { transform: scale(0.98); }
+
+.nx-resume-grid-alt { display: grid; gap: 12px; 
+/*padding: 0px 20px 0px 20px; */}
+
+.nx-resume-btn-sub {
+    
+    color: #9dc0ff;
+    
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 19px;
+    cursor: pointer;
+    font-family: 'Barlow Condensed';
+    text-transform: uppercase;
+    background-color: rgb(22 41 122 / 20%);
+    box-shadow: 0 0px 5px rgb(11 96 249 / 95%);
+    border: 1px solid rgb(37 101 239 / 46%);
+	transition: all 0.2s;
+}
+
+.nx-resume-btn-minimal {
+    
+    color: #ff5c5c;
+    border: 1px solid #2a2a2a;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 19px;
+    cursor: pointer;
+    font-family: 'Barlow Condensed';
+	text-transform: uppercase;
+	background-color: rgb(220 0 0 / 18%);
+    box-shadow: 0 0px 6px rgb(255 2 2);
+        border: 1px solid rgb(231 40 40 / 46%);
+		transition: all 0.2s;
+}
+
+.nx-resume-btn-main:hover {
+	transform: scale(1.04);
+	color: #ffffff;
+	background-color: rgb(26 255 6 / 40%);
+    box-shadow: 0 0px 5px rgb(48 249 11 / 95%);
+    border: 1px solid rgba(255,255,255,0.1);
+	}
+	
+	.nx-resume-btn-sub:hover {
+	transform: scale(1.04);
+	color: #ffffff;
+	background-color: rgb(40 71 203 / 40%);
+    box-shadow: 0 0px 5px rgb(11 96 249 / 95%);
+    border: 1px solid rgba(255,255,255,0.1);
+	}
+	
+	.nx-resume-btn-minimal:hover {
+	transform: scale(1.04);
+	color: #ffffff;
+	background-color: rgba(220, 0, 0, 0.4);
+    box-shadow: 0 0px 5px rgb(249 11 11 / 95%);
+    border: 1px solid rgba(255,255,255,0.1);
+	}
+
+@keyframes nx-resume-fade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
