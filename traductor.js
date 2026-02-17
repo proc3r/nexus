@@ -424,31 +424,68 @@ async function cambiarIdioma(langCode) {
     }
 }
 
+
 // Función para actualizar la dirección global de la app y sincronizar soporte de voz
 function aplicarDireccionGlobal() {
-    const rtlLangs = ['ar', 'he', 'fa', 'ur', 'ps', 'sd', 'yi'];
-    const currentLang = localStorage.getItem('nexus_preferred_lang') || 'es';
-    const isRTL = rtlLangs.includes(currentLang.split('-')[0]);
+    // Lista expandida: 'iw' es el código que suele usar Google Translate para Hebreo
+    const rtlLangs = ['ar', 'he', 'iw', 'fa', 'ur', 'ps', 'sd', 'yi'];
+    
+    // Obtenemos el idioma y lo limpiamos (ej: "he-IL" -> "he")
+    let currentLang = localStorage.getItem('nexus_preferred_lang') || 'es';
+    currentLang = currentLang.split('-')[0].toLowerCase().trim();
+    
+    const isRTL = rtlLangs.includes(currentLang);
 
-    // 1. FORZAMOS el diseño a mantenerse LTR (Evita que los menús se muevan de lugar)
+    console.log("Nexus Traductor: Detectado idioma " + currentLang + " | RTL: " + isRTL);
+
+    // 1. Forzamos LTR en el layout general (Menús, botones, etc)
     document.documentElement.dir = "ltr"; 
     document.body.dir = "ltr";
 
-    // 2. Aplicamos RTL solo a los contenedores de lectura específicos
+    // 2. Contenedores de texto de lectura
     const textContainers = [
         document.getElementById('pod-subtitle-text'), 
-        document.getElementById('reader-content'),      
+        document.getElementById('reading-container-fixed'),
         document.querySelector('.synopsis-content')    
     ];
+
+    const currentAlign = getComputedStyle(document.documentElement).getPropertyValue('--reader-text-align').trim();
 
     textContainers.forEach(container => {
         if (container) {
             container.style.direction = isRTL ? 'rtl' : 'ltr';
-            container.style.textAlign = isRTL ? 'right' : 'center';
+            
+            // Corrección de última línea para modo Justificado
+            if (currentAlign === 'justify') {
+                container.style.textAlignLast = isRTL ? 'right' : 'left';
+                document.documentElement.style.setProperty('--reader-text-align-last', isRTL ? 'right' : 'left');
+            } else {
+                container.style.textAlignLast = 'auto';
+                document.documentElement.style.setProperty('--reader-text-align-last', currentAlign);
+            }
         }
     });
 
-    // 3. Notificar al sistema de voces para detectar si hay audio disponible
+    // 3. Lógica de botones de alineación
+    const leftOpt = document.getElementById('option-align-left');
+    const rightOpt = document.getElementById('option-align-right');
+
+    if (leftOpt && rightOpt) {
+        if (isRTL) {
+            leftOpt.classList.add('hidden');
+            rightOpt.classList.remove('hidden');
+            if (currentAlign === 'left') {
+                if (typeof changeAlignment === 'function') changeAlignment('right');
+            }
+        } else {
+            leftOpt.classList.remove('hidden');
+            rightOpt.classList.add('hidden');
+            if (currentAlign === 'right') {
+                if (typeof changeAlignment === 'function') changeAlignment('left');
+            }
+        }
+    }
+
     if (typeof syncLanguageSupport === 'function') {
         syncLanguageSupport();
     }

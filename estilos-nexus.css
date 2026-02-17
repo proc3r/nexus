@@ -1343,6 +1343,7 @@ body.sidebar-open {
 	background-color: rgb(52 243 12 / 70%) !important;
 	transition: transform 0.5s, background-color 0.3s;
 	box-shadow: 0px 0px 8px rgb(0 255 0  / 81%);
+	animation: fadeIn 0.5s ease;
 }
 
 
@@ -1366,18 +1367,18 @@ body.sidebar-open {
 /* Botón Pausa (Amarillo por defecto) */
 .btn-float-pause {
     background-color: rgb(255 204 0 / 0.6);
-    /*box-shadow: 3px 3px 12px rgb(24 24 24 / 55%);*/
-	box-shadow: 0px 0px 8px rgb(0 255 0  / 81%);
+    box-shadow: 0px 0px 8px rgb(0 255 0  / 99%);
 	animation: pause-tts 3s infinite ease-in-out;
 	backdrop-filter: blur(3px);
+	
 	
 }
 
 /* Animación de Latido para cuando la música suena */
 @keyframes pause-tts {
-    0% { transform: scale(1); box-shadow: 0px 0px 8px rgb(0 255 0 / 95%); }
-    50% { transform: scale(1); box-shadow: 0px 0px 3px rgb(0 255 0 / 40%); }
-    100% { transform: scale(1); box-shadow: 0px 0px 8px rgb(0 255 0 / 95%); }
+    0% { transform: scale(0.75); box-shadow: 0px 0px 8px rgb(0 255 0 / 99%); }
+    50% { transform: scale(0.7); box-shadow: 0px 0px 3px rgb(0 255 0 / 40%); }
+    100% { transform: scale(0.75); box-shadow: 0px 0px 8px rgb(0 255 0 / 99%); }
 }
 
 /* Clase que se aplica por JS cuando se pausa (Verde) */
@@ -1407,6 +1408,7 @@ body.sidebar-open {
 	box-shadow: 0 0px 5px rgb(249 11 11 / 95%);
 	/*box-shadow: 3px 3px 12px rgb(24 24 24 / 55%);*/
 	transition: transform 0.5s, background-color 0.3s;
+	animation: fadeIn 0.3s ease;
 	
 }
 
@@ -2151,6 +2153,10 @@ body.sidebar-open {
 	margin: 0 auto;
 	position: relative;
 	padding: 0 10%; 
+	
+	/* CONTROL DE ALINEACIÓN DINÁMICA */
+    text-align: var(--reader-text-align, center);
+    text-align-last: var(--reader-text-align-last, auto); /* <--- AGREGAR ESTO */
 	    
 	/* Comportamiento y Scroll */
     /*overflow-y: auto;*/
@@ -3235,67 +3241,103 @@ body.sidebar-open {
 }
 
 
-.zen-btn-mobile {
+/* --- ESTILOS BASE (MÓVIL) --- */
+.zen-btn-mobile  {
     position: fixed;
-    bottom: 125px;
     right: 8px;
     z-index: 60;
     background: rgba(0, 0, 0, 0.05);
     backdrop-filter: blur(2px);
-        border: 1px solid rgb(255 255 255 / 11%);
+    border: 1px solid rgb(255 255 255 / 11%);
     border-radius: 8px;
     width: 29px;
     height: 33px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--primary-accent) rgba(0, 0, 0, 0.2);
-    transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #bb9a19;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
+    cursor: pointer;
 }
 
+.refresh-voice-btn {
+    position: fixed;
+    right: 8px;
+    z-index: 60;
+    background: rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(2px);
+    border: 1px solid rgb(255 255 255 / 11%);
+    border-radius: 30px;
+    width: 29px;
+    height: 33px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #22ad11;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
+    cursor: pointer;
+}
+
+/* Posiciones iniciales separadas */
+.zen-btn-mobile { bottom: 125px; }
+.refresh-voice-btn { bottom: 165px; }
+
 /* Feedback visual al presionar */
-.zen-btn-mobile:active {
+.zen-btn-mobile:active, .refresh-voice-btn:active {
     transform: scale(0.9);
 }
 
-/* Asegura que el fondo sea negro profundo cuando el navegador entra en pantalla completa */
-:fullscreen, ::-webkit-full-screen, :-ms-fullscreen {
-    background-color: #000 !important;
-}
+/* Lógica cuando la interfaz se oculta (Scroll o Auto-hide) */
+.header-hidden-state .zen-btn-mobile { bottom: 20px; }
+.header-hidden-state .refresh-voice-btn { bottom: 60px; } /* Mantiene la distancia */
 
-/* Ajuste de margen para el botón Zen en pantalla completa real */
-.zen-active-ui .zen-btn-mobile {
-    /* En algunos móviles, al estar en Fullscreen, el botón 
-       necesita un poco más de margen por los gestos del sistema */
-    bottom: 30px !important; 
-}
+/* Lógica cuando el Modo Zen está ACTIVO (UI Limpia) */
+.zen-active-ui .zen-btn-mobile { bottom: 30px !important; }
+.zen-active-ui .refresh-voice-btn { bottom: 70px !important; }
 
+
+/* --- AJUSTES PARA ESCRITORIO (MIN-WIDTH: 1024px) --- */
 @media (min-width: 1024px) {
-    .zen-btn-mobile {
-    right: 3%;
-    width: 48px;
-    height: 48px;
-    bottom: 135px;
-	box-shadow: 0px 0px 5px rgb(255 0 0 / 65%);
-	
+    .zen-btn-mobile, .refresh-voice-btn {
+        right: 3%;
+        width: 48px;
+        height: 48px;
     }
 
+    /* Posiciones en escritorio */
+    .zen-btn-mobile { 
+        bottom: 135px; 
+        box-shadow: 0px 0px 5px rgb(255 0 0 / 65%);
+    }
+    .refresh-voice-btn { 
+        bottom: 192px; 
+        box-shadow: 0px 0px 5px rgb(4 255 0 / 65%);
+    }
+
+    /* Lógica Zen Activo en Escritorio */
     .zen-active-ui .zen-btn-mobile {
-        /* En modo Zen escritorio, lo bajamos un poco más que en móvil */
         bottom: 40px !important;
         right: 40px;
     }
-    
-    /* Efecto Hover solo para PC (opcional, le da un toque profesional) */
-    .zen-btn-mobile:hover {
+    .zen-active-ui .refresh-voice-btn {
+        bottom: 95px !important; /* Posicionado arriba del zen */
+        right: 40px;
+    }
+
+    /* Efectos Hover Unificados */
+    .zen-btn-mobile:hover, .refresh-voice-btn:hover {
         background: rgba(0, 0, 0, 0.8);
         color: #ffffff;
         transform: scale(1.1);
-		
-		transform: scale(1.1);
-		transition: transform 0.3s ease;
+        transition: transform 0.3s ease;
     }
+}
+
+/* Asegura fondo negro en Fullscreen Real */
+:fullscreen, ::-webkit-full-screen, :-ms-fullscreen {
+    background-color: #000 !important;
 }
 
 /* GOOGLE TRANSLATE */
@@ -3930,7 +3972,7 @@ button {
 #visual-timer-wrapper {
     position: absolute;
     /* -3px para que la barra de 6px quede a caballito sobre el borde */
-    top: -8px; 
+    top: -7px; 
     left: 0;
     width: 100%;
     height: 6px;

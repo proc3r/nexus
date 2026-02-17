@@ -8,7 +8,8 @@
         let isPinned = false;
         let allExpanded = false;
         let sidebarTimer = null;
-		
+		// Lista de códigos de idioma que se escriben de derecha a izquierda
+		const RTL_LANGS = ['ar', 'he', 'fa', 'ur', 'dv', 'ha', 'ps', 'yi'];
 		
 		
 		function saveProgress() {
@@ -35,6 +36,8 @@
 			document.getElementById('resume-card').classList.remove('hidden');
 		}
 	}
+
+
 
 	function resumeLastSession() {
     const saved = localStorage.getItem('nexus_last_session');
@@ -632,8 +635,24 @@ function changeAlignment(align) {
     const isMobile = window.innerWidth <= 768;
     const deviceSuffix = isMobile ? '-mobile' : '-desktop';
 
+    // 1. Aplicamos la alineación principal
     document.documentElement.style.setProperty('--reader-text-align', align);
     localStorage.setItem('reader-text-align' + deviceSuffix, align);
+
+    // 2. CORRECCIÓN PARA JUSTIFICADO (Última línea)
+    // Detectamos si el idioma actual es RTL (basado en lo que guardamos en traductor.js)
+    const rtlLangs = ['ar', 'he', 'iw', 'fa', 'ur', 'ps', 'sd', 'yi'];
+    const currentLang = localStorage.getItem('nexus_preferred_lang') || 'es';
+    const isRTL = rtlLangs.includes(currentLang.split('-')[0]);
+
+    if (align === 'justify') {
+        // Si es árabe, la última línea va a la derecha. Si es normal, a la izquierda.
+        const lastLineAlign = isRTL ? 'right' : 'left';
+        document.documentElement.style.setProperty('--reader-text-align-last', lastLineAlign);
+    } else {
+        // Si no es justificado, la última línea sigue a la principal
+        document.documentElement.style.setProperty('--reader-text-align-last', align);
+    }
     
     document.getElementById('align-dropdown')?.classList.remove('show');
     syncVisualSettings();
@@ -663,7 +682,6 @@ function changeLineHeight(h) {
     const style = getComputedStyle(document.documentElement);
     const currentFont = style.getPropertyValue('--reader-font-family').replace(/['"]/g, '').trim();
     const currentAlign = style.getPropertyValue('--reader-text-align').trim();
-    // Limpiamos el valor del interlineado para que sea solo el número
     const currentLineHeight = style.getPropertyValue('--reader-line-height').trim();
 
     // 2. Sincronizar Menú de Fuentes (Lógica robusta)
@@ -677,6 +695,7 @@ function changeLineHeight(h) {
     // Buscamos cuál botón contiene el valor exacto (ej: 'justify', 'center', 'left')
     document.querySelectorAll('#align-dropdown .setting-option').forEach(opt => {
         const onClickAttr = opt.getAttribute('onclick') || "";
+        // Ahora comparamos correctamente si el onClick incluye el valor actual
         opt.classList.toggle('selected', onClickAttr.includes(`'${currentAlign}'`));
     });
 
@@ -798,4 +817,30 @@ function closeTranslateModal() {
     
     // Devolver el scroll al contenido
     document.body.style.overflow = ''; 
+}
+
+
+function updateRTLAlignment(langCode) {
+    const leftOpt = document.getElementById('option-align-left');
+    const rightOpt = document.getElementById('option-align-right');
+    if (!leftOpt || !rightOpt) return;
+
+    const baseLang = langCode.split('-')[0].toLowerCase();
+    const isRTL = RTL_LANGS.includes(baseLang);
+
+    if (isRTL) {
+        leftOpt.classList.add('hidden');
+        rightOpt.classList.remove('hidden');
+        // Si estaba en izquierda, lo movemos a derecha automáticamente
+        if (getComputedStyle(document.documentElement).getPropertyValue('--reader-text-align').trim() === 'left') {
+            changeAlignment('right');
+        }
+    } else {
+        leftOpt.classList.remove('hidden');
+        rightOpt.classList.add('hidden');
+        // Si estaba en derecha (por un idioma previo), volvemos a izquierda
+        if (getComputedStyle(document.documentElement).getPropertyValue('--reader-text-align').trim() === 'right') {
+            changeAlignment('left');
+        }
+    }
 }

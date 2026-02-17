@@ -29,6 +29,8 @@ window.hasAvailableVoice = true; // Estado global
 
 // 1. Verificador de voces con soporte asíncrono
 
+
+
 function checkVoiceAvailability(langCode) {
     return new Promise((resolve) => {
         const voices = window.speechSynthesis.getVoices();
@@ -60,15 +62,19 @@ function checkVoiceAvailability(langCode) {
 async function syncLanguageSupport() {
     try {
         const preferred = localStorage.getItem('nexus_preferred_lang');
+        // Limpiamos el código por si viene con sub-regiones (ej: 'zh-CN' -> 'zh')
         const targetLang = preferred || 'es-ES';
+        const baseLang = targetLang.split('-')[0].toLowerCase();
         
-        // Si no hay voces cargadas aún, no bloqueamos, devolvemos true por defecto
-        // y dejamos que checkVoiceAvailability maneje la espera después.
-        if (targetLang.startsWith('es')) {
+        // Si el idioma base es español, siempre hay voz física disponible
+        if (baseLang === 'es') {
             window.hasAvailableVoice = true;
         } else {
+            // Para otros idiomas, verificamos disponibilidad real
             window.hasAvailableVoice = await checkVoiceAvailability(targetLang);
         }
+        
+        console.log(`Nexus Vocal: Sincronización finalizada. Idioma: ${baseLang} | Voz: ${window.hasAvailableVoice}`);
         return window.hasAvailableVoice;
     } catch (e) {
         console.warn("Nexus Vocal: Error en sincronización inicial, continuando...", e);

@@ -225,17 +225,24 @@
                 <button onclick="toggleDropdown('align-dropdown')" class="nav-icon-btn notranslate" title="Alineación">
                     <span class="mi-round text-lg">format_align_center</span>
                 </button>
-                <div id="align-dropdown" class="settings-dropdown">
-                    <div class="setting-option" onclick="changeAlignment('left')">
-                        <span class="mi-round text-base notranslate">format_align_left</span> Izquierda
-                    </div>
-                    <div class="setting-option selected" onclick="changeAlignment('center')">
-                        <span class="mi-round text-base notranslate">format_align_center</span> Centro
-                    </div>
-                    <div class="setting-option" onclick="changeAlignment('justify')">
-                        <span class="mi-round text-base notranslate">format_align_justify</span> Justificado
-                    </div>
-                </div>
+                
+				
+				<div id="align-dropdown" class="settings-dropdown">
+					<div id="option-align-left" class="setting-option" onclick="changeAlignment('left')">
+						<span class="mi-round text-base notranslate">format_align_left</span> Izquierda
+					</div>
+					<div id="option-align-right" class="setting-option hidden" onclick="changeAlignment('right')">
+						<span class="mi-round text-base notranslate">format_align_right</span> Derecha
+					</div>
+					<div class="setting-option selected" onclick="changeAlignment('center')">
+						<span class="mi-round text-base notranslate">format_align_center</span> Centro
+					</div>
+					<div class="setting-option" onclick="changeAlignment('justify')">
+						<span class="mi-round text-base notranslate">format_align_justify</span> Justificado
+					</div>
+				</div>
+
+
             </div>
 
             <div class="settings-dropdown-container">
@@ -270,6 +277,10 @@
     <button id="zen-mode-btn" class="zen-btn-mobile" onclick="toggleZenMode()">
         <span class="material-icons notranslate" id="zen-icon">fullscreen</span>
     </button>
+	
+	<button id="refresh-voice-btn" class="refresh-voice-btn" onclick="refreshSpeech()">
+    <span class="material-icons notranslate">sync</span>
+</button>
     
     <div id="reading-container-fixed" class="custom-scrollbar">
         <div class="content-wrapper">

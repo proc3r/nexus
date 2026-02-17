@@ -30,6 +30,24 @@ async function loadExternalDictionary() {
 		}
 	}
 	
+	
+	// Añadir al principio de nexus-voice.js o antes de startSpeech
+function getDynamicChunkLimit() {
+    const currentLang = localStorage.getItem('nexus_preferred_lang') || 'es';
+    const baseLang = currentLang.split('-')[0].toLowerCase();
+
+    // Configuración de límites por idioma
+    const limits = {
+        'zh': 55,  // Chino
+        'ko': 80,  // Coreano
+        'ja': 60,  // Japonés
+        'default': 130
+    };
+
+    const limit = limits[baseLang] || limits['default'];
+    console.log(`Nexus Voice: Límite de caracteres para '${baseLang}': ${limit}`);
+    return limit;
+}
 
 // --- CONTROLADOR DE VOZ DEL LECTOR ---
 
@@ -65,24 +83,19 @@ function setReaderSpeed(rate) {
 	
 		
 
-
-
 async function startSpeech() {
     if (typeof launchFullScreen === 'function') {
         launchFullScreen(document.documentElement);
     }
     
     // 1. LIMPIEZA TOTAL DE AMBOS MODOS
-    // Detenemos cualquier audio en curso inmediatamente
     window.synth.cancel();
     
-    // Matamos la barra visual y su temporizador (setTimeout)
     if (typeof stopVisualTimer === 'function') {
         stopVisualTimer(); 
     }
 
     // RESET DE ESTADOS CRÍTICOS
-    // Limpiamos residuos de pausas o tiempos de idiomas anteriores
     window.visualPausedTime = null; 
     window.visualStartTime = null;
     if (window.visualTimerInterval) {
@@ -94,7 +107,6 @@ async function startSpeech() {
     window.isPaused = false;
     
     // 2. SINCRONIZACIÓN FORZADA
-    // Aquí es donde se decide si el nuevo idioma tiene voz o no
     if (typeof syncLanguageSupport === 'function') {
         await syncLanguageSupport(); 
     }
@@ -105,8 +117,14 @@ async function startSpeech() {
     document.getElementById('stop-btn').classList.remove('hidden'); 
     if (typeof updatePauseUI === 'function') updatePauseUI(false);
 
-    const currentText = chunks[currentChunkIndex] || "";
-    const isImage = currentText.match(/!\[\[(.*?)\]\]/);
+    // --- MEJORA DE CAPTURA DE TEXTO TRADUCIDO ---
+    const contentEl = document.getElementById('book-content');
+    const rawText = chunks[currentChunkIndex] || "";
+    // Solo si hay contenido en el DOM, lo usamos (para leer la traducción de Google)
+    const currentText = (contentEl && contentEl.innerText.trim() !== "") ? contentEl.innerText.trim() : rawText;
+    // --------------------------------------------
+
+    const isImage = rawText.match(/!\[\[(.*?)\]\]/);
     
     if (isImage) {
         if (typeof clearImageTimer === 'function') clearImageTimer();
@@ -123,13 +141,12 @@ async function startSpeech() {
         }
 
         // 5. MODO AUDIO (Inglés, Español, etc.)
-        // Si llegamos aquí, el idioma tiene voz. 
-        // Por seguridad, confirmamos que el temporizador visual esté apagado 
-        // para que no interrumpa el evento 'onend' del TTS.
         if (typeof stopVisualTimer === 'function') stopVisualTimer();
         
         console.log("Nexus Voice: Iniciando lectura con voz.");
-        prepareAndStartSpeech();
+        
+        // MANTENEMOS TU FUNCIÓN ORIGINAL
+        prepareAndStartSpeech(currentText); 
     }
 }
 
@@ -400,8 +417,13 @@ function prepareAndStartSpeech() {
     window.currentSubChunkIndex = 0;
 
     if (typeof splitTextSmartly === 'function') {
-        // Dividimos en partes pequeñas para mayor estabilidad (max 140 car)
-        window.speechSubChunks = splitTextSmartly(textToRead, 140);
+        // CAMBIO: Ahora el límite no es 140 fijo, sino dinámico según el idioma
+        const dynamicLimit = getDynamicChunkLimit();
+        
+        console.log(`Nexus Voice: Fragmentando con límite de ${dynamicLimit} caracteres.`);
+        
+        window.speechSubChunks = splitTextSmartly(textToRead, dynamicLimit);
+        
         if (typeof speakSubChunk === 'function' && window.speechSubChunks.length > 0) {
             speakSubChunk();
         }
@@ -523,4 +545,38 @@ function speakSubChunk() {
             window.synth.speak(utterance);
         }
     }, 50);
+}
+
+
+/**
+ * Reinicia la lectura actual capturando el texto fresco del DOM.
+ * Útil si el traductor tardó en aplicar el idioma.
+ */
+async function refreshSpeech() {
+    console.log("Nexus Voice: Solicitando reinicio de lectura...");
+
+    // 1. Detenemos cualquier audio y limpiamos estados
+    window.synth.cancel();
+    if (window.nexusSpeechTimeout) {
+        clearTimeout(window.nexusSpeechTimeout);
+        window.nexusSpeechTimeout = null;
+    }
+
+    // 2. Reseteamos los sub-chunks para forzar re-fragmentación
+    window.speechSubChunks = [];
+    window.currentSubChunkIndex = 0;
+
+    // 3. Pequeña pausa para asegurar que el sintetizador liberó el hilo
+    setTimeout(async () => {
+        // 4. Volvemos a sincronizar idioma por si acaso
+        if (typeof syncLanguageSupport === 'function') {
+            await syncLanguageSupport();
+        }
+
+        // 5. Llamamos a prepareAndStartSpeech que volverá a leer el innerText
+        // del contenedor 'book-content' (ya traducido)
+        if (typeof prepareAndStartSpeech === 'function') {
+            prepareAndStartSpeech();
+        }
+    }, 200);
 }
