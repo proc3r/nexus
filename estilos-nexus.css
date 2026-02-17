@@ -536,8 +536,8 @@ body.sidebar-open {
 .toc-toggle:hover { opacity: 1; color: var(--primary-accent); }
 
 .reader-section-title {
-    font-family: 'Barlow Condensed', sans-serif; font-size: 35px; font-weight: 800; text-transform: uppercase;
-    text-align: center; margin: 2rem 0; line-height: 1.1; font-style: italic; 
+    font-family: 'Barlow Condensed', sans-serif; font-size: calc(var(--reader-font-size) * 1.5); font-weight: 800; text-transform: uppercase;
+    text-align: center !important; margin: 2rem 0; line-height: 1.1; font-style: italic;  text-align-last: center !important; 
     text-shadow: -3px -2px 5px rgb(0 0 0 / 21%);
 }
 
@@ -1158,7 +1158,7 @@ body.sidebar-open {
     line-height: 1.5;
     font-size: 1.1rem;
     color: #f1f1f1;
-	font-family: 'Merriweather';
+	font-family: 'inter';
     
 }
 
@@ -1224,12 +1224,18 @@ body.sidebar-open {
 
 /* Estilo para que el título en el sidebar no sea tan invasivo pero sí legible */
 #reader-title {
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    text-shadow: 0px 2px 7px rgb(23 214 233 / 80%);
     max-height: 3.6em;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+	    font-family: fantasy;
+    font-weight: 100;
+    font-size: 1.7em;
+    font-style: italic;
+	letter-spacing: 0.5px;
+	text-transform: uppercase;
 }
 
 .speed-control-container {
@@ -2156,7 +2162,7 @@ body.sidebar-open {
 	
 	/* CONTROL DE ALINEACIÓN DINÁMICA */
     text-align: var(--reader-text-align, center);
-    text-align-last: var(--reader-text-align-last, auto); /* <--- AGREGAR ESTO */
+    text-align-last: var(--reader-text-align-last, auto); /*  */
 	    
 	/* Comportamiento y Scroll */
     /*overflow-y: auto;*/
@@ -2165,6 +2171,33 @@ body.sidebar-open {
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
 	
+}
+
+/* Cuando el texto NO está justificado, forzamos que la última línea siga al padre */
+#reading-container-fixed:not([style*="justify"]) {
+    text-align-last: inherit !important;
+}
+
+/* Regla específica para cuando el usuario elige centrado */
+[style*="--reader-text-align: center"] #reading-container-fixed,
+[style*="--reader-text-align:center"] #reading-container-fixed {
+    text-align-last: center !important;
+}
+
+/* Esto asegura que si algo está dentro de un <center>, ignore el alineado forzado */
+#reading-container-fixed center, 
+#reading-container-fixed .title-class, 
+#reading-container-fixed h2 {
+    text-align: center !important;
+    text-align-last: center !important;
+}
+
+#reading-container-fixed h1, 
+#reading-container-fixed h2, 
+#reading-container-fixed h3, 
+#reading-container-fixed center {
+    text-align: center !important;
+    text-align-last: center !important; /* Esto anula el 'left' heredado */
 }
 
 
@@ -4006,4 +4039,73 @@ button {
     white-space: nowrap;
     z-index: 10000;
 	font-style: italic;
+}
+
+
+/* Contenedor de fondo (Overlay) */
+.resume-nexus-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px); /* Efecto cristal para que se vea el fondo */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999; /* Por encima de todo */
+}
+
+.resume-nexus-overlay.hidden {
+    display: none !important;
+}
+
+/* La tarjeta del mensaje */
+.resume-modal-card {
+    background: #121212;
+    border: 1px solid var(--primary-accent);
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 340px;
+    width: 90%;
+    box-shadow: 0 0 20px rgba(0,0,0,0.6), 0 0 10px var(--primary-accent)1a;
+}
+
+.resume-modal-card h3 {
+    margin: 0 0 10px 0;
+    color: #fff;
+}
+
+.resume-actions-gap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+/* Botones con estilo diferenciado */
+.btn-resume-main {
+    background: var(--primary-accent);
+    color: #000;
+    font-weight: bold;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-resume-alt {
+    background: rgba(255, 255, 255, 0.05);
+    color: #eee;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.btn-resume-main:active, .btn-resume-alt:active {
+    transform: scale(0.96);
 }

@@ -14,17 +14,28 @@
 		
 		function saveProgress() {
     if (!currentBook) return;
-    const progress = {
+    
+    // 1. Obtener el historial completo o crear uno nuevo
+    const history = JSON.parse(localStorage.getItem('nexus_reading_history') || '{}');
+
+    // 2. Crear el registro específico de este libro
+    const bookProgress = {
         bookId: currentBook.id,
-        fileName: currentBook.fileName, // Guardamos el nombre del archivo
-        repoIdx: currentBook.repoIdx,   // Guardamos el índice del repo
+        fileName: currentBook.fileName,
+        repoIdx: currentBook.repoIdx,
         bookTitle: currentBook.title,
         chapterIndex: currentChapterIndex,
         chapterTitle: currentBook.chapters[currentChapterIndex].title,
         chunk: currentChunkIndex,
         timestamp: Date.now()
     };
-    localStorage.setItem('nexus_last_session', JSON.stringify(progress));
+
+    // 3. Guardar en el historial usando el fileName como clave única
+    history[currentBook.fileName] = bookProgress;
+    localStorage.setItem('nexus_reading_history', JSON.stringify(history));
+    
+    // Mantenemos nexus_last_session solo para la "Card de Continuar" del menú principal
+    localStorage.setItem('nexus_last_session', JSON.stringify(bookProgress));
 }
 
 	function checkLastSession() {
@@ -39,39 +50,43 @@
 
 
 
-	function resumeLastSession() {
+function resumeLastSession() {
     const saved = localStorage.getItem('nexus_last_session');
     if (!saved) return;
-	
-	// --- NUEVO: ACTIVAR FULLSCREEN AL REANUDAR SESIÓN ---
+    
+    // --- NUEVO: ACTIVAR FULLSCREEN AL REANUDAR SESIÓN ---
     if (typeof launchFullScreen === 'function') {
         launchFullScreen(document.documentElement);
     }
-	
+    
     const data = JSON.parse(saved);
 
-    // Intentamos encontrar el libro en la librería cargada
-    let book = library.find(b => b.fileName === data.fileName);
+    // 1. Intentamos encontrar el libro en la librería cargada por su ID o su fileName
+    let book = library.find(b => b.id === data.id || b.fileName === data.fileName);
 
     if (book) {
-        openReader(book.id);
-        setTimeout(() => {
-            loadChapter(data.chapterIndex);
-            currentChunkIndex = data.chunk;
-            renderChunk();
-            document.getElementById('resume-card').classList.add('hidden');
-        }, 500);
+        // Si el libro existe en la librería actual, usamos el openReader híbrido.
+        // Pasamos los índices directamente para que abra en el lugar exacto de un solo golpe.
+        openReader(book.id, data.chapterIndex, data.chunk);
+        
+        // Ocultamos la tarjeta de reanudación
+        const resumeCard = document.getElementById('resume-card');
+        if (resumeCard) resumeCard.classList.add('hidden');
     } else {
-        // Si no está en la librería (por ejemplo, en lector.html), 
-        // usamos la carga directa que creamos antes
+        // Si no está en la librería (caso de libros externos del lector fijo), 
+        // usamos la carga directa pero asegurando que pasamos los parámetros
         const params = {
-            repo: data.repoIdx,
+            repo: data.repoIdx !== undefined ? data.repoIdx : 0,
             book: data.fileName,
             ch: data.chapterIndex,
             ck: data.chunk
         };
+        
+        console.log("Nexus: Reanudando libro externo no indexado:", params.book);
         loadDirectBook(params);
-        document.getElementById('resume-card').classList.add('hidden');
+        
+        const resumeCard = document.getElementById('resume-card');
+        if (resumeCard) resumeCard.classList.add('hidden');
     }
 }
 	
@@ -208,7 +223,7 @@ function renderTOC() {
                 <span class="toc-toggle notranslate" onclick="toggleTOCSection(${i}, event)">
                     ${hasChildren ? '+' : '•'}
                 </span>
-                <span class="toc-text cursor-pointer hover:opacity-80 transition-opacity truncate font-normal flex-1 condensed uppercase tracking-[0.015em] text-[21px]" onclick="jumpToChapter(${i})">
+                <span class="toc-text cursor-pointer hover:opacity-80 transition-opacity truncate font-normal flex-1 condensed  text-[21px]" onclick="jumpToChapter(${i})">
                     ${ch.title}
                 </span>
             </div>
@@ -467,18 +482,78 @@ document.addEventListener('keydown', (e) => {
 		if (e.key === "Escape") closeImageModal();
 	});
 
-	function shareCurrentPoint() {
-		if (!currentBook) return;
+		
 
-		const modal = document.getElementById('share-modal');
-		document.getElementById('share-book-title').innerText = currentBook.title;
-		document.getElementById('share-book-img').src = currentBook.cover || DEFAULT_COVER;
-		modal.dataset.currentText = document.getElementById('book-content').innerText;
-		modal.classList.remove('hidden');
-		setTimeout(() => modal.classList.add('show'), 10);
-		document.body.style.overflow = 'hidden';
-	}
 
+function shareCurrentPoint() {
+    if (!currentBook) return;
+
+    const modal = document.getElementById('share-modal');
+    const previewArea = document.getElementById('share-text-preview');
+    const textContainer = document.querySelector('.share-text-content');
+    
+    // 1. Datos básicos del título
+    document.getElementById('share-book-title').innerText = currentBook.title;
+
+    // 2. LÓGICA DE IMAGEN ULTRA-SIMPLE
+    // Prioridad 1: La imagen que ya tiene el objeto currentBook
+    // Prioridad 2: La imagen por defecto (DEFAULT_COVER)
+    let finalCover = currentBook.cover || DEFAULT_COVER;
+
+    // Si por algún error de carga la imagen es un audio, forzamos la base
+    if (typeof finalCover === 'string' && finalCover.toLowerCase().includes('.mp3')) {
+        finalCover = DEFAULT_COVER;
+    }
+
+    document.getElementById('share-book-img').src = finalCover;
+
+    // 3. Capturamos el contenido para limpiar
+    const contentOriginal = document.getElementById('book-content');
+    if (!contentOriginal) return;
+
+    const tempDiv = contentOriginal.cloneNode(true);
+
+    // --- CAPA 1: LIMPIEZA POR ID (Universal) ---
+    const marker = tempDiv.querySelector('#nexus-language-marker') || tempDiv.querySelector('#nexus-validation-anchor');
+    let detectedWord = "";
+    
+    if (marker) {
+        detectedWord = marker.innerText.trim();
+        marker.remove();
+    }
+
+    let textForShare = tempDiv.innerText;
+
+    // --- CAPA 2: DOBLE SEGURIDAD ---
+    if (detectedWord) {
+        const dynamicRegex = new RegExp(detectedWord + "$", "gi");
+        textForShare = textForShare.replace(dynamicRegex, "");
+    }
+
+    const staticApples = ["manzana", "apple", "تفاحة", "pomme", "apfel", "mela", "maçã", "яблоко", "苹果"];
+    staticApples.forEach(word => {
+        const staticRegex = new RegExp(word + "$", "gi");
+        textForShare = textForShare.replace(staticRegex, "");
+    });
+
+    // 4. Limpieza final de espacios
+    let cleanText = textForShare.replace(/\s+/g, ' ').trim();
+
+    if (previewArea) {
+        previewArea.innerText = cleanText;
+    }
+
+    if (textContainer) {
+        textContainer.scrollTop = 0;
+    }
+
+    modal.dataset.fullContent = cleanText;
+    modal.classList.remove('hidden');
+    setTimeout(() => modal.classList.add('show'), 10);
+    document.body.style.overflow = 'hidden';
+}
+
+	
 	function closeShareModal() {
 		const modal = document.getElementById('share-modal');
 		modal.classList.remove('show');
@@ -497,80 +572,71 @@ document.addEventListener('keydown', (e) => {
 		}
 	});
 
-	function shareCurrentPoint() {
-		if (!currentBook) return;
 
-		const modal = document.getElementById('share-modal');
-		const previewArea = document.getElementById('share-text-preview');
-		const textContainer = document.querySelector('.share-text-content'); // El contenedor con scroll
-		document.getElementById('share-book-title').innerText = currentBook.title;
-		document.getElementById('share-book-img').src = currentBook.cover || DEFAULT_COVER;
-		const rawText = document.getElementById('book-content').innerText;
-		const cleanText = rawText.replace(/\s+/g, ' ').trim();
-		previewArea.innerText = `“${cleanText}”`;
-		if (textContainer) {
-			textContainer.scrollTop = 0;
-		}
-		modal.dataset.fullContent = cleanText;
-		modal.classList.remove('hidden');
-		setTimeout(() => modal.classList.add('show'), 10);
-		document.body.style.overflow = 'hidden';
-	}
 
-	function executeShare(platform) {
+function executeShare(platform) {
     const modal = document.getElementById('share-modal');
     const textSnippet = modal.dataset.fullContent || "";
-    const bookTitle = document.getElementById('share-book-title').innerText;
+    const bookTitle = document.getElementById('share-book-title').innerText.toUpperCase();
 
-    // --- Versión Optimizada de la URL ---
-    // Obtenemos la ruta actual eliminando el nombre del archivo (index o lector)
     const currentPath = window.location.pathname;
     const directory = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
     const finalBase = window.location.origin + directory + "lector.html";
-    // ------------------------------------
 
-    const shareUrl = `${finalBase}?repo=${currentBook.repoIdx}&book=${encodeURIComponent(currentBook.fileName)}&ch=${currentChapterIndex}&ck=${currentChunkIndex}`;
+    // --- MEJORA DE ENLACE SMART (Legible) ---
+    // 1. Limpiamos el nombre: quitamos .md y cambiamos espacios por guiones bajos
+    let cleanBookName = currentBook.fileName.replace('.md', '').replace(/\s+/g, '_');
     
-    const fullMessage = `📚 *${bookTitle}*\n\n"${textSnippet}"\n\n🔗 Sigue leyendo aquí: ${shareUrl}`;
+    // 2. Codificamos solo el nombre (para proteger caracteres como el + o tildes)
+    // pero mantenemos los separadores | fuera de la codificación
+    const smartParams = `${currentBook.repoIdx}|${encodeURIComponent(cleanBookName)}|${currentChapterIndex}|${currentChunkIndex}`;
+    
+    // 3. El resultado será ?s=0|Nombre_Libro|1|3 (el navegador respetará los |)
+    const shareUrl = `${finalBase}?s=${smartParams}`;
+    // ----------------------------------------
 
- 
-		let finalUrl = "";
-		switch(platform) {
-			case 'facebook':
-				finalUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-				break;
-			case 'reddit':
-				finalUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent("Cita de: " + bookTitle)}`;
-				break;
-			case 'whatsapp':
-				finalUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullMessage)}`;
-				break;
-			case 'x':
-				const xMsg = `"${textSnippet.substring(0, 100)}..."`;
-				finalUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(xMsg)}&url=${encodeURIComponent(shareUrl)}`;
-				break;
-			case 'telegram':
-				finalUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(fullMessage)}`;
-				break;
-			case 'linkedin':
-				finalUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
-				break;
-			case 'email':
-				finalUrl = `mailto:?subject=${encodeURIComponent(bookTitle)}&body=${encodeURIComponent(fullMessage)}`;
-				break;
-			case 'copy':
-				navigator.clipboard.writeText(fullMessage).then(() => {
-					alert("Cita y enlace copiados al portapapeles");
-					closeShareModal();
-				});
-				return;
-		}
+    const fullMessage = `*${bookTitle}*\n\n_"${textSnippet}"_\n\n${shareUrl}`;
 
-		if (finalUrl) {
-			window.open(finalUrl, '_blank', 'width=600,height=400');
-			closeShareModal();
-		}
-	}
+    let finalUrl = "";
+    switch(platform) {
+        case 'facebook':
+            finalUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+            break;
+        case 'reddit':
+            finalUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(bookTitle)}`;
+            break;
+        case 'whatsapp':
+            finalUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullMessage)}`;
+            break;
+        case 'x':
+            const xMsg = `"${textSnippet.substring(0, 150)}..."`;
+            finalUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(bookTitle + '\n' + xMsg)}&url=${encodeURIComponent(shareUrl)}`;
+            break;
+        case 'telegram':
+            finalUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(fullMessage)}`;
+            break;
+        case 'linkedin':
+            finalUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+            break;
+        case 'email':
+            finalUrl = `mailto:?subject=${encodeURIComponent(bookTitle)}&body=${encodeURIComponent(fullMessage)}`;
+            break;
+        case 'copy':
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert("Enlace copiado");
+                closeShareModal();
+            });
+            return;
+    }
+
+    if (finalUrl) {
+        window.open(finalUrl, '_blank', 'width=600,height=400');
+        closeShareModal();
+    }
+}
+
+
+
 	
 	   function cleanCalloutTags() {
             const content = document.getElementById('book-content');
@@ -635,23 +701,24 @@ function changeAlignment(align) {
     const isMobile = window.innerWidth <= 768;
     const deviceSuffix = isMobile ? '-mobile' : '-desktop';
 
-    // 1. Aplicamos la alineación principal
+    // 1. Aplicamos la alineación principal (center, left, right, justify)
     document.documentElement.style.setProperty('--reader-text-align', align);
     localStorage.setItem('reader-text-align' + deviceSuffix, align);
 
-    // 2. CORRECCIÓN PARA JUSTIFICADO (Última línea)
-    // Detectamos si el idioma actual es RTL (basado en lo que guardamos en traductor.js)
     const rtlLangs = ['ar', 'he', 'iw', 'fa', 'ur', 'ps', 'sd', 'yi'];
     const currentLang = localStorage.getItem('nexus_preferred_lang') || 'es';
     const isRTL = rtlLangs.includes(currentLang.split('-')[0]);
 
+    // 2. CORRECCIÓN LÓGICA DE LA ÚLTIMA LÍNEA
     if (align === 'justify') {
-        // Si es árabe, la última línea va a la derecha. Si es normal, a la izquierda.
+        // Solo forzamos left/right cuando estamos justificando
         const lastLineAlign = isRTL ? 'right' : 'left';
         document.documentElement.style.setProperty('--reader-text-align-last', lastLineAlign);
     } else {
-        // Si no es justificado, la última línea sigue a la principal
-        document.documentElement.style.setProperty('--reader-text-align-last', align);
+        // SI EL USUARIO ELIGE CENTRO, DERECHA O IZQUIERDA:
+        // Usamos 'inherit'. Esto anula el 'left' inyectado y hace que la última línea
+        // siga exactamente lo que dice '--reader-text-align'.
+        document.documentElement.style.setProperty('--reader-text-align-last', 'inherit');
     }
     
     document.getElementById('align-dropdown')?.classList.remove('show');

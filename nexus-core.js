@@ -125,45 +125,34 @@ function renderLibrary() {
 
 
 async function loadDirectBook(params) {
-    // 1. BLOQUEO PREVENTIVO:
-    // Al poner currentBook en null, el initPlayer que modificaste 
-    // detectará que no hay libro y se detendrá (silencio durante el spinner).
     currentBook = null; 
-
     const statusText = document.getElementById('status-text');
     let repoIndex = (params.repo !== null && !isNaN(params.repo)) ? parseInt(params.repo) : 0;
-    
-    // Si no hay libro en el parámetro, usamos el "Modelo Nouménico" por defecto
     let fileName = params.book ? decodeURIComponent(params.book) : "Modelo Nouménico.md";
-    
     const repo = REPOSITORIES[repoIndex] || REPOSITORIES[0];
-    
-    // Construimos la URL: raw base (raíz del repo) + nombre del archivo .md
     const fileUrl = repo.raw + encodeURIComponent(fileName);
 
     try {
         const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error(`Error 404: No se encontró el archivo en ${fileUrl}`);
-        
+        if (!response.ok) throw new Error(`Error 404`);
         const text = await response.text();
         
-        // Lógica de Portada
+        // Lógica de Portada Original
         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
         let coverUrl = DEFAULT_COVER;
         if (coverMatch) {
             let fileNameImg = coverMatch[1].split('|')[0].trim();
             let rawCoverUrl = repo.adjuntos + encodeURIComponent(fileNameImg);
-            coverUrl = getOptimizedImageUrl(rawCoverUrl, 400); 
+            coverUrl = (typeof getOptimizedImageUrl === 'function') ? getOptimizedImageUrl(rawCoverUrl, 400) : rawCoverUrl;
         }
 
-        // Ejecutamos el parseo
         const parsedChapters = parseMarkdown(text);
 
-        // ASIGNACIÓN DE DATOS (Ahora sí, el libro ya existe)
+        // ASIGNACIÓN DE DATOS (Aquí definimos el título real)
         currentBook = {
             id: 'direct-load',
             fileName: fileName,
-            title: fileName.replace('.md', '').replace(/_/g, ' '),
+            title: fileName.replace('.md', '').replace(/_/g, ' ').replace(/[^\w\s\u0370-\u03FFáéíóúÁÉÍÓÚñÑ]/g, ''),
             cover: coverUrl,
             chapters: parsedChapters,
             rawBase: repo.adjuntos,
@@ -171,67 +160,47 @@ async function loadDirectBook(params) {
             soundtrack: parsedChapters.soundtrackId
         };
 
-        // --- CONFIGURACIÓN DE LA INTERFAZ (UI) ---
-        
-        // 1. Título e Imagen de fondo en el Sidebar
+        // UI ORIGINAL
         document.getElementById('reader-title').innerText = currentBook.title;
         const coverPreview = document.getElementById('sidebar-cover-preview');
-        if (coverPreview) {
-            coverPreview.style.backgroundImage = `url('${currentBook.cover}')`;
-        }
+        if (coverPreview) coverPreview.style.backgroundImage = `url('${currentBook.cover}')`;
 
-        // 2. Control de visibilidad de contenedores
-        const libContainer = document.getElementById('library-container');
-        if (libContainer) libContainer.classList.add('hidden');
+        // Control de contenedores original
+        document.getElementById('library-container')?.classList.add('hidden');
         document.getElementById('reader-view').classList.remove('hidden');
-        
-        // 3. Cargar posición y renderizar contenido
-        loadChapter(params.ch || 0);
+
+        // CARGA DE CONTENIDO ORIGINAL
+        await loadChapter(params.ch || 0);
         currentChunkIndex = params.ck || 0;
-        renderChunk();
+        await renderChunk();
         
-        // 4. INICIALIZAR NAVEGACIÓN (TOC y Marcadores)
         renderTOC();
         renderProgressMarkers();
-        
-        // 5. Finalización y protección contra errores de UI
+
+        // GUARDADO DE SEGURIDAD
+        // Ahora que el libro está cargado con nombre real, guardamos la sesión limpia
+        saveProgress();
+
         if (statusText) statusText.innerText = "Sincronizado";
         document.getElementById('main-spinner')?.classList.add('hidden');
-
-        // IMPORTANTE: Solo renderizar librería si NO es el lector fijo
-        if (!window.isLectorFijo) {
-            renderLibrary();
-        }
-        
-        // Ocultar loaders
         document.getElementById('auto-loader')?.classList.add('hidden');
 
-        // --- ENLACE CON SOUNDTRACK ---
-        // Al final, cuando ya no hay spinner, activamos la música
+        // SOUNDTRACK ORIGINAL
         if (currentBook && currentBook.soundtrack) {
-            
-            // Generamos el valor aleatorio antes de despertar al reproductor
-            if (typeof refrescarValorAleatorio === 'function') {
-                refrescarValorAleatorio();
-            }
-
-            // Un pequeño delay para que el navegador no bloquee el audio tras quitar el spinner
+            if (typeof refrescarValorAleatorio === 'function') refrescarValorAleatorio();
             setTimeout(() => {
-                if (typeof updateSoundtrack === 'function') {
-                    // Como el player no se creó al inicio, updateSoundtrack llamará a initPlayer
-                    updateSoundtrack(currentBook.soundtrack);
-                } else if (typeof initPlayer === 'function') {
-                    initPlayer();
-                }
+                if (typeof updateSoundtrack === 'function') updateSoundtrack(currentBook.soundtrack);
+                else if (typeof initPlayer === 'function') initPlayer();
             }, 300); 
         }
 
     } catch (e) {
-        console.error("Error de carga en loadDirectBook:", e);
-        if(statusText) statusText.innerText = "Error: Archivo no encontrado";
-        document.getElementById('auto-loader')?.classList.add('hidden');
+        console.error("Error de carga:", e);
     }
 }
+
+
+
 
 
 function stripHtml(html) {
@@ -248,39 +217,31 @@ function stripHtml(html) {
 async function fetchBooks() {
     const statusText = document.getElementById('status-text');
     
-    // --- FUNCIÓN INTERNA PARA CERRAR EL SPLASH ---
     const ocultarSplash = () => {
         setTimeout(() => {
             const splash = document.getElementById('nexus-splash');
             if (splash) {
                 splash.style.opacity = "0";
-                setTimeout(() => {
-                    splash.style.display = "none";
-                }, 800);
+                setTimeout(() => { splash.style.display = "none"; }, 800);
             }
-        }, 500); // Pequeño margen para que el usuario vea el estado "Sincronizado"
+        }, 500);
     };
 
-    // 1. INTENTAR CARGAR DESDE CACHE (sessionStorage)
     const cachedLibrary = sessionStorage.getItem('nexus_library_cache');
     if (cachedLibrary) {
         library = JSON.parse(cachedLibrary);
-        console.log("Cargado desde cache para ahorrar cuota de GitHub");
         if (statusText) statusText.innerText = "Sincronizado (Cache)";
         document.getElementById('main-spinner')?.classList.add('hidden');
         renderLibrary();
         checkAutoLoad(); 
-        
-        ocultarSplash(); // Cerramos el splash si cargó de cache
+        ocultarSplash();
         return; 
     }
 
-    // 2. SI NO HAY CACHE, PROCEDER CON LA CARGA NORMAL
     library = []; 
     try {
         for (const repo of REPOSITORIES) {
             const response = await fetch(repo.api);
-            
             if (!response.ok) {
                 if (response.status === 403) throw new Error("API Rate Limit");
                 continue;
@@ -302,8 +263,9 @@ async function fetchBooks() {
                         if (!res.ok) return;
                         const text = await res.text();
                         
-                        // Extraer Frontmatter para verificar indexación
-                        const frontmatter = text.split('---')[1] || "";
+                        // Extraer Frontmatter
+                        const sections = text.split('---');
+                        const frontmatter = sections[1] || "";
                         const hasIndexTag = /indexar:\s*true/.test(frontmatter);
                         if (!hasIndexTag) return; 
 
@@ -318,7 +280,7 @@ async function fetchBooks() {
                             podcastUrl = AUDIO_BASE_URL + encodeURIComponent(podcastMatch[1].trim());
                         }
 
-                        // --- DETECTOR DE PORTADA (Lógica Completa) ---
+                        // --- DETECTOR DE PORTADA ---
                         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
                         let coverUrl = DEFAULT_COVER;
                         if (coverMatch) {
@@ -330,17 +292,22 @@ async function fetchBooks() {
                             }
                             
                             if (!fileNameImg.toLowerCase().endsWith('.mp3')) {
+                                // Usamos encodeURIComponent para que las imágenes con nombres griegos funcionen
                                 coverUrl = getOptimizedImageUrl(repo.adjuntos + encodeURIComponent(fileNameImg), 400); 
                             }
                         }
 
-                        // Parseamos los capítulos
                         const chapters = parseMarkdown(text);
 
+                        // --- CAMBIO CLAVE: ID COMPATIBLE CON UNICODE ---
+                        // btoa no soporta caracteres griegos directamente, usamos esta alternativa:
+                        const safeId = btoa(unescape(encodeURIComponent(file.path + repo.api)));
+
                         library.push({
-                            id: btoa(file.path + repo.api), 
+                            id: safeId, 
                             fileName: file.name,
-                            title: file.name.replace('.md', '').replace(/_/g, ' '),
+                            // Mantenemos el Regex que admite letras griegas
+                            title: file.name.replace('.md', '').replace(/_/g, ' ').replace(/[^\w\s\u0370-\u03FFáéíóúÁÉÍÓÚñÑ]/g, ''),
                             cover: coverUrl,
                             podcastUrl: podcastUrl,
                             soundtrack: soundtrackId,
@@ -362,18 +329,16 @@ async function fetchBooks() {
         
         renderLibrary();
         checkAutoLoad(); 
-
-        ocultarSplash(); // Cerramos el splash tras carga de red exitosa
+        ocultarSplash();
 
     } catch (e) { 
         if (statusText) {
             statusText.innerText = e.message === "API Rate Limit" ? "Límite GitHub excedido" : "Error API";
         }
         console.error("Error crítico:", e);
-        ocultarSplash(); // Cerramos incluso en error para no bloquear al usuario
+        ocultarSplash();
     }
 }
-
 
 
 
@@ -471,37 +436,65 @@ function parseMarkdown(text) {
 		});
 	}
 	
-
-function openReader(id) {
 	
-	// --- NUEVO: ACTIVAR FULLSCREEN GLOBAL AL ENTRAR ---
-    // Se usa documentElement para que toda la web (incluyendo librería al volver) sea Fullscreen
+	
+async function openReader(id, forceCh = null, forceCk = null) {
+    // --- 1. CONFIGURACIÓN DE INTERFAZ ---
     if (typeof launchFullScreen === 'function') {
         launchFullScreen(document.documentElement);
     }
     
-    // OCULTAR HEADER AL ENTRAR AL LECTOR
-    const globalHeader = document.getElementById('nexus-header-global');
-    if (globalHeader) globalHeader.classList.add('header-hidden');
+     const globalHeader = document.getElementById('nexus-header-global');
+    if (globalHeader) {
+        globalHeader.classList.add('header-hidden');
+        globalHeader.style.opacity = "0";
+        globalHeader.style.pointerEvents = "none"; // Evita que bloquee clics aunque sea invisible
+    }
     
-    // --- INTEGRACIÓN PODCAST: Detener audio al entrar al lector ---
     if (typeof closePodcast === 'function') {
-		closePodcast(); 
-	}
+        closePodcast(); 
+    }
 
     const book = library.find(b => b.id === id);
     if (!book) return;
     
     currentBook = book;
     
-    // SOLUCIÓN AL POSICIONAMIENTO: Reiniciamos siempre a 0 al abrir un libro nuevo
-    currentChapterIndex = 0;
-    currentChunkIndex = 0;
-    
-    // Asegurar datos para el compartir
+    // Asegurar datos para el compartir e historial
     if (currentBook.repoIdx === undefined) currentBook.repoIdx = 0;
     if (!currentBook.fileName) currentBook.fileName = currentBook.title + ".md";
 
+    // --- 2. LÓGICA DE POSICIONAMIENTO HÍBRIDA ---
+    let targetChapter = 0;
+    let targetChunk = 0;
+
+    // Prioridad 1: Parámetros forzados (vienen de la URL en lector.html o enlaces compartidos)
+    if (forceCh !== null && forceCh !== undefined) {
+        console.log("Nexus: Prioridad URL detectada (Link compartido o Lector Fijo)");
+        targetChapter = parseInt(forceCh);
+        targetChunk = parseInt(forceCk) || 0;
+    } 
+    // Prioridad 2: Memoria Local (Historial personal en index.html)
+    else {
+        const history = JSON.parse(localStorage.getItem('nexus_reading_history') || '{}');
+        const saved = history[currentBook.fileName];
+
+        if (saved) {
+            console.log("Nexus: Posición recuperada de memoria para " + currentBook.fileName, saved);
+            targetChapter = saved.chapterIndex;
+            targetChunk = saved.chunk;
+        } else {
+            console.log("Nexus: Sin historial previo, iniciando en 0");
+            targetChapter = 0;
+            targetChunk = 0;
+        }
+    }
+
+    // Actualizamos los índices globales con los valores seleccionados
+    currentChapterIndex = targetChapter;
+    currentChunkIndex = targetChunk;
+
+    // --- 3. RENDERIZADO DE INTERFAZ ---
     document.getElementById('reader-title').innerText = currentBook.title;
     const coverPreview = document.getElementById('sidebar-cover-preview');
     if (coverPreview) {
@@ -515,40 +508,32 @@ function openReader(id) {
     document.getElementById('reader-view').classList.remove('hidden');
     document.getElementById('resume-card')?.classList.add('hidden');
     
-    // --- LÓGICA DE PREFERENCIAS (MEMORIA SEPARADA) ---
+    // --- 4. PREFERENCIAS VISUALES ---
     const isMobile = window.innerWidth <= 768;
     const deviceSuffix = isMobile ? '-mobile' : '-desktop';
 
-    // 1. Tamaño: Recuperar específico del dispositivo o usar default inteligente
     const savedSize = localStorage.getItem('reader-font-size' + deviceSuffix);
     const defFontSize = savedSize ? parseInt(savedSize) : (isMobile ? 23 : 25);
     document.documentElement.style.setProperty('--reader-font-size', defFontSize + 'px');
     document.getElementById('font-size-val').innerText = defFontSize;
 
-    // 2. Fuente: Recuperar o usar default por dispositivo
     const savedFont = localStorage.getItem('reader-font-family' + deviceSuffix);
     const defFontName = savedFont || (isMobile ? 'Atkinson Hyperlegible' : 'Merriweather');
     document.documentElement.style.setProperty('--reader-font-family', defFontName);
 
-    // 3. Alineación e Interlineado: Si no existen, el CSS :root ya tiene los suyos
     const savedAlign = localStorage.getItem('reader-text-align' + deviceSuffix);
-    if (savedAlign) {
-        document.documentElement.style.setProperty('--reader-text-align', savedAlign);
-    }
+    if (savedAlign) document.documentElement.style.setProperty('--reader-text-align', savedAlign);
 
     const savedHeight = localStorage.getItem('reader-line-height' + deviceSuffix);
-    if (savedHeight) {
-        document.documentElement.style.setProperty('--reader-line-height', savedHeight);
-    }
+    if (savedHeight) document.documentElement.style.setProperty('--reader-line-height', savedHeight);
 
-    // Sincronizar marcas visuales (amarillo)
     syncVisualSettings();
 
-    loadChapter(0);
+    // --- 5. CARGA DE CONTENIDO ---
+    // Usamos loadChapter con ambos parámetros para que la carga sea atómica y exacta
+    await loadChapter(currentChapterIndex, currentChunkIndex);
 
-    // --- INTEGRACIÓN SOUNDTRACK (ACTUALIZADO PARA AUTO-PLAY) ---
-    // Usamos un pequeño delay para asegurar que el DOM y el clic del usuario 
-    // permitan la reproducción automática de YouTube.
+    // --- 6. INTEGRACIÓN SOUNDTRACK ---
     setTimeout(() => {
         if (typeof updateSoundtrack === 'function') {
             updateSoundtrack(currentBook.soundtrack);
@@ -634,7 +619,7 @@ function closeReader() {
 
 
 
-	function loadChapter(idx) {
+function loadChapter(idx, chunkToLoad = 0) {
     if (idx < 0 || idx >= currentBook.chapters.length) return;
 
     // CAMBIO: Si ya es 'prev' (porque viene de prevChunk), no lo sobrescribas
@@ -649,7 +634,9 @@ function closeReader() {
     // IMPORTANTE: Esta línea debe estar aquí para que el texto exista
     chunks = chapter.content; 
     
-    currentChunkIndex = 0;
+    // AJUSTE: Usamos el chunk solicitado (por defecto 0 si es una carga normal)
+    currentChunkIndex = chunkToLoad;
+
     document.querySelectorAll('.toc-item').forEach(el => el.classList.remove('active'));
     const activeItem = document.getElementById(`toc-item-${idx}`);
     if (activeItem) {
@@ -657,6 +644,7 @@ function closeReader() {
         if (!allExpanded) expandActiveHierarchy(idx);
         activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+    
     renderChunk();
 }
 
@@ -757,7 +745,7 @@ async function renderChunk() {
         const validator = document.createElement('div');
         validator.id = 'nexus-validation-anchor';
         validator.style.cssText = "height:1px; font-size:1px; color:transparent; position:absolute; pointer-events:none; overflow:hidden;";
-        validator.innerHTML = '<span>manzana</span>'; 
+        validator.innerHTML = '<span id="nexus-language-marker">manzana</span>';
         content.appendChild(validator);
         
         setTimeout(() => {
@@ -872,28 +860,40 @@ async function nextChunk() {
     if (currentChunkIndex < chunks.length - 1) { 
         currentChunkIndex++; 
         
+        // --- GUARDADO DE PROGRESO ---
+        if (typeof saveProgress === 'function') saveProgress();
+        
         // Renderizamos el contenido
         await renderChunk(); 
         
         // --- DECISIÓN INTELIGENTE ---
-        // Si venía leyendo, verificamos si el nuevo chunk es imagen o texto
         if (window.isSpeaking) {
             const currentText = chunks[currentChunkIndex] || "";
             const isImage = currentText.match(/!\[\[(.*?)\]\]/);
 
             if (isImage) {
-                // Si es imagen, forzamos el inicio del timer de imagen
                 if (typeof startImageTimer === 'function') startImageTimer();
             } else {
-                // Si es texto, el renderChunk() original suele disparar prepareAndStartSpeech.
-                // Pero para mayor seguridad y control de flujo, lo llamamos aquí:
                 prepareAndStartSpeech();
             }
         }
     }
     else if (currentChapterIndex < currentBook.chapters.length - 1) { 
-        // Si saltamos de capítulo, loadChapter se encarga del resto
-        loadChapter(currentChapterIndex + 1); 
+        // Si saltamos de capítulo
+        currentChapterIndex++;
+        currentChunkIndex = 0; // Empezamos al inicio del nuevo cap
+        
+        await loadChapter(currentChapterIndex);
+        
+        // Guardamos que ya estamos en el nuevo capítulo
+        if (typeof saveProgress === 'function') saveProgress();
+        
+        await renderChunk();
+        
+        // Si venía leyendo, iniciamos la lectura del nuevo capítulo
+        if (window.isSpeaking) {
+            prepareAndStartSpeech();
+        }
     } 
 }
 
@@ -910,33 +910,29 @@ async function prevChunk() {
     if (currentChunkIndex === 0 && currentChapterIndex === 0) {
         console.log("Inicio alcanzado: Retornando a la biblioteca.");
         
-        // Detenemos cualquier audio antes de salir
         if (typeof stopSpeech === 'function') {
             stopSpeech(); 
         } else {
             window.speechSynthesis.cancel();
         }
 
-        // Cerramos el lector
         if (typeof closeReader === 'function') {
             closeReader();
         } else {
-            // Fallback en caso de que la función tenga otro nombre
-            document.getElementById('reader-container').classList.add('hidden');
+            document.getElementById('reader-view').classList.add('hidden');
+            document.getElementById('library-container').classList.remove('hidden');
             document.body.style.overflow = ''; 
         }
-        return; // Salimos de la función para no ejecutar el resto
+        return; 
     }
 
     // --- 3. CAPTURA DE ESTADO Y LIMPIEZA DE ÍNDICES ---
     const wasSpeaking = window.isSpeaking;
-
-    // Reset de índices de voz para evitar que arrastre datos del chunk anterior
     window.currentSubChunkIndex = 0; 
     window.speechSubChunks = [];
 
-    if (isSpeaking && isPaused) { 
-        isPaused = false; 
+    if (window.isSpeaking && window.isPaused) { 
+        window.isPaused = false; 
         updatePauseUI(false); 
     }
 
@@ -946,43 +942,45 @@ async function prevChunk() {
     } else if (currentChapterIndex > 0) { 
         currentChapterIndex--; 
         
-        // Cargamos los datos del nuevo capítulo
-        const chapter = currentBook.chapters[currentChapterIndex];
-        chunks = chapter.content; 
-        currentChunkIndex = chunks.length - 1; // Vamos al final del capítulo anterior
+        // Cargamos los datos del capítulo anterior
+        await loadChapter(currentChapterIndex); 
+        
+        // Vamos al final del capítulo anterior
+        currentChunkIndex = chunks.length - 1; 
         
         // Actualizamos la interfaz (Indicador y TOC)
         const indicator = document.getElementById('chapter-indicator');
-        if (indicator) indicator.innerText = stripHtml(chapter.title);
+        if (indicator) indicator.innerText = stripHtml(currentBook.chapters[currentChapterIndex].title);
         
         document.querySelectorAll('.toc-item').forEach(el => el.classList.remove('active'));
         const activeItem = document.getElementById(`toc-item-${currentChapterIndex}`);
         if (activeItem) activeItem.classList.add('active');
     } 
 
+    // --- GUARDADO DE PROGRESO ---
+    // Guardamos la nueva posición después del cambio de índices
+    if (typeof saveProgress === 'function') {
+        saveProgress();
+    }
+
     // RENDERIZADO DEL NUEVO CHUNK
     await renderChunk(); 
 
     // --- 5. REINICIO INTELIGENTE DEL MOTOR ---
     if (wasSpeaking) {
-        // Micro-delay de 60ms para dar tiempo al navegador a limpiar el buffer de audio
-        // Esto evita que se escuche "Click para ampliar" al navegar rápido
         setTimeout(() => {
             const currentText = chunks[currentChunkIndex] || "";
             const isImage = currentText.match(/!\[\[(.*?)\]\]/);
 
             if (isImage) {
-                // Si es imagen, forzamos el inicio del timer de imagen y NADA de voz
                 console.log("Retroceso detectado: Iniciando timer de imagen.");
                 if (typeof startImageTimer === 'function') startImageTimer();
             } else {
-                // Si es texto, iniciamos la voz normalmente
                 prepareAndStartSpeech();
             }
         }, 60); 
     }
 }
-
 
 
 
@@ -1078,14 +1076,10 @@ function checkAutoLoad() {
         // Buscamos el libro en la librería cargada
         const book = library.find(b => b.fileName === params.book && b.repoIdx === repoIdx);
         if (book) {
-            // Abrimos el lector
-            openReader(book.id);
-            // Si la URL traía capítulo o fragmento específico, los aplicamos después de abrir
-            if (params.ch > 0) loadChapter(params.ch);
-            if (params.ck > 0) {
-                currentChunkIndex = params.ck;
-                renderChunk();
-            }
+            // AJUSTE: Pasamos ch y ck directamente a openReader.
+            // Si son 0 o null, openReader usará automáticamente la memoria local.
+            // Si tienen valor (link compartido), openReader priorizará esos valores.
+            openReader(book.id, params.ch, params.ck);
         }
     }
 }
@@ -1148,3 +1142,92 @@ function launchFullScreen(element) {
         element.msRequestFullscreen();
     }
 }
+
+
+function saveProgress() {
+    if (!currentBook) return;
+    
+    // ESCUDO: Si el título es el placeholder del HTML, abortamos el guardado
+    // para no ensuciar el localStorage con "BOOK TITLE"
+    const titleToCheck = (currentBook.title || "").toLowerCase();
+    if (titleToCheck.includes("book title") || titleToCheck === "") return;
+
+    const history = JSON.parse(localStorage.getItem('nexus_reading_history') || '{}');
+
+    const bookProgress = {
+        bookId: currentBook.id,
+        fileName: currentBook.fileName,
+        repoIdx: currentBook.repoIdx,
+        bookTitle: currentBook.title, // Mantenemos tu nombre de variable
+        chapterIndex: currentChapterIndex,
+        chapterTitle: currentBook.chapters[currentChapterIndex]?.title || "Capítulo " + (currentChapterIndex + 1),
+        chunk: currentChunkIndex,
+        timestamp: Date.now(),
+        // Añadimos cover para que la tarjeta la tenga
+        cover: currentBook.cover 
+    };
+
+    history[currentBook.fileName] = bookProgress;
+    localStorage.setItem('nexus_reading_history', JSON.stringify(history));
+    
+    // Sincronizamos con la llave que usa checkLastSession
+    localStorage.setItem('nexus_last_session', JSON.stringify(bookProgress));
+}
+
+function checkBookProgress(fileName) {
+    const history = JSON.parse(localStorage.getItem('nexus_reading_history') || '{}');
+    const savedProgress = history[fileName];
+
+    // Solo mostramos el modal si el progreso no es el inicio absoluto (Cap 0, Chunk 0)
+    if (savedProgress && (savedProgress.chapterIndex > 0 || savedProgress.chunk > 0)) {
+        const infoEl = document.getElementById('resume-info');
+        if (infoEl) {
+            infoEl.innerText = "Última vez: " + (savedProgress.chapterTitle || "Capítulo " + (savedProgress.chapterIndex + 1));
+        }
+        
+        const modal = document.getElementById('resume-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+        
+        window.pendingProgress = savedProgress;
+    }
+}
+
+	async function confirmResume(shouldResume) {
+    // Usamos el nuevo ID único para evitar conflictos de CSS
+    const modal = document.getElementById('resume-modal');
+    if (modal) modal.classList.add('hidden');
+
+    if (shouldResume && window.pendingProgress) {
+        console.log("Nexus Progress: Restaurando posición...");
+        
+        // 1. Sincronizamos los índices con lo guardado
+        currentChapterIndex = window.pendingProgress.chapterIndex;
+        currentChunkIndex = window.pendingProgress.chunk;
+        
+        // 2. Cargamos el capítulo (esto actualiza la variable 'chunks')
+        await loadChapter(currentChapterIndex);
+        
+        // 3. Renderizamos el fragmento específico
+        await renderChunk(); 
+        
+        // 4. Iniciar lectura automática si estaba activo
+        if (typeof startSpeech === 'function') {
+            // Un pequeño delay para que el DOM se asiente
+            setTimeout(startSpeech, 400); 
+        }
+    } else {
+        // Si elige reiniciar o no hay progreso, guardamos la posición 0,0
+        saveProgress();
+    }
+    window.pendingProgress = null;
+}
+
+window.addEventListener('click', (e) => {
+    const modal = document.getElementById('resume-modal');
+    if (e.target === modal) {
+        modal.classList.add('hidden');
+        window.pendingProgress = null; // Queda en la posición actual sin disparar audio
+    }
+});

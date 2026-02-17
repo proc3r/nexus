@@ -122,95 +122,112 @@
 
 
 
-		<main class="reader-main-layout">
-			<div id="image-timer" class="hidden">
-				<span id="timer-text" class="image-timer text-[#ffffff]">La lectura se reanudará en 5s</span>
-				<button onclick="togglePauseImageTimer()" class="timer-pause-btn text-[#ffffff]">Pausar</button>
-			</div>
-			<nav class="h-8 flex-shrink-0 flex items-center justify-between px-4 border-b-4 border-blue-500 bg-black/20 backdrop-blur-md relative z-50">
-				<button onclick="closeReader()" class="text-[#ffcc00] font-bold uppercase text-[23px] tracking-[0.02em] condensed flex items-center gap-1 hover:text-white transition-colors notranslate" style="text-shadow: -1px 1px 5px rgb(0 0 0 / 79%);">
-					<span class="mi-round text-sm"></span>NEXUS
-				</button>
-				<div class="flex items-center gap-2 md:gap-4">
-					<div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[13px] font-bold border border-white/5 notranslate">
-						<button onclick="changeFontSize(-2)" class="hover:text-[#ffcc00]" title="Disminuir Fuente">A-</button>
-						<span id="font-size-val">25</span>
-						<button onclick="changeFontSize(2)" class="hover:text-[#ffcc00]" title="Aumentar Fuente">A+</button>
-					</div>
-					<div class="settings-dropdown-container notranslate">
-						<button onclick="toggleDropdown('font-dropdown')" class="nav-icon-btn notranslate" title="Cambiar Fuente">
-							<span class="mi-round text-lg">text_fields</span>
-						</button>
-						<div id="font-dropdown" class="settings-dropdown font-dropdown custom-scrollbar">
-							<div class="setting-option" style="font-family: 'Merriweather'" onclick="changeFontFamily('Merriweather')">Merriweather</div>
-							<div class="setting-option" style="font-family: 'Lora'" onclick="changeFontFamily('Lora')">Lora</div>
-							<div class="setting-option" style="font-family: 'Inter'" onclick="changeFontFamily('Inter')">Inter</div>
-							<div class="setting-option" style="font-family: 'Atkinson Hyperlegible'" onclick="changeFontFamily('Atkinson Hyperlegible')">Hyperlegible</div>
-						</div>
-					</div>
+<main class="reader-main-layout">
+    <div id="image-timer" class="hidden">
+        <span id="timer-text" class="image-timer text-[#ffffff]">La lectura se reanudará en 5s</span>
+        <button onclick="togglePauseImageTimer()" class="timer-pause-btn text-[#ffffff]">Pausar</button>
+    </div>
+    <nav class="h-8 flex-shrink-0 flex items-center justify-between px-4 border-b-4 border-blue-500 bg-black/20 backdrop-blur-md relative z-50">
+        <button onclick="closeReader()" class="text-[#ffcc00] font-bold uppercase text-[23px] tracking-[0.02em] condensed flex items-center gap-1 hover:text-white transition-colors notranslate" style="text-shadow: -1px 1px 5px rgb(0 0 0 / 79%);">
+            <span class="mi-round text-sm"></span>NEXUS
+        </button>
+        <div class="flex items-center gap-2 md:gap-4">
+            <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[13px] font-bold border border-white/5 notranslate">
+                <button onclick="changeFontSize(-2)" class="hover:text-[#ffcc00]" title="Disminuir Fuente">A-</button>
+                <span id="font-size-val">25</span>
+                <button onclick="changeFontSize(2)" class="hover:text-[#ffcc00]" title="Aumentar Fuente">A+</button>
+            </div>
+            <div class="settings-dropdown-container notranslate">
+                <button onclick="toggleDropdown('font-dropdown')" class="nav-icon-btn notranslate" title="Cambiar Fuente">
+                    <span class="mi-round text-lg">text_fields</span>
+                </button>
+                <div id="font-dropdown" class="settings-dropdown font-dropdown custom-scrollbar">
+                    <div class="setting-option" style="font-family: 'Merriweather'" onclick="changeFontFamily('Merriweather')">Merriweather</div>
+                    <div class="setting-option" style="font-family: 'Lora'" onclick="changeFontFamily('Lora')">Lora</div>
+                    <div class="setting-option" style="font-family: 'Inter'" onclick="changeFontFamily('Inter')">Inter</div>
+                    <div class="setting-option" style="font-family: 'Atkinson Hyperlegible'" onclick="changeFontFamily('Atkinson Hyperlegible')">Hyperlegible</div>
+                </div>
+            </div>
 
-					<div class="settings-dropdown-container">
-						<button onclick="toggleDropdown('align-dropdown')" class="nav-icon-btn notranslate" title="Alineación">
-							<span class="mi-round text-lg">format_align_center</span>
-						</button>
-						<div id="align-dropdown" class="settings-dropdown">
-							<div class="setting-option" onclick="changeAlignment('left')">
-								<span class="mi-round text-base notranslate">format_align_left</span> Izquierda
-							</div>
-							<div class="setting-option selected" onclick="changeAlignment('center')">
-								<span class="mi-round text-base notranslate">format_align_center</span> Centro
-							</div>
-							<div class="setting-option" onclick="changeAlignment('justify')">
-								<span class="mi-round text-base notranslate">format_align_justify</span> Justificado
-							</div>
-						</div>
-					</div>
-
-					<div class="settings-dropdown-container">
-						<button onclick="toggleDropdown('spacing-dropdown')" class="nav-icon-btn notranslate" title="Interlineado">
-							<span class="mi-round text-lg">format_line_spacing</span>
-						</button>
-						<div id="spacing-dropdown" class="settings-dropdown">
-							<div class="setting-option selected" onclick="changeLineHeight(1.3)">
-								<span class="mi-round text-base notranslate">reorder</span> Compacto
-							</div>
-							<div class="setting-option" onclick="changeLineHeight(1.5)">
-								<span class="mi-round text-base notranslate">notes</span> Normal
-							</div>
-							<div class="setting-option" onclick="changeLineHeight(1.8)">
-								<span class="mi-round text-base notranslate">subject</span> Extenso
-							</div>
-						</div>
-					</div>
-
-					<button onclick="toggleDarkMode()" class="nav-icon-btn notranslate" title="Modo Color">🌓</button>
-					<button aria-label='Traducir Página' class='translate-toggle show-translate btn notranslate'></button>
+            <div class="settings-dropdown-container">
+                <button onclick="toggleDropdown('align-dropdown')" class="nav-icon-btn notranslate" title="Alineación">
+                    <span class="mi-round text-lg">format_align_center</span>
+                </button>
+                
 				
-				</div>
-			</nav>
-
-			<div id="chapter-indicator-container" class="flex-shrink-0 flex justify-center w-full pointer-events-none z-10 -mt-0.5">
-			<div id="chapter-indicator" class="truncate">
-				Capítulo
-			</div>
-		</div>
-			
-			<button id="zen-mode-btn" class="zen-btn-mobile" onclick="toggleZenMode()">
-				<span class="material-icons notranslate" id="zen-icon">fullscreen</span>
-			</button>
-			
-			<div id="reading-container-fixed" class="custom-scrollbar">
-				<div class="content-wrapper">
-					<div class="max-w-4xl mx-auto w-full">
-						<div id="book-content"></div>
+				<div id="align-dropdown" class="settings-dropdown">
+					<div id="option-align-left" class="setting-option" onclick="changeAlignment('left')">
+						<span class="mi-round text-base notranslate">format_align_left</span> Izquierda
+					</div>
+					<div id="option-align-right" class="setting-option hidden" onclick="changeAlignment('right')">
+						<span class="mi-round text-base notranslate">format_align_right</span> Derecha
+					</div>
+					<div class="setting-option selected" onclick="changeAlignment('center')">
+						<span class="mi-round text-base notranslate">format_align_center</span> Centro
+					</div>
+					<div class="setting-option" onclick="changeAlignment('justify')">
+						<span class="mi-round text-base notranslate">format_align_justify</span> Justificado
 					</div>
 				</div>
-			</div>
+
+
+            </div>
+
+            <div class="settings-dropdown-container">
+                <button onclick="toggleDropdown('spacing-dropdown')" class="nav-icon-btn notranslate" title="Interlineado">
+                    <span class="mi-round text-lg">format_line_spacing</span>
+                </button>
+                <div id="spacing-dropdown" class="settings-dropdown">
+                    <div class="setting-option selected" onclick="changeLineHeight(1.3)">
+                        <span class="mi-round text-base notranslate">reorder</span> Compacto
+                    </div>
+                    <div class="setting-option" onclick="changeLineHeight(1.5)">
+                        <span class="mi-round text-base notranslate">notes</span> Normal
+                    </div>
+                    <div class="setting-option" onclick="changeLineHeight(1.8)">
+                        <span class="mi-round text-base notranslate">subject</span> Extenso
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="toggleDarkMode()" class="nav-icon-btn notranslate" title="Modo Color">🌓</button>
+			<button aria-label='Traducir Página' class='translate-toggle show-translate btn notranslate'></button>
+		
+		</div>
+    </nav>
+
+		<div id="chapter-indicator-container" class="flex-shrink-0 flex justify-center w-full pointer-events-none z-10 -mt-0.5">
+    <div id="chapter-indicator" class="truncate">
+        Capítulo
+    </div>
+</div>
+    
+    <button id="zen-mode-btn" class="zen-btn-mobile" onclick="toggleZenMode()">
+        <span class="material-icons notranslate" id="zen-icon">fullscreen</span>
+    </button>
+	
+	<button id="refresh-voice-btn" class="refresh-voice-btn" onclick="refreshSpeech()">
+    <span class="material-icons notranslate">sync</span>
+</button>
+    
+    <div id="reading-container-fixed" class="custom-scrollbar">
+        <div class="content-wrapper">
+            <div class="max-w-4xl mx-auto w-full">
+                <div id="book-content"></div>
+            </div>
+        </div>
+    </div>
 
     
-	<footer class="flex-shrink-0 px-4 py-1 border-t border-white/10 bg-black/15">
-        <div class="max-w-4xl mx-auto">
-            <div class="zen-hide-group">
+   <footer class="flex-shrink-0 px-4 py-1 border-t border-white/10 bg-black/15" style="position: relative;">
+    <div id="visual-timer-wrapper" class="hidden">
+        <span id="visual-timer-concept">@2</span>
+        <div id="visual-timer-fill"></div>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <div class="zen-hide-group">
+			
 			
 			
                 <div class="flex flex-col mb-1 condensed tracking-widest leading-none">
@@ -267,18 +284,21 @@
     </footer>
 	
 	<div class="reader-controls-wrapper">
-                <button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
-                    <span class="mi-round">&#xef71;</span>
-                </button>
-                <div class="main-audio-trigger">
-                    <button id="tts-btn" onclick="startSpeech()" class="btn-float-red">
-                        <span class="mi-round">&#xe91f;</span>
-                    </button>
-                    <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden" title="Si la lectura no reanuda, presione STOP y luego PLAY nuevamente">
-                        <span id="pause-icon" class="mi-round">&#xe1a2;</span>
-                    </button>
-                </div>
-            </div>
+    <button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
+        <span class="material-icons notranslate">stop</span>
+    </button>
+    <div class="main-audio-trigger">
+        <button id="tts-btn" onclick="startSpeech()" class="btn-float-red">
+            <span class="material-icons notranslate">play_arrow</span>
+        </button>
+        <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden" title="Si la lectura no reanuda, presione STOP y luego PLAY nuevamente">
+            <span id="pause-icon" class="material-icons notranslate">pause</span>
+        </button>
+    </div>
+</div>
+	
+	
+	
 </main>
 	
 			
@@ -372,6 +392,15 @@
             <span class="material-icons notranslate">close</span></button>
 </div>
 
+
+<div id="nexus-translation-store" style="display:none;" aria-hidden="true">
+    <span id="store-comenzando">Comenzando en </span>
+    <span id="store-pausado">Pausado. Presione REANUDAR o NEXT.</span>
+    <span id="store-btn-pausar">Pausar</span>
+    <span id="store-btn-reanudar">Reanudar</span>
+</div>
+
+
 <script src="https://www.youtube.com/iframe_api"></script>
 
 
@@ -398,6 +427,35 @@ function changeVolume(value) {
         }
     }
 }
+
+    // --- INTERCEPTOR SMART LINK ---
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const smartParam = urlParams.get('s');
+
+        if (smartParam) {
+            try {
+                const decoded = decodeURIComponent(smartParam);
+                const parts = decoded.split('|');
+                
+                if (parts.length === 4) {
+                    const repo = parts[0];
+                    const book = parts[1].replace(/_/g, ' ') + '.md';
+                    const ch = parts[2];
+                    const ck = parts[3];
+
+                    // RE-INYECCIÓN: Creamos nuevos parámetros en la URL virtualmente
+                    // para que el resto de tus scripts sigan leyendo repo, book, ch y ck como siempre.
+                    const newRelativePathQuery = window.location.pathname + `?repo=${repo}&book=${encodeURIComponent(book)}&ch=${ch}&ck=${ck}`;
+                    window.history.replaceState(null, '', newRelativePathQuery);
+                    
+                    console.log("Smart Link procesado y convertido a parámetros estándar.");
+                }
+            } catch (e) {
+                console.error("Error procesando Smart Link:", e);
+            }
+        }
+    })();
 
 
     </script>

@@ -145,8 +145,8 @@
         <div class="sidebar-header" style="padding: 0; display: flex; flex-direction: column;">
             <div id="sidebar-cover-preview" class="w-full h-48 relative overflow-hidden border-b border-white/10 shadow-lg flex-shrink-0">
                 <div class="absolute inset-0 bg-black/40"></div>
-                <div class="p-4 flex flex-col justify-between h-full relative z-10">
-                    <div class="flex justify-between pb-3 items-start">
+                <div class="px-2.5 pb-4 pt-1 flex flex-col justify-between h-full relative z-10">
+                    <div class="flex justify-between pb-0.5 items-start">
                         <button onclick="closeReader()" class="mi-round text-[40px] text-[#00000] notranslate" style="
 								animation: pause-tts 3s infinite ease-in-out;">home</button>
                         <div class="flex items-center px-3 gap-4 bg-black/40 backdrop-blur-sm p-1 rounded-lg border border-white/10">
@@ -159,7 +159,7 @@
                             </button>
                         </div>
                     </div>
-                    <h2 id="reader-title" class="text-[2rem] font-bold text-white condensed uppercase italic leading-none drop-shadow-md pb-2 pl-2">
+                    <h2 id="reader-title" class="text-[2rem] font-bold text-white condensed italic leading-none drop-shadow-md pb-2 ">
                         Título del Libro
                     </h2>
 					
@@ -627,6 +627,17 @@
     <span id="store-pausado">Pausado. Presione REANUDAR o NEXT.</span>
     <span id="store-btn-pausar">Pausar</span>
     <span id="store-btn-reanudar">Reanudar</span>
+</div>
+
+<div id="resume-modal" class="resume-nexus-overlay hidden">
+    <div class="resume-modal-card">
+        <h3>¿Continuar donde lo dejaste?</h3>
+        <p id="resume-info" style="margin: 10px 0; opacity: 0.8;">Cargando posición...</p>
+        <div class="resume-actions-gap">
+            <button onclick="confirmResume(true)" class="btn-resume-main">Continuar leyendo</button>
+            <button onclick="confirmResume(false)" class="btn-resume-alt">Reiniciar desde el inicio</button>
+        </div>
+    </div>
 </div>
 
 <script>
