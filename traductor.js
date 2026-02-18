@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // 1. GESTIÓN DE EVENTOS (Mapeo de botones .translate-toggle)
+// 1. GESTIÓN DE EVENTOS (Mapeo de botones .translate-toggle)
     document.body.addEventListener("click", function (event) {
         const btnAbrir = event.target.closest(".translate-toggle");
         
@@ -47,21 +47,20 @@ document.addEventListener("DOMContentLoaded", function () {
             // Al abrir el modal normal, aseguramos que el widget de Google regrese a él
             const googleElement = document.getElementById('google_translate_element');
             const normalContainer = translateOverlay.querySelector('.overlay-content');
+            
             if (googleElement && normalContainer) {
-                // Lo insertamos antes del botón de cierre para que no pierda el estilo
-                const btnCerrarOriginal = document.getElementById('close-translate-overlay');
-                if (btnCerrarOriginal) {
-                    normalContainer.insertBefore(googleElement, btnCerrarOriginal);
-                } else {
-                    normalContainer.appendChild(googleElement);
-                }
+                // CAMBIO SEGURO: Usamos appendChild en lugar de insertBefore para evitar errores de jerarquía
+                // Esto simplemente coloca el selector de Google al final del contenido del modal
+                normalContainer.appendChild(googleElement);
             }
 
             // Alternar interfaz de traducción
             translateOverlay.style.display = translateOverlay.style.display === "none" ? "flex" : "none";
 
             if (!googleTranslateInitialized) {
-                googleTranslateElementInit();
+                if (typeof googleTranslateElementInit === 'function') {
+                    googleTranslateElementInit();
+                }
                 googleTranslateInitialized = true;
             }
 
@@ -78,7 +77,6 @@ document.addEventListener("DOMContentLoaded", function () {
             window.removeEventListener("scroll", cerrarMenuAlScroll);
         }
     });
-
    
 
    
@@ -489,6 +487,67 @@ function aplicarDireccionGlobal() {
     if (typeof syncLanguageSupport === 'function') {
         syncLanguageSupport();
     }
+}
+
+
+function seleccionarIdiomaInicio(lang) {
+    console.log("Nexus: Iniciando en idioma: " + lang);
+    localStorage.setItem('nexus_preferred_lang', lang);
+
+    if (lang === 'es') {
+        // Si es español, limpiamos cookies y entramos
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.host;
+        cerrarPortalBienvenida();
+    } else {
+        // Si es otro idioma, configuramos la cookie de Google y recargamos
+        // El formato es /es/code (ej: /es/en)
+        document.cookie = "googtrans=/es/" + lang + "; path=/;";
+        document.cookie = "googtrans=/es/" + lang + "; path=/; domain=" + location.host;
+        location.reload(); // Recargamos para que Google traduzca desde el inicio
+    }
+}
+
+function cerrarPortalBienvenida() {
+    const portal = document.getElementById('welcome-portal');
+    if (portal) {
+        portal.style.opacity = '0';
+        portal.style.pointerEvents = 'none';
+        setTimeout(() => { portal.style.display = 'none'; }, 500);
+    }
+}
+
+function cambiarIdiomaDinamicamente(lang) {
+    console.log("Nexus: Intento de cambio rápido a " + lang);
+    localStorage.setItem('nexus_preferred_lang', lang);
+
+    // 1. Seteamos la cookie (esto es vital para que Google sepa qué idioma queremos)
+    document.cookie = "googtrans=/es/" + lang + "; path=/;";
+    document.cookie = "googtrans=/es/" + lang + "; path=/; domain=" + location.host;
+
+    // 2. Buscamos el selector interno de Google (el combo oculto)
+    const googleCombo = document.querySelector('.goog-te-combo');
+    
+    if (googleCombo) {
+        googleCombo.value = lang; // Cambiamos el valor al idioma deseado
+        googleCombo.dispatchEvent(new Event('change')); // Disparamos el evento para que Google traduzca
+        
+        // Cerramos el modal automáticamente tras elegir
+        const overlay = document.getElementById('translate-overlay');
+        if (overlay) overlay.style.display = "none";
+        
+    } else {
+        // Si por alguna razón el widget no cargó, usamos el plan B (recargar)
+        location.reload();
+    }
+}
+
+// Para el botón de "Mostrar Original"
+function restaurarOriginalYRefrescar() {
+    localStorage.setItem('nexus_preferred_lang', 'es');
+    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.host;
+    location.reload();
 }
 
 // Ejecutar al cargar la página

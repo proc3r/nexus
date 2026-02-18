@@ -381,3 +381,5 @@ function renderSynopsisContent(content) {
         synopsisBody.innerHTML = content;
     }
 }
+
+

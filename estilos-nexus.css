@@ -1057,7 +1057,7 @@ body.sidebar-open {
     border-radius: 0 1rem 1rem 0;
     color: #f1f1ea; 
 	font-family: 'merriweather', serif;
-    font-size: 18px;
+    font-size: 21px;
 }
 
 #synopsis-body strong {
@@ -1155,10 +1155,10 @@ body.sidebar-open {
 .synopsis-p {
     display: block;
     margin-bottom: 1.25rem !important; /* Espacio entre párrafos */
-    line-height: 1.5;
-    font-size: 1.1rem;
+    line-height: 1.3;
+    font-size: 21px;
     color: #f1f1f1;
-	font-family: 'inter';
+	font-family: 'merriweather';
     
 }
 
@@ -1174,6 +1174,7 @@ body.sidebar-open {
     text-transform: uppercase;
     /*letter-spacing: 0.05em;*/
 	text-align: center;
+	line-height: 1.2;
 	
 }
 
@@ -1230,8 +1231,8 @@ body.sidebar-open {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
-	    font-family: fantasy;
-    font-weight: 100;
+	font-family: 'Ancizar Sans', sans-serif;
+    font-weight: 800;
     font-size: 1.7em;
     font-style: italic;
 	letter-spacing: 0.5px;
@@ -2742,6 +2743,8 @@ body.sidebar-open {
     filter: brightness(1.2);
 }
 
+
+
 /* Animación Entrada */
 @keyframes portalFadeIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -3453,7 +3456,7 @@ body { top: 0px !important; }
 .overlay-content {
 	
     margin-top: 4px;
-    height: 308px;
+    height: 500px;
     z-index: 1000;
     border: 1px solid #ffa3009e;
     padding: 15px 11px 11px 11px;
@@ -3475,28 +3478,34 @@ body { top: 0px !important; }
   100% { transform: scale(1); opacity: 1; }
 }
 
+#translate-overlay .overlay-content {
+    position: relative; /* Esto permite posicionar el botón dentro */
+    padding-top: 40px;   /* Espacio para que el botón no tape el contenido */
+}
+
 #close-translate-overlay {
-    /*position: absolute;*/
-    top: 10%;
-    bottom: 2px;
+    position: absolute;  /* Lo fijamos respecto a la caja */
+    top: 10px;           /* Distancia desde arriba */
+    right: 10px;         /* Distancia desde la derecha */
     z-index: 9999;
-    padding: 5px 4px;
-    display: inline;
+    padding: 0;
+    display: flex;       /* Cambiado de inline a flex para centrar el icono X */
     align-items: center;
     justify-content: center;
     cursor: pointer;
-	font-size: 18px;
+    background: rgb(201 55 55 / 85%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    box-shadow: 0px 3px 7px rgb(0 0 0 / 40%);
+    border-radius: 50%;  /* Círculo perfecto */
+    height: 30px;
+    width: 30px;
     transition: all 0.3s ease;
-        background: rgb(201 55 55 / 72%);
-    border: 1px solid rgba(255, 68, 68, 0.3);
-    color: #fffdfd;
-        box-shadow: 0px 3px 7px rgb(0 0 0 / 68%);
-    border-radius: 2rem;
-    font-size: 20px;
-    backdrop-filter: blur(2px);
-	height: 35px;
-    width: 35px;
-	margin-top: 10px;
+}
+
+#close-translate-overlay:hover {
+    background: rgb(255, 0, 0);
+    transform: scale(1.1);
 }
 
 
@@ -3814,7 +3823,7 @@ button {
 /* Caja de contenido (Clon visual de tu overlay-content) */
 .portal-box {
 	margin-top: 4px;
-    height: 308px;
+    height: 500px;
     z-index: 1000;
     border: 1px solid #ffa3009e;
     padding: 15px 11px 11px 11px;
@@ -3845,13 +3854,12 @@ button {
 	margin-top: 13px;
     font-family: 'Barlow Condensed';
     padding: 5px 0px 5px 0px;
-    margin-bottom: 55px;
     background: rgb(75 45 133 / 85%);
     border: 2px solid rgb(132 83 189 / 30%);
     border-radius: 5px;
     color: #ffffff;
     font-weight: bold;
-    font-size: 15px;
+    font-size: 18px;
     letter-spacing: 1px;
     cursor: pointer;
     display: flex;
@@ -3860,17 +3868,49 @@ button {
     gap: 4px;
     transition: all 0.3s ease;
 	opacity: 0.8;
+	box-shadow: 2px 5px 4px rgb(44 44 44 / 87%);
 	
 }
 
-
-.portal-btn:hover :hover {
+/*
+.portal-btn:hover {
     background: rgb(185 79 187);
     box-shadow: 0px 0px 9px rgb(68 14 80 / 93%);
     color: #ffffff;
-}
+}*/
 
+.portal-flag { font-size: 18px; }
 
+/* Colores específicos */
+.btn-es {color: #efdef9; border: 1px solid rgb(132 83 189 / 30%);
+		transition: all 0.2s; background: rgb(75 45 133 / 85%); } /* Violeta */
+			
+.btn-es:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(185 79 187); 
+				box-shadow: 0px 0px 9px rgb(68 14 80 / 93%); border: 1px solid rgba(255,255,255,0.1);}
+
+.btn-en {color: #c9dbfb;  border: 1px solid rgb(37 101 239 / 46%);
+		transition: all 0.2s; background-color: rgb(22 41 122 / 63%); } /* Azul */
+		
+.btn-en:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(33 64 201 / 81%);
+				box-shadow: 0 0px 5px rgb(11 96 249 / 95%); border: 1px solid rgba(255,255,255,0.1);}
+
+.btn-zh {color: #e5c5c5; border: 1px solid rgb(207 38 38 / 46%); 
+		transition: all 0.2s; background-color: rgb(118 20 20 / 70%);} /* Rojo */
+
+.btn-zh:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(155 14 14 / 86%);
+				box-shadow: 0 0px 5px rgb(249 11 11 / 95%); border: 1px solid rgba(255,255,255,0.1);}
+
+.btn-hi {color: #d8ffd1; border: 1px solid rgb(41 255 0 / 26%); 
+		transition: all 0.2s; background-color: rgb(35 78 15 / 71%);} /* Verde */
+
+.btn-hi:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(26 145 16 / 83%);
+				box-shadow: 0 0px 5px rgb(48 249 11 / 95%); border: 1px solid rgba(255,255,255,0.1);}
+
+.btn-de {color: #d8ffd1; border: 1px solid #ffcc00; 
+		transition: all 0.2s; background-color: rgb(116 109 24 / 77%);} /* Amarillo/Dorado */
+		
+.btn-de:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(145 120 13 / 87%);
+				box-shadow: 0 0px 5px rgb(255 204 0 / 75%); border: 1px solid #ffcc00;}
 
 .portal-footer {
          color: #fff;
@@ -4123,9 +4163,9 @@ button {
     font-style: italic;
     line-height: 33px;
     text-shadow: 0px 0px 7px rgb(23 214 233 / 80%);
-    font-family: fantasy;
-    font-weight: 100;
-	padding: 0 10px;
+    font-family: 'Ancizar Sans', sans-serif;
+    font-weight: 800;
+    padding: 0 10px;
 }
 
 .nx-resume-chapter-name {
@@ -4271,3 +4311,71 @@ button {
 
 
 
+
+/* Borrado por estar duplicado menu continuar leyendo borrar si no hay errores
+.resume-nexus-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999; 
+}
+
+.resume-nexus-overlay.hidden {
+    display: none !important;
+}
+
+
+.resume-modal-card {
+    background: #121212;
+    border: 1px solid var(--primary-accent);
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 340px;
+	width: 90%;
+    box-shadow: 0 0 20px rgba(0,0,0,0.6), 0 0 10px var(--primary-accent)1a;
+}
+
+.resume-modal-card h3 {
+    margin: 0 0 10px 0;
+    color: #fff;
+}
+
+.resume-actions-gap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+
+.btn-resume-main {
+    background: var(--primary-accent);
+    color: #000;
+    font-weight: bold;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-resume-alt {
+    background: rgba(255, 255, 255, 0.05);
+    color: #eee;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.btn-resume-main:active, .btn-resume-alt:active {
+    transform: scale(0.96);
+}*/
