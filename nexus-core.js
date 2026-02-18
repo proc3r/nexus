@@ -541,119 +541,66 @@ async function openReader(id, forceCh = null, forceCk = null) {
     }
 
     // --- 6. MOSTRAR/INYECTAR MODAL CON DATOS SINCRONIZADOS ---
+// --- 6. MOSTRAR/INYECTAR MODAL CON DATOS SINCRONIZADOS ---
     if (hasSavedProgress) {
-        // Aumentamos ligeramente el delay para asegurar que el porcentaje de updateProgress() se escriba en el DOM
         setTimeout(() => {
             const progPercentText = document.getElementById('progress-percent')?.innerText || "0%";
             const timeLeft = document.getElementById('time-remaining')?.innerText || "-- min";
             const currentCap = document.getElementById('reader-chapter-indicator')?.innerText || savedData?.chapterTitle || "Capítulo actual";
 
-            if (!document.getElementById('resume-modal')) {
+            let modal = document.getElementById('nx-resume-modal');
+
+            if (!modal) {
                 const modalHTML = `
-					<div id="nx-resume-modal" class="nx-resume-overlay">
-						<div class="nx-resume-card">
-							<div class="nx-resume-header">
-							
-								<h2 class="nx-resume-book-title">${currentBook.title}</h2>
-								<p class="nx-resume-chapter-name">${currentCap}</p>
-							</div>
+                    <div id="nx-resume-modal" class="nx-resume-overlay">
+                        <div class="nx-resume-card">
+                            <div class="nx-resume-bg-layer"></div>
+                            <div class="nx-resume-content">
+                                <div class="nx-resume-header">
+                                    <h2 class="nx-resume-book-title">${currentBook.title}</h2>
+                                    <p class="nx-resume-chapter-name">${currentCap}</p>
+                                </div>
+                                <div class="nx-resume-progress-track">
+                                    <div id="nx-resume-bar-fill" class="nx-resume-progress-fill" style="width: ${progPercentText};"></div>
+                                </div>
+                                <div class="nx-resume-stats-row">
+                                    <span><b style="color:#fff;">${progPercentText}</b> completado</span>
+                                    <span>${timeLeft}</span>
+                                </div>
+                                <div class="nx-resume-actions">
+                                    <div class="nx-resume-grid-alt">
+                                        <button onclick="confirmResume('restart')" class="nx-resume-btn-minimal">Comenzar desde cero</button>
+                                        <button onclick="confirmResume('section')" class="nx-resume-btn-sub">Reiniciar sección</button>
+                                        <button onclick="confirmResume('continue')" class="nx-resume-btn-main">Continuar leyendo</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+                
+                // Vinculación de teclado (Limpiamos el anterior por si acaso)
+                document.removeEventListener('keydown', handleNxResumeKeys, true);
+                document.addEventListener('keydown', handleNxResumeKeys, true);
 
-							<div class="nx-resume-progress-track">
-								<div id="nx-resume-bar-fill" class="nx-resume-progress-fill" style="width: ${progPercentText};"></div>
-							</div>
-							
-							<div class="nx-resume-stats-row">
-								<span><b style="color:#fff;">${progPercentText}</b> completado</span>
-								<span>${timeLeft}</span>
-							</div>
-
-							<div class="nx-resume-actions">
-								
-								<div class="nx-resume-grid-alt">
-									<button onclick="confirmResume('restart')" class="nx-resume-btn-minimal">Comenzar desde cero</button>
-									<button onclick="confirmResume('section')" class="nx-resume-btn-sub">Reiniciar sección</button>
-									<button onclick="confirmResume('continue')" class="nx-resume-btn-main">Continuar leyendo</button>
-									
-								</div>
-							</div>
-						</div>
-					</div>`;
-				document.body.insertAdjacentHTML('beforeend', modalHTML);
-				
-				
-				// --- 1. FUNCIÓN DE APOYO PARA CERRAR (Añadir o actualizar) ---
-					function closeNxResume() {
-						const modal = document.getElementById('nx-resume-modal');
-						if (modal) {
-							modal.style.opacity = '0';
-							setTimeout(() => modal.remove(), 300);
-							window.pendingProgress = null;
-							// Quitamos el listener de teclado cuando el modal desaparece
-							document.removeEventListener('keydown', handleNxResumeKeys);
-						}
-					}
-
-					// --- 2. MANEJADOR DE TECLAS EXCLUSIVO ---
-					 function handleNxResumeKeys(e) {
-						const modal = document.getElementById('nx-resume-modal');
-						if (!modal) return;
-
-						// 1. Bloqueamos las teclas para que no afecten al lector de fondo
-						const keysToBlock = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Enter', 'Escape'];
-						if (keysToBlock.includes(e.key)) {
-							e.preventDefault();
-							e.stopPropagation();
-						}
-
-						// 2. Escape para cerrar
-						if (e.key === 'Escape') {
-							closeNxResume();
-							return;
-						}
-
-						// 3. Navegación vertical exclusiva
-						const buttons = Array.from(modal.querySelectorAll('button'));
-						let currentIndex = buttons.findIndex(b => b === document.activeElement);
-
-						// Si por alguna razón no hay foco, empezamos en el primero
-						if (currentIndex === -1) {
-							buttons[0].focus();
-							return;
-						}
-
-						if (e.key === 'ArrowDown') {
-							// Solo baja si no es el último botón
-							if (currentIndex < buttons.length - 1) {
-								buttons[currentIndex + 1].focus();
-							}
-						} 
-						else if (e.key === 'ArrowUp') {
-							// Solo sube si no es el primer botón
-							if (currentIndex > 0) {
-								buttons[currentIndex - 1].focus();
-							}
-						} 
-						else if (e.key === 'Enter' || e.key === ' ') {
-							// Ejecuta la acción del botón enfocado
-							buttons[currentIndex].click();
-						}
-					  }
-
-					// --- 3. INTEGRACIÓN EN EL OPENREADER ---
-					// Justo después de: document.body.insertAdjacentHTML('beforeend', modalHTML);
-					// Añade estas líneas:
-					const firstBtn = document.querySelector('.nx-resume-btn-main');
-					if (firstBtn) firstBtn.focus(); // Pone el foco para que el usuario pueda dar Enter
-					document.addEventListener('keydown', handleNxResumeKeys, true); // El 'true' es clave para capturar antes que nadie
-
+                // Foco inicial en "Continuar" (Main) para comodidad del usuario
+                const mainBtn = document.querySelector('.nx-resume-btn-main');
+                if (mainBtn) mainBtn.focus();
 
             } else {
-                // Actualización de seguridad si el modal ya estaba inyectado
-                const bar = document.getElementById('modal-progress-bar');
+                // Si el modal ya existe (re-entrada rápida), actualizamos sus datos
+                modal.style.display = 'flex';
+                modal.style.opacity = '1';
+                const bar = document.getElementById('nx-resume-bar-fill');
                 if (bar) bar.style.width = progPercentText;
-                document.getElementById('resume-modal').style.display = 'flex';
+                
+                // Re-activar teclado y foco
+                document.removeEventListener('keydown', handleNxResumeKeys, true);
+                document.addEventListener('keydown', handleNxResumeKeys, true);
+                const mainBtn = document.querySelector('.nx-resume-btn-main');
+                if (mainBtn) mainBtn.focus();
             }
-        }, 300); // 300ms garantiza que el cálculo de updateTimeRemaining() y updateProgress() haya impactado el DOM
+        }, 300); 
     }
 
     // --- 7. INTEGRACIÓN SOUNDTRACK ---
@@ -661,10 +608,62 @@ async function openReader(id, forceCh = null, forceCk = null) {
         if (typeof updateSoundtrack === 'function') {
             updateSoundtrack(currentBook.soundtrack);
         }
-    }, 300); 
+    }, 300);
+} // Aquí termina openReader
+
+function closeNxResume() {
+    const modal = document.getElementById('nx-resume-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        document.removeEventListener('keydown', handleNxResumeKeys, true);
+        setTimeout(() => {
+            if (modal.parentNode) modal.remove();
+            window.pendingProgress = null;
+        }, 300);
+    }
 }
 
+function handleNxResumeKeys(e) {
+    const modal = document.getElementById('nx-resume-modal');
+    if (!modal) {
+        document.removeEventListener('keydown', handleNxResumeKeys, true);
+        return;
+    }
 
+    const keysToBlock = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Enter', 'Escape'];
+    if (keysToBlock.includes(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    if (e.key === 'Escape') {
+        closeNxResume();
+        return;
+    }
+
+    // Orden visual forzado: Cero (arriba), Sección (medio), Continuar (abajo)
+    const btnCero = modal.querySelector('.nx-resume-btn-minimal');
+    const btnSeccion = modal.querySelector('.nx-resume-btn-sub');
+    const btnContinuar = modal.querySelector('.nx-resume-btn-main');
+
+    const buttons = [btnCero, btnSeccion, btnContinuar].filter(b => b !== null);
+    let currentIndex = buttons.indexOf(document.activeElement);
+
+    if (currentIndex === -1) {
+        buttons[0].focus();
+        return;
+    }
+
+    if (e.key === 'ArrowDown' && currentIndex < buttons.length - 1) {
+        buttons[currentIndex + 1].focus();
+    } 
+    else if (e.key === 'ArrowUp' && currentIndex > 0) {
+        buttons[currentIndex - 1].focus();
+    } 
+    else if (e.key === 'Enter' || e.key === ' ') {
+        buttons[currentIndex].click();
+    }
+}
 
 
 
