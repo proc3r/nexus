@@ -1,3 +1,137 @@
+/* --- BARLOW CONDENSED --- */
+@font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-v13-latin-regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-v13-latin-italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-v13-latin-100.woff2') format('woff2'); font-weight: 100; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-v13-latin-500.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-v13-latin-600.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-v13-latin-700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-v13-latin-800.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-v13-latin-900.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
+
+/* --- ANCIZAR SANS (Greek + Latin + Ext) --- */
+
+/* Regular y 400 */
+@font-face {
+    font-family: 'Ancizar Sans';
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Italic (Normal Italic) */
+@font-face {
+    font-family: 'Ancizar Sans';
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-italic.woff2') format('woff2');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* Light (300) */
+@font-face {
+    font-family: 'Ancizar Sans';
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-300.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Ancizar Sans';
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-300italic.woff2') format('woff2');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* Semi Bold (600) */
+@font-face {
+    font-family: 'Ancizar Sans';
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-600.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Ancizar Sans';
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-600italic.woff2') format('woff2');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* Bold (700) */
+@font-face {
+    font-family: 'Ancizar Sans';
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-700.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Ancizar Sans';
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-700italic.woff2') format('woff2');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* Extra Bold (800) - LA QUE USA TU TÍTULO */
+@font-face {
+    font-family: 'Ancizar Sans';
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-800.woff2') format('woff2');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Ancizar Sans';
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-800italic.woff2') format('woff2');
+    font-weight: 800;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* Black (900) */
+@font-face {
+    font-family: 'Ancizar Sans';
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-900.woff2') format('woff2');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Ancizar Sans';
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-900italic.woff2') format('woff2');
+    font-weight: 900;
+    font-style: italic;
+    font-display: swap;
+}
+/* --- MERRIWEATHER --- */
+@font-face { font-family: 'Merriweather'; src: url('./fonts/merriweather-v33-latin-regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Merriweather'; src: url('./fonts/merriweather-v33-latin-700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Merriweather'; src: url('./fonts/merriweather-v33-latin-italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+
+/* --- INTER --- */
+@font-face { font-family: 'Inter'; src: url('./fonts/inter-v20-latin-regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('./fonts/inter-v20-latin-600.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('./fonts/inter-v20-latin-800.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
+
+/* --- ATKINSON HYPERLEGIBLE --- */
+@font-face { font-family: 'Atkinson Hyperlegible'; src: url('./fonts/atkinson-hyperlegible-v12-latin-regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Atkinson Hyperlegible'; src: url('./fonts/atkinson-hyperlegible-v12-latin-700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+
+/* --- LORA --- */
+@font-face { font-family: 'Lora'; src: url('./fonts/lora-v37-latin-regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Lora'; src: url('./fonts/lora-v37-latin-600.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+
+/* --- ICONOS (Material Icons & Round) --- */
+@font-face { font-family: 'Material Icons'; src: url('./fonts/material-icons-v145-latin-regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+.material-icons { font-family: 'Material Icons'; font-weight: normal; font-style: normal; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; word-wrap: normal; white-space: nowrap; direction: ltr; }
+
+@font-face { font-family: 'Material Icons Round'; src: url('./fonts/material-icons-round-v109-latin-regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+.material-icons-round { font-family: 'Material Icons Round'; font-weight: normal; font-style: normal; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; word-wrap: normal; white-space: nowrap; direction: ltr; }
+
 html {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -92,12 +226,36 @@ body {
     }
 }
 
-.logo-text {
-    font-size: 25px; /* text-3xl */
+.logo-container {
+    display: flex; /* Fuerza a que los hijos estén uno al lado del otro */
+    margin: 0;
+    padding: 0;
+    font-size: 31px;
     line-height: 2.25rem;
-    font-weight: 900; /* font-black */
-    letter-spacing: -0.05em; /* tracking-tighter */
+    font-weight: 600;
+    letter-spacing: -0.8px;
+    font-style: italic;
     color: #ffcc00;
+    font-family: 'ancizar sans', sans-serif;
+}
+
+.brand-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: left; /* O start, según tu diseño */
+}
+
+
+.logo-text1 {
+    color: #ff4444; /* Amarillo Nexus */
+}
+
+.logo-text2 {
+    color: #00ff00; /* Blanco */
+}
+
+.logo-text3 {
+    color: #2196f3; /* Blanco */
 }
 
 .tagline-text {
@@ -105,7 +263,7 @@ body {
     color: #e5e7eb; /* text-gray-200 */
     text-transform: uppercase;
     letter-spacing: 0.1097em;
-    font-weight: 700;
+    font-weight: 600;
     font-family: 'Barlow Condensed', sans-serif;
 }
 
@@ -536,9 +694,9 @@ body.sidebar-open {
 .toc-toggle:hover { opacity: 1; color: var(--primary-accent); }
 
 .reader-section-title {
-    font-family: 'Barlow Condensed', sans-serif; font-size: calc(var(--reader-font-size) * 1.5); font-weight: 800; text-transform: uppercase;
+    font-family: 'Ancizar Sans', sans-serif;  font-size: calc(var(--reader-font-size) * 1.5); font-weight: 800; text-transform: uppercase;
     text-align: center !important; margin: 2rem 0; line-height: 1.1; font-style: italic;  text-align-last: center !important; 
-    text-shadow: -3px -2px 5px rgb(0 0 0 / 21%);
+    text-shadow: 0px 0px 12px rgb(23 214 233 / 80%);
 }
 
 /* 1. Estilos base (sin color fijo) */
@@ -551,7 +709,8 @@ body.sidebar-open {
     font-family: 'Barlow Condensed';
     padding-top: 1px;
     max-width: 95%;
-	opacity: 0.8;
+	opacity: 0.9;
+	font-style: italic;
 }
 
 /* 2. Color cuando el lector está en MODO OSCURO */
@@ -1156,7 +1315,7 @@ body.sidebar-open {
     display: block;
     margin-bottom: 1.25rem !important; /* Espacio entre párrafos */
     line-height: 1.3;
-    font-size: 21px;
+    font-size: 20px;
     color: #f1f1f1;
 	font-family: 'merriweather';
     
@@ -1165,12 +1324,12 @@ body.sidebar-open {
 /* Títulos internos ## */
 .synopsis-h2 {
     display: block;
-    font-family: 'Barlow Condensed', sans-serif;
+	font-family: 'Ancizar Sans', sans-serif;
     color: #ffcc00;
     font-size: 1.4rem;
     font-weight: 800;
     /*margin-top: 2rem !important;*/
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.8rem !important;
     text-transform: uppercase;
     /*letter-spacing: 0.05em;*/
 	text-align: center;
@@ -1264,12 +1423,13 @@ body.sidebar-open {
 }
 
 .speed-menu button {
-    padding: 8px 15px;
+    padding: 8px 9px;
     color: white;
     font-size: 12px;
     font-weight: bold;
     border-radius: 8px;
     transition: all 0.2s;
+	font-family: monospace;
 }
 
 .speed-menu button:hover {
@@ -1315,7 +1475,7 @@ body.sidebar-open {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    box-shadow: 0 0px 10px rgb(255 42 42 / 65%);
+    box-shadow: 0 0px 6px rgb(139 42 255 / 85%);
     
 	z-index: 9999;
 }
@@ -1451,6 +1611,7 @@ body.sidebar-open {
     cursor: pointer;
     transition: all 0.3s;
     box-shadow: 0 0px 5px rgb(190 11 249 / 95%);
+	font-family: monospace;
 }
 
 .btn-speed-sinopsis {
@@ -1467,6 +1628,7 @@ body.sidebar-open {
     cursor: pointer;
     transition: all 0.3s;
     box-shadow: 0 0px 5px rgb(190 11 249 / 95%);
+	font-family: monospace;
 }
 
 .btn-float-stop:hover {
@@ -1485,13 +1647,13 @@ body.sidebar-open {
 
 
 .speed-menu-up button {
-    padding: 6px 15px;
+    padding: 6px 9px;
     color: white;
     font-size: 13px;
-    font-family: 'Inter', sans-serif;
     font-weight: bold;
     border-radius: 8px;
     text-align: center;
+	font-family: monospace;
 }
 
 .speed-menu-up button:hover {
@@ -1598,7 +1760,7 @@ body.sidebar-open {
 @media (min-width: 1023px) {
 #synopsis-modal .modal-container {
     padding: 2rem 1rem 2rem 1rem !important;
-        background: rgb(15 17 21 / 65%);
+    background: rgb(15 17 21 / 78%);
     backdrop-filter: blur(5px);
 }
 }
@@ -1836,15 +1998,17 @@ body.sidebar-open {
 }
 
 #share-book-title {
-     color: white;
-    font-size: 21px;
-    font-weight: bold;
-    font-family: 'Barlow Condensed', sans-serif;
+        text-align: center;
+    color: #fbfbfb;
+    margin: 0 0 12px 0;
+    font-size: 26px;
     text-transform: uppercase;
-    line-height: 1.1;
-    text-shadow: 0 2px 4px rgb(0 0 0 / 50%);
     font-style: italic;
-    text-align: center;
+    line-height: 28px;
+    text-shadow: 0px 0px 7px rgb(23 214 233 / 80%);
+    font-family: 'Ancizar Sans', sans-serif;
+    font-weight: 800;
+    padding: 0 10px;
 }
 
 .share-subtitle {
@@ -3454,9 +3618,8 @@ body { top: 0px !important; }
 
 
 .overlay-content {
-	
     margin-top: 4px;
-    height: 500px;
+    height: 490px;
     z-index: 1000;
     border: 1px solid #ffa3009e;
     padding: 15px 11px 11px 11px;
@@ -4216,7 +4379,7 @@ button {
     border: none;
     padding: 12px;
     border-radius: 12px;
-    font-weight: 700;
+    font-weight: 500;
     font-size: 20px;
     cursor: pointer;
     font-family: 'Barlow Condensed';
@@ -4245,6 +4408,7 @@ button {
    /* box-shadow: 0 0px 15px rgb(48 249 11 / 100%);  Brillo intenso */
 	box-shadow: 0 0px 11px rgb(249 230 11 / 86%);
     border: 1px solid #ffcc00;
+	font-weight: 700;
     background-color: rgb(249 230 11 / 20%);
 }
 
@@ -4256,6 +4420,7 @@ button {
     border-radius: 10px;
     font-size: 19px;
     cursor: pointer;
+	font-weight: 500;
     font-family: 'Barlow Condensed';
     text-transform: uppercase;
     background-color: rgb(22 41 122 / 20%);
@@ -4271,6 +4436,7 @@ button {
     padding: 12px;
     border-radius: 10px;
     font-size: 19px;
+	font-weight: 500;
     cursor: pointer;
     font-family: 'Barlow Condensed';
 	text-transform: uppercase;

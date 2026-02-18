@@ -1,44 +1,41 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Barlow+Condensed:ital,wght@0,300;0,400;1,300;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Ancizar+Sans:ital,wght@0,100..1000;1,100..1000&family=Lora:ital,wght@0,400;0,700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Icons+Round" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-	<meta property="og:type" content="website">
-	<meta property="og:url" content="https://proc3r.github.io/nexus/">
-	<meta property="og:title" content="Nexus Avatar - Lector de Manuscritos">
-	<meta property="og:description" content="Explora la biblioteca de documentos y manuscritos sincronizados.">
-	<meta property="og:image" content="https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg">
-
-	<meta property="twitter:card" content="summary_large_image">
-	<meta property="twitter:url" content="https://proc3r.github.io/nexus/">
-	<meta property="twitter:title" content="Nexus Avatar - Lector de Manuscritos">
-	<meta property="twitter:description" content="Explora la biblioteca de documentos y manuscritos sincronizados.">
-	<meta property="twitter:image" content="https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<link rel="manifest" href="manifest.json"> 
-
-	<link rel="preload" 
-      href="https://fonts.gstatic.com/s/materialiconsround/v109/LDItaoyNOAY6Uewc665JcIzCKsKc_M9flwmP.woff2" 
-      as="font" 
-      type="font/woff2" 
-      crossorigin="anonymous">
     <title>Nexus Avatar</title>
-	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-    <script src="https://cdn.tailwindcss.com"></script>
-   	<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">-->
-	
-    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/proc3r/nexus@main/estilos-nexus.css">-->
-	<link rel="stylesheet" href="estilos-nexus.css"> 
-    <link rel="dns-prefetch" href="https://wsrv.nl">
-	<link rel="preconnect" href="https://wsrv.nl">
 
-<style>
-     
-    </style>	
+    <link rel="preload" href="./fonts/barlow-condensed-v13-latin-regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="./fonts/material-icons-v145-latin-regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="./fonts/barlow-condensed-v13-latin-700.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+	<link rel="preload" href="./fonts/material-icons-round-v109-latin-regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="./fonts/ancizar-sans-v8-latin-800.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="estilos-nexus.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://proc3r.github.io/nexus/">
+    <meta property="og:title" content="Nexus Avatar - Lector de Manuscritos">
+    <meta property="og:description" content="Explora la biblioteca de documentos y manuscritos sincronizados.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://proc3r.github.io/nexus/">
+    <meta property="twitter:title" content="Nexus Avatar - Lector de Manuscritos">
+    <meta property="twitter:description" content="Explora la biblioteca de documentos y manuscritos sincronizados.">
+    <meta property="twitter:image" content="https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg">
+
+    <link rel="manifest" href="manifest.json"> 
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="dns-prefetch" href="https://wsrv.nl">
+    <link rel="preconnect" href="https://wsrv.nl">
+
+    <style>
+        /* Estilo crítico preventivo */
+        body { font-family: 'Barlow Condensed', sans-serif; }
+    </style>    
 </head>
 <body>
 
@@ -77,7 +74,7 @@
 <div id="nexus-splash" class="nexus-splash-container">
     <div class="splash-layout">
         <div class="section-top">
-            <h1 class="splash-title notranslate">NEXUS</h1>
+            <h1 class="logo-container notranslate">	<span class="logo-text1">NE</span><span class="logo-text2">X</span><span class="logo-text3">US</span></h1>
         </div>
 
         <div class="section-center">
@@ -100,9 +97,11 @@
    <header id="nexus-header-global">
     <div class="header-inner">
         <div class="brand-zone">
-            <h1 class="logo-text notranslate">NEXUS</h1>
-            <p class="tagline-text">GUIA AVATARICA</p>
-        </div>
+			<h1 class="logo-container notranslate">
+				<span class="logo-text1">NE</span><span class="logo-text2">X</span><span class="logo-text3">US</span>
+			</h1>
+			<p class="tagline-text">GUIA AVATARICA</p>
+		</div>
 		
 		
 
@@ -204,7 +203,7 @@
     </div>
     <nav class="h-8 flex-shrink-0 flex items-center justify-between px-4 border-b-4 border-blue-500 bg-black/20 backdrop-blur-md relative z-50">
         <button onclick="closeReader()" class="text-[#ffcc00] font-bold uppercase text-[23px] tracking-[0.02em] condensed flex items-center gap-1 hover:text-white transition-colors notranslate" style="text-shadow: -1px 1px 5px rgb(0 0 0 / 79%);">
-            <span class="mi-round text-sm"></span>NEXUS
+            <h1 class="logo-container notranslate"><span class="logo-text1">NE</span><span class="logo-text2">X</span><span class="logo-text3">US</span></h1>
         </button>
         <div class="flex items-center gap-2 md:gap-4">
             <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[13px] font-bold border border-white/5 notranslate">
@@ -386,7 +385,7 @@
         
         <div class="synopsis-header px-4">
             <h2 class="synopsis-title text-[#ffcc00] font-black uppercase condensed italic italic">Sinopsis</h2>
-            <button onclick="closeSynopsis()" class="text-white/40 hover:text-red-500 flex items-center gap-1 uppercase text-[15px] font-bold tracking-tighter" title="Cerrar Sinopsis">
+            <button onclick="closeSynopsis()" class="text-white/90 hover:text-red-500 flex items-center gap-1 uppercase text-[15px] font-bold tracking-tighter" title="Cerrar Sinopsis">
                 cerrar <span class="mi-round text-xl notranslate" style="color: #ff4444;font-size: 26px;
 ">close</span>
             </button>
