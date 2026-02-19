@@ -493,6 +493,10 @@ function aplicarDireccionGlobal() {
 function seleccionarIdiomaInicio(lang) {
     console.log("Nexus: Iniciando en idioma: " + lang);
     localStorage.setItem('nexus_preferred_lang', lang);
+	
+	if (typeof launchFullScreen === 'function') {
+        launchFullScreen(document.documentElement);
+    }
 
     if (lang === 'es') {
         // Si es español, limpiamos cookies y entramos

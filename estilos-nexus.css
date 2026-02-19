@@ -1581,11 +1581,70 @@ body.sidebar-open {
 	
 }
 
+
+/* Asegura que el contenedor de botones crezca horizontalmente 
+.main-audio-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px; 
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}*/
+
+.main-audio-trigger {
+    display: flex;
+    flex-direction: row; /* Asegura que siempre sea una fila */
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Aumentamos un poco a 6px para que no se vean pegados en escritorio */
+    /* background: rgba(0, 0, 0, 0.2); Opcional: un fondo muy tenue ayuda a unificar visualmente */
+    padding: 4px 8px;
+    border-radius: 50px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+
+/* Estilo del botón Verde Nexus para Volumen de Voz */
+.btn-ttsvolume-nexus {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(37 124 19 / 70%);
+    border: 2px solid rgb(52 243 12 / 42%);
+    color: #daf9d3;
+    box-shadow: 0px 0px 15px rgb(52 243 12 / 40%);
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.3s;
+    animation: fadeIn 0.3s ease;
+    opacity: 0.9;
+}
+
+.btn-ttsvolume-nexus:hover {
+    background: rgb(52 243 12 / 69%);
+    box-shadow: 0px 0px 14px rgb(52 243 12 / 90%);
+    transform: scale(1.1);
+}
+
+/* Clase para ocultar suavemente */
+.hidden {
+    display: none !important;
+    opacity: 0;
+    pointer-events: none;
+}
+
+
+
+
+
 /* Animación de Latido para cuando la música suena */
 @keyframes pause-tts {
-    0% { transform: scale(0.75); box-shadow: 0px 0px 8px rgb(0 255 0 / 99%); }
-    50% { transform: scale(0.7); box-shadow: 0px 0px 3px rgb(0 255 0 / 40%); }
-    100% { transform: scale(0.75); box-shadow: 0px 0px 8px rgb(0 255 0 / 99%); }
+    0% { transform: scale(0.85); box-shadow: 0px 0px 8px rgb(0 255 0 / 99%); }
+    50% { transform: scale(0.8); box-shadow: 0px 0px 3px rgb(0 255 0 / 40%); }
+    100% { transform: scale(0.85); box-shadow: 0px 0px 8px rgb(0 255 0 / 99%); }
 }
 
 /* Clase que se aplica por JS cuando se pausa (Verde) */
@@ -1719,16 +1778,14 @@ body.sidebar-open {
 .reader-controls-wrapper {
     position: fixed !important;
     left: 50% !important;
-    right: auto !important;
     transform: translateX(-50%) !important;
-    bottom: 95px; /* Altura para móvil */
+    bottom: 95px;
     display: flex;
-    flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 15px;
+    /* Eliminamos el gap de aquí para que no interfiera con el bloque interno */
+    gap: 0; 
     z-index: 9997;
-    /* Transición suave para todos los cambios de posición */
     transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
                 bottom 0.4s ease, 
                 transform 0.4s ease;
@@ -3132,7 +3189,7 @@ body.sidebar-open {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgb(52 243 12 / 70%);
+	background: rgb(245 102 0 / 84%);
     border: 1px solid rgba(68, 189, 183, 0.7);
     color: #fffdfd;
     box-shadow: 0px 0px 10px rgb(63 189 183 / 60%);
@@ -3245,6 +3302,8 @@ body.sidebar-open {
     z-index: 10000;
 }
 
+
+
 /*
 .nexus-slider-vertical {
     -webkit-appearance: none;
@@ -3279,6 +3338,30 @@ body.sidebar-open {
     from { opacity: 0; transform: translateY(-50%) translateX(20px); }
     to { opacity: 1; transform: translateY(-50%) translateX(0); }
 }
+
+/* Tema Verde para la barra de Voz */
+.voice-theme {
+    background: rgba(52, 243, 12, 0.4) !important; /* Verde traslúcido */
+    box-shadow: 0px 0px 15px rgba(52, 243, 12, 0.6) !important;
+    border: 1px solid rgba(52, 243, 12, 0.3) !important;
+}
+
+/* Color del tirador (Thumb) en verde */
+.voice-slider::-webkit-slider-thumb {
+    background: #34f30c !important;
+    box-shadow: 0 0 15px rgba(52, 243, 12, 0.9) !important;
+    border: 2px solid white !important;
+}
+
+/* Para navegadores Firefox */
+.voice-slider::-moz-range-thumb {
+    background: #34f30c !important;
+    box-shadow: 0 0 15px rgba(52, 243, 12, 0.9) !important;
+    border: 2px solid white !important;
+}
+
+
+
 
 /* Latido de espera (cuando el player está listo pero en silencio) */
 .music-waiting-pulse {
@@ -3486,7 +3569,7 @@ body.sidebar-open {
 /* 3. Forzamos los controles TTS al frente total */
 .zen-active-ui .reader-controls-wrapper {
     position: fixed !important;
-    bottom: 13px !important;
+    bottom: 9px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     z-index: 99999 !important; /* Prioridad máxima */
@@ -3532,6 +3615,10 @@ body.sidebar-open {
     box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
     cursor: pointer;
 }
+
+
+
+
 
 .refresh-voice-btn {
     position: fixed;
@@ -4468,7 +4555,6 @@ button {
     cursor: pointer;
     font-family: 'Barlow Condensed', 'oswald', sans-serif;
     text-transform: uppercase;
-    transition: transform 0.2s, background 0.2s;
     background-color: rgb(26 255 6 / 9%);
     box-shadow: 0 0px 5px rgb(48 249 11 / 95%);
     border: 1px solid rgb(41 255 0 / 26%);
@@ -4673,19 +4759,124 @@ button {
 }
 
 @media (min-width: 1024px) {	
-	.reading-toast {
-    bottom: 190px;
-    padding: 14px 48px 14px 12px;
-    gap: 15px;}
-	
-	
-	@keyframes refresh-msg {
-    0%, 100% {box-shadow: 0 0 4px rgb(28 165 34 / 85%);
-    background: rgb(12 12 12 / 95%);}
-    50% {box-shadow: 0 0 9px rgb(38 221 20 / 80%);
-    background: rgb(24 30 21 / 95%);}
-          
-	
-
+    .reading-toast {
+        bottom: 190px;
+        padding: 14px 48px 14px 12px;
+        gap: 15px;
     }
+    
+    @keyframes refresh-msg {
+        0%, 100% {
+            box-shadow: 0 0 4px rgb(28 165 34 / 85%);
+            background: rgb(12 12 12 / 95%);
+        }
+        50% {
+            box-shadow: 0 0 9px rgb(38 221 20 / 80%);
+            background: rgb(24 30 21 / 95%);
+        }
+    }
+}
 	
+	
+/* ventana de pausa al sacar foco*/
+	
+/* --- VENTANA DE PAUSA CON DOS BOTONES --- */
+#nexus-pause-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgb(10 10 10 / 27%);
+    backdrop-filter: blur(2px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100000;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+}
+
+.pause-content {
+    background: linear-gradient(145deg, #1e1e1ecc, #121212d4);
+    padding: 40px;
+    border-radius: 24px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    max-width: 420px;
+    width: 90%;
+    animation: nexusFadeIn 0.4s ease-out;
+}
+
+.pause-content h3 {
+    margin: 0 0 15px 0;
+    color: #ffffff;
+	font-family: 'Barlow Condensed', 'oswald', sans-serif;
+    text-transform: uppercase;
+    font-weight: 500;
+    font-size: 24px;
+    animation: waiting-pulse 2s infinite;
+}
+
+.pause-content p {
+    color: #ffffff;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
+    font-size: 20px;
+    text-align: center;
+}
+
+/* Contenedor de botones */
+.pause-btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-nexus {
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+/* Botón Reanudar (Voz) */
+.btn-resume-voice {
+    color: #e5ffd1;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 20px;
+    cursor: pointer;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
+    text-transform: uppercase;
+    background-color: rgb(26 94 30 / 34%);
+    box-shadow: 0 0px 5px rgb(24 116 48 / 86%);
+    border: 1px solid rgb(61 161 42);
+    transition: all 0.2s;
+}
+
+.btn-resume-voice:hover { transform: scale(1.04); color: #ffffff;     background-color: rgb(39 155 22 / 71%);
+				box-shadow: 0 0px 8px rgb(48 249 11 / 95%); border: 1px solid rgb(41 255 0 / 26%); }
+
+/* Botón Continuar (Solo lectura) */
+.btn-only-read {
+    color: #fffdcc;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 20px;
+    cursor: pointer;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
+    text-transform: uppercase;
+    background-color: rgb(68 65 20 / 77%);
+    box-shadow: 0 0px 5px rgb(249 230 11 / 86%);
+    border: 1px solid #ffcc0080;
+    transition: all 0.2s;
+}
+
+
+.btn-only-read:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(145 120 13 / 87%);
+				box-shadow: 0 0px 8px rgb(255 204 0 / 95%);  border: 1px solid #ffcc00; }

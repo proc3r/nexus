@@ -28,6 +28,8 @@
 function renderLibrary() {
     const grid = document.getElementById('library-grid');
     if (window.isLectorFijo || !grid) return;
+	
+	
 
     // Si la librería está vacía, esperamos un poco y reintentamos (por si el fetch de GitHub es lento)
     if (library.length === 0) {
@@ -440,9 +442,9 @@ function parseMarkdown(text) {
 
 async function openReader(id, forceCh = null, forceCk = null) {
     // --- 1. CONFIGURACIÓN DE INTERFAZ ---
-    if (typeof launchFullScreen === 'function') {
+   /* if (typeof launchFullScreen === 'function') {
         launchFullScreen(document.documentElement);
-    }
+    }*/
     
     const globalHeader = document.getElementById('nexus-header-global');
     if (globalHeader) {
@@ -855,7 +857,19 @@ async function renderChunk() {
         finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
     } else if (rawText.trim().startsWith('>')) {
         let lines = rawText.split('\n');
-        let processedLines = lines.map(l => cleanMarkdown(l.trim().replace(/^>\s?/, ''))).join('<span style="display: block;opacity: 70%;border-bottom: 2px dotted; margin-bottom: 10px;"></span>');
+        
+        // Creamos un separador que es un "div" invisible con un salto de línea.
+        // Esto garantiza que el TTS haga una pausa sin pronunciar "punto".
+        const ttsPause = '<div style="display:none;">\n</div>';
+        
+        // El separador visual sigue siendo tu span con borde punteado
+        const visualSeparator = '<span style="display: block; opacity: 70%; border-bottom: 2px dotted; margin-bottom: 10px;"></span>';
+
+        let processedLines = lines.map(l => {
+            // Limpiamos el markdown de la línea de forma segura
+            return cleanMarkdown(l.trim().replace(/^>\s?/, ''));
+        }).join(ttsPause + visualSeparator);
+        
         finalHtml = `<div class="custom-blockquote">${processFormatting(processedLines)}</div>`;
     } else {
         finalHtml = processFormatting(cleanMarkdown(rawText));
@@ -944,19 +958,38 @@ async function renderChunk() {
 }
 
 
+
+
 /**
  * Divide el texto en partes manejables para el motor de síntesis de voz
  */
+
 function splitTextSmartly(text, limit) {
     const result = [];
-    let remaining = text;
+    // Aseguramos que el texto tenga una pausa mínima si detectamos 
+    // que falta espacio después de puntos (común en concatenaciones de callouts)
+    let cleanedText = text.replace(/([\.!\?])([A-ZÁÉÍÓÚ])/g, '$1 $2'); 
+
+    let remaining = cleanedText;
+    
     while (remaining.length > 0) {
         if (remaining.length <= limit) { 
             result.push(remaining.trim()); 
             break; 
         }
+        
         let slice = remaining.substring(0, limit);
-        let lastBreak = Math.max(slice.lastIndexOf(','), slice.lastIndexOf('.'), slice.lastIndexOf(';'));
+        
+        // Buscamos puntos, exclamaciones o interrogaciones para dar prioridad a pausas largas
+        let lastBreak = Math.max(
+            slice.lastIndexOf('.'), 
+            slice.lastIndexOf('!'), 
+            slice.lastIndexOf('?'),
+            slice.lastIndexOf(';'),
+            slice.lastIndexOf(',')
+        );
+
+        // Si no hay puntuación clara, buscamos el último espacio
         if (lastBreak === -1) lastBreak = slice.lastIndexOf(' ');
         
         // Si no hay espacios ni puntuación, cortamos al límite

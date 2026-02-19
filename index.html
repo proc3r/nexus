@@ -363,16 +363,22 @@
 	
 	
 	
-	<div class="reader-controls-wrapper">
-    <button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
-        <span class="material-icons notranslate">stop</span>
-    </button>
+<div class="reader-controls-wrapper">
     <div class="main-audio-trigger">
+        <button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
+            <span class="material-icons notranslate">stop</span>
+        </button>
+
         <button id="tts-btn" onclick="startSpeech()" class="btn-float-red">
             <span class="material-icons notranslate">play_arrow</span>
         </button>
-        <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden" title="Si la lectura no reanuda, presione STOP y luego PLAY nuevamente">
+        
+        <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden" title="Pausar lectura">
             <span id="pause-icon" class="material-icons notranslate">pause</span>
+        </button>
+
+        <button id="voice-vol-btn" onclick="toggleVoiceStack(event)" class="btn-ttsvolume-nexus hidden">
+            <span class="material-icons notranslate">volume_up</span>
         </button>
     </div>
 </div>
@@ -516,7 +522,14 @@
                     <span class="material-icons notranslate">volume_up</span>
                 </button>
                 <div class="volume-slider-wrapper">
-                    <input type="range" id="pod-volume-slider" min="0" max="1" step="0.1" value="1">
+                    <input type="range" 
+							   id="voice-volume-sync" 
+							   min="0.3" 
+							   max="1" 
+							   step="0.1" 
+							   value="1" 
+							   oninput="controlVoiceVolume(this.value)">
+					
                 </div>
             </div>
         </div>
@@ -639,12 +652,22 @@
         <span class="material-icons-round volume-side-icon notranslate">volume_up</span>
         <div class="slider-wrapper">
             <input type="range" id="music-volume-sync" min="0" max="100" value="30" 
-       oninput="globalVolumeControl(this.value, this.id)" class="nexus-slider-vertical">
+                   oninput="globalVolumeControl(this.value, this.id)" class="nexus-slider-vertical">
         </div>
         <span class="material-icons-round volume-side-icon notranslate">volume_off</span>
     </div>
 </div>
 
+<div id="voice-volume-sidebar" class="volume-sidebar hidden">
+    <div class="volume-sidebar-glass voice-theme">
+        <span class="material-icons-round volume-side-icon notranslate">record_voice_over</span>
+        <div class="slider-wrapper">
+            <input type="range" id="voice-volume-sync" min="0" max="1" step="0.1" value="1" 
+                   oninput="controlVoiceVolume(this.value)" class="nexus-slider-vertical voice-slider">
+        </div>
+        <span class="material-icons-round volume-side-icon notranslate">volume_mute</span>
+    </div>
+</div>
 
 
 <div id="nexus-translation-store" style="display:none;" aria-hidden="true">

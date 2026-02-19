@@ -50,28 +50,45 @@ function initPlayer() {
     });
 }
 
+
 /**
- * FunciÃ³n que llama nexus-core.js (Actualizada con salto)
+ * Funci¨®n Maestra para actualizar el soundtrack
+ * Combina: Salto aleatorio, protecci¨®n de Iframe y actualizaci¨®n de botones
  */
 function updateSoundtrack(newVideoId, shouldPlay = true) {
     const vId = newVideoId || DEFAULT_SOUNDTRACK;
     
+    // 1. Refrescamos el punto de inicio aleatorio si hay un nuevo video
     if (newVideoId !== null) {
         refrescarValorAleatorio();
     }
 
-    // EL AJUSTE ES ESTA CONDICIÃ“N REFORZADA:
+    // 2. Verificamos si el reproductor de YouTube est¨¢ listo y sano
     if (player && isPlayerReady && typeof player.getIframe === 'function' && player.getIframe()) {
-        player.loadVideoById({
-            videoId: vId,
-            startSeconds: window.currentRandomTime
-        });
         
-        if (!shouldPlay) {
-            setTimeout(() => { if(player) player.pauseVideo(); }, 500);
+        if (shouldPlay) {
+            isMusicPlaying = true;
+            player.loadVideoById({
+                videoId: vId,
+                startSeconds: window.currentRandomTime,
+                suggestedQuality: 'small'
+            });
+            // Actualiza el icono del bot¨®n a "Sonando"
+            if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(true);
+        } else {
+            isMusicPlaying = false;
+            player.cueVideoById({
+                videoId: vId,
+                startSeconds: window.currentRandomTime,
+                suggestedQuality: 'small'
+            });
+            // Actualiza el icono del bot¨®n a "Mudo/Pausado"
+            if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(false);
         }
+
     } else {
-        // Si el player existe pero perdiÃ³ el Iframe (causa del cloneNode), lo reseteamos
+        // 3. Si el player fall¨® o no existe, lo reiniciamos por completo
+        console.warn("Soundtrack: Player no listo o Iframe perdido. Reiniciando...");
         player = null; 
         isPlayerReady = false;
         initPlayer();
@@ -164,18 +181,44 @@ setInterval(() => {
 
 
 
+
 function globalVolumeControl(val, originId) {
     if (isSyncing) return; 
     isSyncing = true;
+
+    // --- REINICIAR TEMPORIZADOR DE CIERRE ---
+    // Cada vez que interact¨²as con el volumen, se cancela el cierre anterior
+    // y se programa uno nuevo a 4 segundos.
+    clearTimeout(window.volumeTimeout);
+    window.volumeTimeout = setTimeout(closeVolumeSidebar, 4000);
 
     const volumeValue = parseInt(val);
 
     // 1. Aplicar a YouTube
     if (player && isPlayerReady && typeof player.setVolume === 'function') {
         player.setVolume(volumeValue);
-        // Si hay volumen y deberÃ­a estar sonando, aseguramos el play
-        if (volumeValue > 0 && isMusicPlaying) {
-            if (player.getPlayerState() !== 1) player.playVideo();
+        
+        // --- L¨®GICA DE REPRODUCCI¨®N INTELIGENTE ---
+        if (volumeValue > 0) {
+            // Si el volumen sube de 0, forzamos que el estado sea "reproduciendo"
+            if (!isMusicPlaying) {
+                isMusicPlaying = true;
+                player.playVideo();
+                // Actualizamos el bot¨®n principal (color/icono)
+                if (typeof actualizarVisualesMusica === 'function') {
+                    actualizarVisualesMusica(true);
+                }
+            } else if (player.getPlayerState() !== 1) {
+                // Si ya deber¨ªa estar sonando pero el player se detuvo, le damos play
+                player.playVideo();
+            }
+        } else if (volumeValue === 0 && isMusicPlaying) {
+            // Si el volumen llega a 0, marcamos como no reproduciendo y pausamos
+            isMusicPlaying = false;
+            player.pauseVideo();
+            if (typeof actualizarVisualesMusica === 'function') {
+                actualizarVisualesMusica(false);
+            }
         }
     }
 
@@ -186,8 +229,10 @@ function globalVolumeControl(val, originId) {
     const syncSlider = document.getElementById('music-volume-sync');
     if (syncSlider && originId !== 'music-volume-sync') syncSlider.value = volumeValue;
 
-    // 3. Visuales
-    updateVolumeButtonVisuals(volumeValue);
+    // 3. Visuales del icono de volumen (el peque?o altavoz)
+    if (typeof updateVolumeButtonVisuals === 'function') {
+        updateVolumeButtonVisuals(volumeValue);
+    }
 
     isSyncing = false;
 }
@@ -228,14 +273,12 @@ function updateVolumeButtonVisuals(val) {
 
 
 function toggleSoundtrack() {
-    const musicBtn = document.getElementById('btn-music-main');
-    const volBtn = document.getElementById('btn-volume-yt');
-
     if (!player || !isPlayerReady) return;
 
-    // RESCATE: Si estÃ¡ en silencio total al dar Play, lo subimos al 40% automÃ¡ticamente
+    // Si vamos a encender y el volumen es 0, usamos la funci¨®n global para subirlo
     if (!isMusicPlaying && player.getVolume() === 0) {
         globalVolumeControl(20, 'auto-fix');
+        return; // globalVolumeControl ya se encarga de dar play y actualizar visuales
     }
 
     try {
@@ -252,32 +295,7 @@ function toggleSoundtrack() {
 }
 
 
-function updateSoundtrack(videoId, forcePlay = true) {
-    // Si no hay videoId (el libro no tiene), usamos el DEFAULT
-    const finalId = videoId || DEFAULT_SOUNDTRACK;
-    
-    if (player && isPlayerReady) {
-        // Si forcePlay es true (como cuando entramos a un libro), usamos loadVideoById
-        if (forcePlay) {
-            isMusicPlaying = true;
-            player.loadVideoById({
-                videoId: finalId,
-                suggestedQuality: 'small'
-            });
-            actualizarVisualesMusica(true);
-        } else {
-            // Solo entra aquÃ­ si explÃ­citamente enviamos forcePlay = false (al cerrar)
-            isMusicPlaying = false;
-            player.cueVideoById({
-                videoId: finalId,
-                suggestedQuality: 'small'
-            });
-            actualizarVisualesMusica(false);
-        }
-    } else {
-        initPlayer();
-    }
-}
+
 
 function actualizarVisualesMusica(activar) {
     const musicBtn = document.getElementById('btn-music-main');
@@ -285,9 +303,8 @@ function actualizarVisualesMusica(activar) {
     const volBtn = document.getElementById('btn-volume-yt');
     const statusText = document.getElementById('music-status-text');
     
-    // Verificamos si el slider de volumen estÃ¡ en 0
     const syncSlider = document.getElementById('music-volume-sync');
-    const isMuted = syncSlider && parseInt(syncSlider.value) === 0;
+    const volumeValue = syncSlider ? parseInt(syncSlider.value) : 0;
 
     if (activar) {
         if (musicBtn) musicBtn.style.background = "#FFD920A6";
@@ -295,8 +312,8 @@ function actualizarVisualesMusica(activar) {
         if (statusText) statusText.innerText = "REPRODUCIENDO...";
         
         if (volBtn) {
-            // Si estÃ¡ reproduciendo pero muteado, sigue en latido blanco
-            if (isMuted) {
+            volBtn.style.opacity = (volumeValue === 0) ? "0.6" : "1";
+            if (volumeValue === 0) {
                 volBtn.classList.remove('music-playing-beat');
                 volBtn.classList.add('music-waiting-pulse');
             } else {
@@ -310,36 +327,36 @@ function actualizarVisualesMusica(activar) {
         if (statusText) statusText.innerText = "EN PAUSA";
         
         if (volBtn) {
-            // En pausa SIEMPRE late en blanco (estÃ© muteado o no)
+            volBtn.style.opacity = "0.6";
             volBtn.classList.remove('music-playing-beat');
             volBtn.classList.add('music-waiting-pulse');
         }
     }
 }
 
-
-
 function toggleVolumePopover(event) {
     if (event) event.stopPropagation();
     
+    if (typeof closeVoiceSidebar === 'function') closeVoiceSidebar();
+    
     const volBtn = document.getElementById('btn-volume-yt');
     const sidebar = document.getElementById('volume-sidebar-container');
-    
-    // --- LÃ“GICA DE ACTIVACIÃ“N ---
+    const syncSlider = document.getElementById('music-volume-sync');
+
+    // SI EST¨¢ APAGADO: Al abrir la barra, queremos que empiece a sonar
     if (isPlayerReady && !isMusicPlaying) {
-        // Quitamos el latido de espera y activamos la mÃºsica
-        if (volBtn) volBtn.classList.remove('music-waiting-pulse');
-        toggleSoundtrack(); // Esta funciÃ³n ya activa isMusicPlaying y el beat de reproducciÃ³n
+        // Si el slider est¨¢ en 0, lo subimos al 20% autom¨¢ticamente para que suene
+        if (syncSlider && parseInt(syncSlider.value) === 0) {
+            globalVolumeControl(20, 'auto-fix');
+        } else {
+            toggleSoundtrack(); // Si ya ten¨ªa volumen, solo damos play
+        }
     }
 
     if (!sidebar) return;
 
-    // --- MANEJO DE LA BARRA LATERAL ---
     if (sidebar.classList.contains('hidden')) {
         sidebar.classList.remove('hidden');
-        sidebar.style.transform = "";
-        sidebar.style.opacity = "";
-        
         clearTimeout(window.volumeTimeout);
         window.volumeTimeout = setTimeout(closeVolumeSidebar, 4000);
     } else {
@@ -366,75 +383,104 @@ function closeVolumeSidebar() {
 
 // Cerrar al hacer clic fuera
 window.addEventListener('click', () => {
-    document.getElementById('volume-sidebar-container')?.classList.add('hidden');
+    closeVolumeSidebar(); // Ya estaba
+    if (typeof closeVoiceSidebar === 'function') closeVoiceSidebar(); // <--- L¨ªNEA NUEVA
 });
+
+
 
 
 
 document.addEventListener('DOMContentLoaded', () => {
     const syncSlider = document.getElementById('music-volume-sync');
     const sidebar = document.getElementById('volume-sidebar-container');
+    const voiceSidebar = document.getElementById('voice-volume-sidebar');
+    const voiceSlider = document.getElementById('voice-volume-sync');
 
+    // --- PROTECCI¨®N DE BARRAS ---
     sidebar?.addEventListener('click', (e) => e.stopPropagation());
     sidebar?.addEventListener('mousedown', (e) => e.stopPropagation());
+    voiceSidebar?.addEventListener('click', (e) => e.stopPropagation());
+    voiceSidebar?.addEventListener('mousedown', (e) => e.stopPropagation());
 
+    // --- L¨®GICA SLIDER M¨²SICA (AZUL) ---
     if (syncSlider) {
-        // 1. Manejo nativo (Escritorio / Clic directo)
         syncSlider.addEventListener('input', (e) => {
             globalVolumeControl(e.target.value, 'music-volume-sync');
         });
 
-        // 2. GESTIÃ“N TÃCTIL CORREGIDA
         const handleTouch = (e) => {
             if (e.cancelable) e.preventDefault();
             e.stopPropagation();
-
             const touch = e.touches[0];
             const rect = syncSlider.getBoundingClientRect();
-            
-            // Determinamos si el slider es vertical u horizontal segÃºn su dibujo en pantalla
             const isVertical = rect.height > rect.width;
-            
-            let percentage;
-            if (isVertical) {
-                // Si es vertical: El 100% estÃ¡ arriba (top) y el 0% abajo (bottom)
-                // Invertimos la resta porque en pantalla el eje Y crece hacia abajo
-                percentage = ((rect.bottom - touch.clientY) / rect.height) * 100;
-            } else {
-                // Si es horizontal: El 0% estÃ¡ a la izquierda (left)
-                percentage = ((touch.clientX - rect.left) / rect.width) * 100;
-            }
-            
-            // LIMITACIÃ“N ESTRICTA: Evita que siga subiendo al salir de la barra
+            let percentage = isVertical 
+                ? ((rect.bottom - touch.clientY) / rect.height) * 100 
+                : ((touch.clientX - rect.left) / rect.width) * 100;
             let finalVal = Math.round(Math.min(Math.max(percentage, 0), 100));
-
             if (!isNaN(finalVal)) {
                 syncSlider.value = finalVal;
                 globalVolumeControl(finalVal, 'music-volume-sync');
             }
         };
 
-        // Eventos de inicio y movimiento
         syncSlider.addEventListener('touchstart', (e) => {
             clearTimeout(window.volumeTimeout);
             handleTouch(e);
         }, { passive: false });
-
         syncSlider.addEventListener('touchmove', handleTouch, { passive: false });
-
-        // 3. Al soltar
+        
         const handleRelease = (e) => {
             e.stopPropagation(); 
             clearTimeout(window.volumeTimeout);
             window.volumeTimeout = setTimeout(closeVolumeSidebar, 3000);
         };
-
         syncSlider.addEventListener('touchend', handleRelease);
         syncSlider.addEventListener('mouseup', handleRelease);
     }
+
+    // --- L¨®GICA T¨¢CTIL PARA EL SLIDER DE VOZ (VERDE) ---
+    if (voiceSlider) {
+        const handleVoiceTouch = (e) => {
+            if (e.cancelable) e.preventDefault();
+            e.stopPropagation();
+            const touch = e.touches[0];
+            const rect = voiceSlider.getBoundingClientRect();
+            const isVertical = rect.height > rect.width;
+            
+            let percentage = isVertical 
+                ? ((rect.bottom - touch.clientY) / rect.height) 
+                : ((touch.clientX - rect.left) / rect.width);
+            
+            // CAMBIO CLAVE: Forzamos el 0.3 aqu¨ª tambi¨¦n
+            let finalVal = Math.min(Math.max(percentage, 0.3), 1).toFixed(1);
+
+            if (!isNaN(finalVal)) {
+                voiceSlider.value = finalVal;
+                if (typeof controlVoiceVolume === 'function') controlVoiceVolume(finalVal);
+            }
+        };
+
+        voiceSlider.addEventListener('touchstart', (e) => {
+            clearTimeout(window.voiceTimeout);
+            handleVoiceTouch(e);
+        }, { passive: false });
+        voiceSlider.addEventListener('touchmove', handleVoiceTouch, { passive: false });
+
+        const releaseVoice = (e) => {
+            e.stopPropagation();
+            clearTimeout(window.voiceTimeout);
+            window.voiceTimeout = setTimeout(closeVoiceSidebar, 3000);
+        };
+        voiceSlider.addEventListener('touchend', releaseVoice);
+        voiceSlider.addEventListener('mouseup', releaseVoice);
+
+        // RESET AL CARGAR: 100%
+        voiceSlider.value = "1"; 
+        if (typeof nexusVoiceVolume !== 'undefined') nexusVoiceVolume = 1.0;
+    }
 });
-
-
 
 // FunciÃ³n de cierre con retraso y animaciÃ³n
 function startClosingTimeout() {
@@ -453,3 +499,25 @@ function startClosingTimeout() {
     }, 3000); // 3 segundos de cortesÃ­a antes de irse
 }
 
+// Funci¨®n nueva para cerrar la barra de voz con animaci¨®n
+function closeVoiceSidebar() {
+    const sidebar = document.getElementById('voice-volume-sidebar');
+    if (sidebar && !sidebar.classList.contains('hidden')) {
+        // Aplicamos la misma animaci¨®n de salida que la de m¨²sica
+        sidebar.style.transform = "translateY(-50%) translateX(100px)";
+        sidebar.style.opacity = "0";
+        
+        setTimeout(() => {
+            sidebar.classList.add('hidden');
+            // Reseteamos estilos para que al volver a abrir aparezca bien
+            sidebar.style.transform = "";
+            sidebar.style.opacity = "";
+        }, 400); 
+    }
+}
+
+// Funci¨®n para manejar el tiempo de cierre de la voz (independiente de la m¨²sica)
+function startVoiceClosingTimeout() {
+    clearTimeout(window.voiceTimeout);
+    window.voiceTimeout = setTimeout(closeVoiceSidebar, 3000);
+}
