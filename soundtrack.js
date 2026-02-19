@@ -9,7 +9,7 @@ window.currentRandomTime = 0;
 window.yaSalto = false;
 
 const DEFAULT_VOLUME = 20; 
-const DEFAULT_SOUNDTRACK = "wJ2tGxjTjuI";
+const DEFAULT_SOUNDTRACK = "3Pw9ZjTs8hs";
 
 // --- LÓGICA DE VALOR ALEATORIO ---
 function refrescarValorAleatorio() {

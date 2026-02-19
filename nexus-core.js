@@ -21,7 +21,7 @@
 
 
 
-
+	
 
 // --- 2. FUNCIONES DE CONTROL DE INTERFAZ (MOVER AQUÍ ARRIBA) ---
 
@@ -152,7 +152,7 @@ async function loadDirectBook(params) {
         currentBook = {
             id: 'direct-load',
             fileName: fileName,
-            title: fileName.replace('.md', '').replace(/_/g, ' ').replace(/[^\w\s\u0370-\u03FFáéíóúÁÉÍÓÚñÑ]/g, ''),
+            title: fileName.replace('.md', '').replace(/_/g, ' ').replace(/[^\w\s\u0370-\u03FFáéíóúÁÉÍÓÚñÑ\+]/g, ''),
             cover: coverUrl,
             chapters: parsedChapters,
             rawBase: repo.adjuntos,
@@ -230,7 +230,7 @@ async function fetchBooks() {
     const cachedLibrary = sessionStorage.getItem('nexus_library_cache');
     if (cachedLibrary) {
         library = JSON.parse(cachedLibrary);
-        if (statusText) statusText.innerText = "Sincronizado (Cache)";
+        if (statusText) statusText.innerText = "Ok (Cache)";
         document.getElementById('main-spinner')?.classList.add('hidden');
         renderLibrary();
         checkAutoLoad(); 
@@ -307,7 +307,7 @@ async function fetchBooks() {
                             id: safeId, 
                             fileName: file.name,
                             // Mantenemos el Regex que admite letras griegas
-                            title: file.name.replace('.md', '').replace(/_/g, ' ').replace(/[^\w\s\u0370-\u03FFáéíóúÁÉÍÓÚñÑ]/g, ''),
+                            title: file.name.replace('.md', '').replace(/_/g, ' ').replace(/[^\w\s\u0370-\u03FFáéíóúÁÉÍÓÚñÑ\+]/g, ''),
                             cover: coverUrl,
                             podcastUrl: podcastUrl,
                             soundtrack: soundtrackId,

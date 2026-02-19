@@ -15,6 +15,8 @@ window.VOICE_REPLACEMENTS = {};
 const DICTIONARY_URL = "https://raw.githubusercontent.com/proc3r/nexus/master/voice-dictionary.json";
 window.nexusSpeechTimeout = null; // Guardará el timer actual
 
+
+
 // --- GESTIÓN DEL DICCIONARIO ---
 
 async function loadExternalDictionary() {
@@ -88,14 +90,11 @@ async function startSpeech() {
         launchFullScreen(document.documentElement);
     }
     
-    // 1. LIMPIEZA TOTAL DE AMBOS MODOS
+    // 1. LIMPIEZA TOTAL
     window.synth.cancel();
-    
-    if (typeof stopVisualTimer === 'function') {
-        stopVisualTimer(); 
-    }
+    if (typeof stopVisualTimer === 'function') stopVisualTimer();
 
-    // RESET DE ESTADOS CRÍTICOS
+    // RESET DE ESTADOS
     window.visualPausedTime = null; 
     window.visualStartTime = null;
     if (window.visualTimerInterval) {
@@ -106,7 +105,6 @@ async function startSpeech() {
     window.isSpeaking = true; 
     window.isPaused = false;
     
-    // 2. SINCRONIZACIÓN FORZADA
     if (typeof syncLanguageSupport === 'function') {
         await syncLanguageSupport(); 
     }
@@ -117,12 +115,10 @@ async function startSpeech() {
     document.getElementById('stop-btn').classList.remove('hidden'); 
     if (typeof updatePauseUI === 'function') updatePauseUI(false);
 
-    // --- MEJORA DE CAPTURA DE TEXTO TRADUCIDO ---
+    // CAPTURA DE TEXTO ORIGINAL (Sin filtros fallidos)
     const contentEl = document.getElementById('book-content');
     const rawText = chunks[currentChunkIndex] || "";
-    // Solo si hay contenido en el DOM, lo usamos (para leer la traducción de Google)
     const currentText = (contentEl && contentEl.innerText.trim() !== "") ? contentEl.innerText.trim() : rawText;
-    // --------------------------------------------
 
     const isImage = rawText.match(/!\[\[(.*?)\]\]/);
     
@@ -130,9 +126,12 @@ async function startSpeech() {
         if (typeof clearImageTimer === 'function') clearImageTimer();
         if (typeof startImageTimer === 'function') startImageTimer(); 
     } else {
-        // 4. INTERRUPTOR DE MODO (Modo Visual vs Modo Audio)
+        // 4. INTERRUPTOR DE MODO
         if (window.hasAvailableVoice === false) {
-            console.log("Nexus Vocal: Iniciando Modo Visual (Barra de progreso).");
+            // MODO VISUAL: Ocultamos refresh porque no hay voz que arreglar
+            const btnRefresh = document.getElementById('refresh-voice-btn');
+            if (btnRefresh) btnRefresh.style.display = 'none';
+
             if (typeof showVisualTimer === 'function' && typeof calculateReadingTime === 'function') {
                 const duration = calculateReadingTime(currentText);
                 showVisualTimer(duration);
@@ -140,12 +139,15 @@ async function startSpeech() {
             return; 
         }
 
-        // 5. MODO AUDIO (Inglés, Español, etc.)
+        // 5. MODO AUDIO: Mostramos refresh y aviso
         if (typeof stopVisualTimer === 'function') stopVisualTimer();
         
-        console.log("Nexus Voice: Iniciando lectura con voz.");
+        const btnRefresh = document.getElementById('refresh-voice-btn');
+        if (btnRefresh) btnRefresh.style.display = 'block'; 
         
-        // MANTENEMOS TU FUNCIÓN ORIGINAL
+        mostrarAvisoLectura(); 
+        
+        console.log("Nexus Voice: Iniciando lectura.");
         prepareAndStartSpeech(currentText); 
     }
 }
@@ -580,3 +582,37 @@ async function refreshSpeech() {
         }
     }, 200);
 }
+
+// Variable global para controlar la frecuencia (fuera de la función)
+window.ultimaVezAvisoNexus = 0;
+
+function mostrarAvisoLectura() {
+    const ahora = Date.now();
+    // 30000 milisegundos = 30 segundos de "descanso" antes de volver a mostrarlo
+    if (ahora - window.ultimaVezAvisoNexus < 30000) {
+        console.log("Nexus: Aviso silenciado para evitar repetición.");
+        return; 
+    }
+
+    const toast = document.getElementById('reading-help-toast');
+    const toastText = toast?.querySelector('.toast-text');
+    if (!toast || !toastText) return;
+
+    const currentLang = localStorage.getItem('nexus_preferred_lang');
+    
+    // Solo actuamos si no es español (idioma original)
+    if (currentLang && currentLang !== 'es') {
+        // Actualizamos la marca de tiempo para el bloqueo de repetición
+        window.ultimaVezAvisoNexus = ahora;
+
+        // Texto adaptado
+        toastText.innerText = "¿Traducción errónea? Pulsa";
+
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 6000); 
+    }
+}
+

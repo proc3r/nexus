@@ -9,7 +9,7 @@
     <link rel="preload" href="./fonts/material-icons-v145-latin-regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="./fonts/barlow-condensed-v13-latin-700.woff2" as="font" type="font/woff2" crossorigin="anonymous">
 	<link rel="preload" href="./fonts/material-icons-round-v109-latin-regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-    <link rel="preload" href="./fonts/ancizar-sans-v8-latin-800.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    
 
     <link rel="stylesheet" href="estilos-nexus.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -65,7 +65,7 @@
             </button>
         </div>
 
-        <p class="notranslate portal-footer" style="margin-top: 20px;">Other Languages</p>
+        <p class="notranslate portal-footer" style="margin-top: 3%;">Other Languages</p>
         <div id='google_portal_element'></div> 
     </div>
 </div>
@@ -74,7 +74,9 @@
 <div id="nexus-splash" class="nexus-splash-container">
     <div class="splash-layout">
         <div class="section-top">
-            <h1 class="logo-container notranslate">	<span class="logo-text1">NE</span><span class="logo-text2">X</span><span class="logo-text3">US</span></h1>
+            <h1 class="logo-container notranslate">
+                <span class="logo-text1">NE</span><span class="logo-text2">X</span><span class="logo-text3">US</span>
+            </h1>
         </div>
 
         <div class="section-center">
@@ -86,8 +88,8 @@
         </div>
 
         <div class="section-bottom">
-            <p id="splash-status-text" class="splash-status">SINCRONIZANDO</p>
-        </div>
+			<p class="splash-status-2">Sincronizando</p>
+		</div>
     </div>
 </div>
 
@@ -102,10 +104,7 @@
 			</h1>
 			<p class="tagline-text">GUIA AVATARICA</p>
 		</div>
-		
-		
-
-		
+				
         <div id="status-indicator" class="status-zone">
 			
 			<button aria-label='Traducir Página' class='translate-toggle show-translate btn'></button>
@@ -206,7 +205,7 @@
             <h1 class="logo-container notranslate"><span class="logo-text1">NE</span><span class="logo-text2">X</span><span class="logo-text3">US</span></h1>
         </button>
         <div class="flex items-center gap-2 md:gap-4">
-            <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4 text-[13px] font-bold border border-white/5 notranslate">
+            <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4  font-bold border border-white/5 notranslate">
                 <button onclick="changeFontSize(-2)" class="hover:text-[#ffcc00]" title="Disminuir Fuente">A-</button>
                 <span id="font-size-val">25</span>
                 <button onclick="changeFontSize(2)" class="hover:text-[#ffcc00]" title="Aumentar Fuente">A+</button>
@@ -281,9 +280,15 @@
     </button>
 	
 	<button id="refresh-voice-btn" class="refresh-voice-btn" onclick="refreshSpeech()">
-    <span class="material-icons notranslate">sync</span>
+    <span class="material-icons notranslate" style="line-height: 1.8;">refresh</span>
 </button>
     
+	<div id="reading-help-toast" class="reading-toast">
+    <span class="toast-text">¿Traducción errónea? Pulsa</span>
+    <span class="material-icons toast-icon notranslate">refresh</span>
+
+</div>
+
     <div id="reading-container-fixed" class="custom-scrollbar">
         <div class="content-wrapper">
             <div class="max-w-4xl mx-auto w-full">
@@ -596,23 +601,9 @@
     </div>
 </div>
 
-
-
-
-<div id="volume-sidebar-container" class="volume-sidebar hidden">
-    <div class="volume-sidebar-glass">
-        <span class="material-icons-round volume-side-icon notranslate">volume_up</span>
-        <div class="slider-wrapper">
-            <input type="range" id="music-volume-sync" min="0" max="100" value="30" 
-       oninput="globalVolumeControl(this.value, this.id)" class="nexus-slider-vertical">
-        </div>
-        <span class="material-icons-round volume-side-icon notranslate">volume_off</span>
-    </div>
-</div>
-
 <div id='translate-overlay' style='display: none;'>
     <div class='overlay-content'>
-        <button id="btn-restore-original" class="portal-btn btn-es notranslate" onclick="restaurarOriginalYRefrescar()" style="margin-bottom: 20px; width: 100%;">
+        <button id="btn-restore-original" class="portal-btn btn-es notranslate" onclick="restaurarOriginalYRefrescar()" style="width: 100%;">
             <span class="portal-flag">🇪🇸</span> MOSTRAR ORIGINAL (ESPAÑOL)
         </button>
 
@@ -633,14 +624,28 @@
             </button>
         </div>
 
-        <p class="notranslate portal-footer" style="margin-top: 20px;">Other Languages</p>
+        <p class="notranslate portal-footer" style="margin-top: 3%;">Other Languages</p>
         <div id='google_translate_element'></div>
-    </div>
 
-    <button id='close-translate-overlay'>
-        <span class="material-icons notranslate">close</span>
-    </button>
+        <button id='close-translate-overlay' onclick="closeTranslateModal()">
+            <span class="material-icons notranslate">close</span>
+        </button>
+    </div>
 </div>
+
+
+<div id="volume-sidebar-container" class="volume-sidebar hidden">
+    <div class="volume-sidebar-glass">
+        <span class="material-icons-round volume-side-icon notranslate">volume_up</span>
+        <div class="slider-wrapper">
+            <input type="range" id="music-volume-sync" min="0" max="100" value="30" 
+       oninput="globalVolumeControl(this.value, this.id)" class="nexus-slider-vertical">
+        </div>
+        <span class="material-icons-round volume-side-icon notranslate">volume_off</span>
+    </div>
+</div>
+
+
 
 <div id="nexus-translation-store" style="display:none;" aria-hidden="true">
     <span id="store-comenzando">Comenzando en </span>
@@ -659,25 +664,7 @@
           .then(reg => console.log('SW registrado en carpeta /nexus/'))
           .catch(err => console.log('Error:', err));
     }
-</script>
 	
-<script src="https://www.youtube.com/iframe_api"></script>	 
-<script src="nexus-core.js" defer></script>    <!-- ATENCION NO BORRAR USADO PARA TEST LOCAL  -->
- <script src="nexus-synopsis.js" defer></script>
- <script src="vocal-language.js" defer></script> 
- <script src="nexus-voice.js" defer></script>
-<script src="nexus-function.js" defer></script>
-<script src="nexus-podcast.js" defer></script>
-<script src="traductor.js"></script>
-
-<script src="soundtrack.js"></script>
-  <!-- <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-core.js" defer></script>-->
-  <!-- <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-function.js" defer></script>-->
- <!--  <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-voice.js" defer></script>-->
- <!-- <script src="https://cdn.jsdelivr.net/gh/proc3r/nexus@master/nexus-synopsis.js" defer></script>-->
-	<script>
-	</script>
-	<script>
 	  if ('serviceWorker' in navigator) {
 		window.addEventListener('load', () => {
 		  navigator.serviceWorker.register('/sw.js')
@@ -685,7 +672,19 @@
 			.catch(err => console.log('Error al registrar SW', err));
 		});
 	  }
-	</script>	
+</script>
+	
+<script src="https://www.youtube.com/iframe_api"></script>	 
+<script src="nexus-core.js" defer></script>    <!-- ATENCION NO BORRAR USADO PARA TEST LOCAL  -->
+<script src="nexus-synopsis.js" defer></script>
+<script src="vocal-language.js" defer></script> 
+<script src="nexus-voice.js" defer></script>
+<script src="nexus-function.js" defer></script>
+<script src="nexus-podcast.js" defer></script>
+<script src="traductor.js"></script>
+<script src="soundtrack.js"></script>
+
+
 	
 </body>
 </html>

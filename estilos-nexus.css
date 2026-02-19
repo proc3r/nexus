@@ -8,6 +8,45 @@
 @font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-v13-latin-800.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-v13-latin-900.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
 
+
+/* --- OSWALD (Respaldo para Cirílico) --- */
+@font-face {
+    font-family: 'Oswald';
+    src: url('./fonts/oswald-v57-cyrillic_cyrillic-ext_latin_latin-ext_vietnamese-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+    font-family: 'Oswald';
+    src: url('./fonts/oswald-v57-cyrillic_cyrillic-ext_latin_latin-ext_vietnamese-300.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+    font-family: 'Oswald';
+    src: url('./fonts/oswald-v57-cyrillic_cyrillic-ext_latin_latin-ext_vietnamese-600.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+    font-family: 'Oswald';
+    src: url('./fonts/oswald-v57-cyrillic_cyrillic-ext_latin_latin-ext_vietnamese-700.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+
 /* --- ANCIZAR SANS (Greek + Latin + Ext) --- */
 
 /* Regular y 400 */
@@ -79,10 +118,10 @@
 /* Extra Bold (800) - LA QUE USA TU TÍTULO */
 @font-face {
     font-family: 'Ancizar Sans';
-    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-800.woff2') format('woff2');
+    src: url('./fonts/ancizar-sans-v8-greek_latin_latin-ext-800italic.woff2') format('woff2');
     font-weight: 800;
-    font-style: normal;
-    font-display: swap;
+    font-style: italic;
+    font-display: block; /* <--- Cambia swap por block aquí */
 }
 @font-face {
     font-family: 'Ancizar Sans';
@@ -171,7 +210,7 @@ body {
     --primary-accent: #ffcc00;
     --dark-bg: #0f1115;
     --reader-dark: #1a1b1e;
-    --reader-light: #f7f7f7;
+    --reader-light: #fafbf4;
     --text-on-dark: #e0e0e0;
     --text-on-light: #2c2c2c;
     --marker-h1: #ff4444; 
@@ -232,7 +271,7 @@ body {
     padding: 0;
     font-size: 31px;
     line-height: 2.25rem;
-    font-weight: 600;
+    font-weight: 800;
     letter-spacing: -0.8px;
     font-style: italic;
     color: #ffcc00;
@@ -264,7 +303,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.1097em;
     font-weight: 600;
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
 }
 
 .status-zone {
@@ -310,7 +349,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.1em; /* tracking-widest */
     color: #6b7280; /* text-gray-500 */
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
 }
 
 /* Ajuste necesario para que el contenido no se oculte bajo el header fijo */
@@ -401,7 +440,7 @@ html, body {
 
 /* CLASES DE UTILIDAD */
 .hidden { display: none !important; }
-.condensed { font-family: 'Barlow Condensed', sans-serif; }
+.condensed {font-family: 'Barlow Condensed', 'oswald', sans-serif; }
 
 .mi-round {
     font-family: 'Material Icons Round';
@@ -706,7 +745,7 @@ body.sidebar-open {
     transition: color 0.3s ease;
     letter-spacing: 0.01em;
     font-size: 22px;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     padding-top: 1px;
     max-width: 95%;
 	opacity: 0.9;
@@ -755,7 +794,7 @@ body.sidebar-open {
 
 
 .reader-text {
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     text-transform: uppercase;
     font-style: italic;
     text-shadow: 0 1px 2px rgb(0 0 0 / 50%);
@@ -841,7 +880,7 @@ body.sidebar-open {
     box-shadow: 0px 0px 8px rgb(0 255 0 / 81%);
 	background-color: rgb(49 163 26 / 64%);
     border: 1px solid rgb(52 243 12 / 30%);
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
 }
 
 .timer-text {
@@ -987,10 +1026,10 @@ body.sidebar-open {
 
 .resume-info { display: flex; flex-direction: column; overflow: hidden; }
 
-.resume-main-text { font-weight: 600; color: #fff; text-transform: uppercase; font-size: 13px; letter-spacing: 0.02em; text-shadow: -6px 4px 8px rgb(0 0 0 / 80%); }
+.resume-main-text { font-family: 'Barlow Condensed', 'oswald', sans-serif; font-weight: 600; color: #fff; text-transform: uppercase; font-size: 16px; letter-spacing: 0.02em; text-shadow: -6px 4px 8px rgb(0 0 0 / 80%); }
 .resume-chapter-name { color: rgba(255,255,255,0.8); text-transform: capitalize; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 .resume-book-title { 
-    font-family: 'Barlow Condensed', sans-serif; font-style: italic; 
+    font-family: 'Barlow Condensed', 'oswald', sans-serif; font-style: italic; 
     color: var(--primary-accent); font-size: 18px; font-weight: 700; text-transform: uppercase;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
 }
@@ -1074,7 +1113,7 @@ body.sidebar-open {
 }
 
 .shelf-book-title {
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     font-weight: 500;
     font-size: 17px;
     line-height: 1;
@@ -1127,7 +1166,7 @@ body.sidebar-open {
     font-weight: bold;
     text-transform: uppercase;
     /*transition: all 0.2s;*/
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     box-shadow: 0px 0px 6px rgb(0 255 0 / 88%);
 }
 
@@ -1140,7 +1179,7 @@ body.sidebar-open {
     font-weight: bold;
     text-transform: uppercase;
     transition: all 0.2s;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     font-size: 18px;
     box-shadow: 0px 0px 20px rgb(0 255 0  / 81%);
 	transform: scale(1.1);
@@ -1156,7 +1195,7 @@ body.sidebar-open {
     font-weight: bold;
     text-transform: uppercase;
     transition: all 0.2s;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     font-size: 18px;
     box-shadow: 0px 0px 20px rgb(0 124 255 / 81%);
 	transform: scale(1.1);
@@ -1172,7 +1211,7 @@ body.sidebar-open {
     font-weight: bold;
     text-transform: uppercase;
     transition: all 0.2s;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     font-size: 18px;
     box-shadow: 0px 0px 9px rgb(0 124 255 / 81%);
 	animation: synopsis-beat 3s infinite ease-in-out;
@@ -1262,7 +1301,7 @@ body.sidebar-open {
 #synopsis-modal .modal-container {
     padding: 0.5rem 0.5rem 1rem 0.5rem !important;
 	box-shadow: 0 0 18px rgb(63 219 17 / 81%);
-    background: rgb(15 17 21 / 65%);
+    background: rgb(15 17 21 / 78%);
     backdrop-filter: blur(5px);
 }
 
@@ -1279,6 +1318,7 @@ body.sidebar-open {
 .synopsis-title {
     font-size: 1.5rem !important; /* Título más pequeño */
     margin: 0 !important;
+	font-family: 'Barlow Condensed', 'oswald', sans-serif;
 }
 
 /* Área de lectura sin paddings laterales */
@@ -1324,7 +1364,7 @@ body.sidebar-open {
 /* Títulos internos ## */
 .synopsis-h2 {
     display: block;
-	font-family: 'Ancizar Sans', sans-serif;
+	font-family: 'Barlow Condensed', 'oswald', sans-serif;
     color: #ffcc00;
     font-size: 1.4rem;
     font-weight: 800;
@@ -1777,7 +1817,7 @@ body.sidebar-open {
     font-size: 20px;
     font-weight: bold;
     text-transform: uppercase;
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     transition: all 0.3s ease;
     cursor: pointer;
     display: flex;
@@ -1881,7 +1921,7 @@ body.sidebar-open {
     margin-top: 3px;
     padding: 1px 7px 1px 7px;
     color: white;
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     letter-spacing: 1px;
     text-transform: uppercase;
     font-size: 15px;
@@ -2019,7 +2059,7 @@ body.sidebar-open {
     letter-spacing: 0.1em;
     /* margin-top: 1px; */
     text-align: center;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     padding: 0px 0 5px 0;
 }
 
@@ -2067,7 +2107,7 @@ body.sidebar-open {
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.2px;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
 }
 
 /* Colores de Redes */
@@ -2214,10 +2254,10 @@ body.sidebar-open {
 .share-text-content {
     background: rgba(20, 20, 22, 0.98);
     border-left: 3px solid #ffcc00;
-    padding: 15px;
+    padding: 20px;
     color: #eee;
     font-style: italic;
-    font-family: 'Merriweather', serif;
+    font-family: 'Merriweather', 'oswald', serif;
     border-radius: 0 12px 12px 0;
     
     /* Cambiamos Flexbox para usar márgenes automáticos en el hijo */
@@ -2240,6 +2280,8 @@ body.sidebar-open {
     margin-top: auto;
     margin-bottom: auto;
     width: 100%;
+	font-size: 19px;
+    line-height: 1.25;
 }
    
 
@@ -2260,7 +2302,7 @@ body.sidebar-open {
         color: white;
         font-size: 32px;
         font-weight: bold;
-        font-family: 'Barlow Condensed', sans-serif;
+        font-family: 'Barlow Condensed', 'oswald', sans-serif;
         text-transform: uppercase;
         line-height: 1.1;
         text-shadow: 0 2px 4px rgb(0 0 0 / 50%);
@@ -2271,7 +2313,7 @@ body.sidebar-open {
     .share-text-content {
         max-height: 315px; /* Se agranda hasta 366px, luego scroll */
         min-height: 100px;
-        font-size: 19px;
+        font-size: 22px;
         line-height: 1.6em;
         padding: 20px 25px; /* Ajusté un poco el padding lateral para mayor elegancia */
             
@@ -2481,7 +2523,7 @@ body.sidebar-open {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 85%;
-	font-family: 'Barlow Condensed';
+	font-family: 'Barlow Condensed', 'oswald', sans-serif;
 }
 
 .pod-close {
@@ -2587,7 +2629,7 @@ body.sidebar-open {
 
 .pod-mid-right {
     justify-content: flex-end; /* Tiempo a la derecha */
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     font-size: 14px;
     color: white;
 }
@@ -2689,7 +2731,7 @@ body.sidebar-open {
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.05em;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
 }
 
 .pod-icon-circle {
@@ -2785,7 +2827,7 @@ body.sidebar-open {
     color: white;
     font-size: 22px;
     font-weight: bold;
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     text-transform: uppercase;
     font-style: italic;
     margin: 0;
@@ -2797,7 +2839,7 @@ body.sidebar-open {
     font-size: 18px;
     font-weight: bold;
     text-transform: uppercase;
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     margin: 5px 0 0 0;
 }
 
@@ -2842,7 +2884,7 @@ body.sidebar-open {
 
 .portal-action-item span:not(.material-icons) {
     color: white;
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     text-transform: uppercase;
     font-size: 18px;
     font-weight: 500;
@@ -2960,7 +3002,7 @@ body.sidebar-open {
     opacity: 10;
     letter-spacing: 0.2px;
     font-weight: 300;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     padding-bottom: 3px;
 }
 
@@ -2994,7 +3036,7 @@ body.sidebar-open {
     font-weight: 800;
     color: #ffffff;
     text-align: -webkit-right;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
 }
 
 
@@ -3062,7 +3104,7 @@ body.sidebar-open {
 /* Usamos el nuevo nombre para no interferir con otros elementos */
 .status-label-yt {
     font-size: 15px;
-    font-family: 'barlow condensed', sans-serif;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     opacity: 0.8;
     margin: 0;
     color: #ffffff;
@@ -3281,7 +3323,7 @@ body.sidebar-open {
     color: #ffcc00;
     font-size: 41px;
     margin: 0;
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     text-transform: uppercase;
     font-weight: 800;
 }
@@ -3330,21 +3372,49 @@ body.sidebar-open {
     font-size: 26px;
     letter-spacing: 1px;
     text-transform: uppercase;
-    font-family: 'Barlow Condensed';
+    
     font-style: italic;
     text-align: center;
+	font-family: 'Ancizar Sans', sans-serif;
+    font-weight: 800;
+    text-shadow: 0px 0px 7px rgb(23 214 233 / 80%);
+	animation: desktopReveal 1.5s ease-out forwards;
+	}
+
+
 }
 
-/* --- SECCIÓN INFERIOR --- */
-.splash-status {
-    color: #1dff02f7;
-    font-size: 17px;
-    font-weight: 400;
-    letter-spacing: 2px;
-    animation: waiting-load 2s infinite;
-    font-family: monospace;
-    margin: 0;
+
+
+.section-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 30px; /* Separa el texto del spinner */
+    padding-bottom: 20px;
 }
+
+/* Aplicamos el estilo tanto para el Splash del Index como para el del Lector */
+#nexus-splash .splash-status-2, 
+#auto-loader .splash-status-2 {
+    display: block !important;
+    color: #00f2ff !important;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 3px !important;
+    margin-top: 20px !important;
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.7) !important;
+    text-align: center !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+	animation: waiting-pulse 2s infinite;
+	padding: 0px 10px;
+}
+
 
 /* --- ANIMACIONES --- */
 @keyframes spin {
@@ -3438,6 +3508,8 @@ body.sidebar-open {
     opacity: 1 !important;
     pointer-events: auto !important;
 }
+
+
 }
 
 
@@ -3463,18 +3535,18 @@ body.sidebar-open {
 
 .refresh-voice-btn {
     position: fixed;
-    right: 8px;
+    right: 7px;
     z-index: 60;
     background: rgba(0, 0, 0, 0.05);
     backdrop-filter: blur(2px);
     border: 1px solid rgb(255 255 255 / 11%);
     border-radius: 30px;
-    width: 29px;
-    height: 33px;
+    width: 31px;
+    height: 31px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #22ad11;
+    color: #24f30a;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
     cursor: pointer;
@@ -3533,6 +3605,8 @@ body.sidebar-open {
         transform: scale(1.1);
         transition: transform 0.3s ease;
     }
+
+
 }
 
 /* Asegura fondo negro en Fullscreen Real */
@@ -3619,7 +3693,7 @@ body { top: 0px !important; }
 
 .overlay-content {
     margin-top: 4px;
-    height: 490px;
+    height: 404px;
     z-index: 1000;
     border: 1px solid #ffa3009e;
     padding: 15px 11px 11px 11px;
@@ -3642,17 +3716,22 @@ body { top: 0px !important; }
 }
 
 #translate-overlay .overlay-content {
-    position: relative; /* Esto permite posicionar el botón dentro */
-    padding-top: 40px;   /* Espacio para que el botón no tape el contenido */
+    position: relative; 
+    padding-top: 15px;    
+    padding-bottom: 50px; /* Mantenemos el espacio para el botón */
 }
 
 #close-translate-overlay {
-    position: absolute;  /* Lo fijamos respecto a la caja */
-    top: 10px;           /* Distancia desde arriba */
-    right: 10px;         /* Distancia desde la derecha */
+    position: absolute;  
+    bottom: 8px;        /* Distancia desde el borde inferior */
+    
+    /* --- AJUSTE PARA CENTRADO PERFECTO --- */
+    left: 50%;           /* Lo mueve al 50% del ancho del contenedor */
+    transform: translateX(-50%); /* Lo desplaza hacia atrás la mitad de su propio ancho */
+    
     z-index: 9999;
     padding: 0;
-    display: flex;       /* Cambiado de inline a flex para centrar el icono X */
+    display: flex;       
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -3660,7 +3739,7 @@ body { top: 0px !important; }
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #fff;
     box-shadow: 0px 3px 7px rgb(0 0 0 / 40%);
-    border-radius: 50%;  /* Círculo perfecto */
+    border-radius: 50%;  
     height: 30px;
     width: 30px;
     transition: all 0.3s ease;
@@ -3668,9 +3747,9 @@ body { top: 0px !important; }
 
 #close-translate-overlay:hover {
     background: rgb(255, 0, 0);
-    transform: scale(1.1);
+    /* Mantenemos el translateX(-50%) para que no se desplace al hacer hover */
+    transform: translateX(-50%) scale(1.1);
 }
-
 
 
 
@@ -3809,7 +3888,7 @@ body { top: 0px !important; }
 .goog-te-combo{
   
    color: var(--primary-accent);
-	font-family: 'Barlow Condensed';
+	font-family: 'Barlow Condensed', 'oswald', sans-serif;
     text-transform: uppercase;
     font-weight: 700;
     text-align: center;
@@ -3829,7 +3908,7 @@ body { top: 0px !important; }
 
 
 .goog-te-gadget {
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     font-size: 13px;
     text-transform: uppercase;
     font-weight: 600;
@@ -3882,12 +3961,12 @@ body {
 
 #btn-restore-original {
     width: 100%;
-	margin-top: 13px;
-    font-family: 'Barlow Condensed';
+	margin-top: 0px;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     padding: 5px 0px 5px 0px;
-    margin-bottom: 55px;
+    margin-bottom: 2%;
     background: rgb(75 45 133 / 85%);
-    border: 2px solid rgb(132 83 189 / 30%);
+    border: 1px solid rgb(146 94 207);
     border-radius: 5px;
     color: #ffffff;
     font-weight: bold;
@@ -3986,7 +4065,7 @@ button {
 /* Caja de contenido (Clon visual de tu overlay-content) */
 .portal-box {
 	margin-top: 4px;
-    height: 500px;
+    height: 400px;
     z-index: 1000;
     border: 1px solid #ffa3009e;
     padding: 15px 11px 11px 11px;
@@ -4007,18 +4086,18 @@ button {
     color: #161615;
     letter-spacing: 1px;
     margin-bottom: 10px;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     font-weight: 400;
     font-size: 20px;
 }
 
 .portal-btn{
     width: 100%;
-	margin-top: 13px;
-    font-family: 'Barlow Condensed';
+	margin-top: 2.5%;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     padding: 5px 0px 5px 0px;
     background: rgb(75 45 133 / 85%);
-    border: 2px solid rgb(132 83 189 / 30%);
+    border: 1px solid rgb(159 88 241 / 95%);
     border-radius: 5px;
     color: #ffffff;
     font-weight: bold;
@@ -4030,8 +4109,8 @@ button {
     justify-content: center;
     gap: 4px;
     transition: all 0.3s ease;
-	opacity: 0.8;
-	box-shadow: 2px 5px 4px rgb(44 44 44 / 87%);
+	opacity: 0.9;
+	box-shadow: 2px 5px 4px rgb(44 44 44 / 55%);
 	
 }
 
@@ -4049,39 +4128,39 @@ button {
 		transition: all 0.2s; background: rgb(75 45 133 / 85%); } /* Violeta */
 			
 .btn-es:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(185 79 187); 
-				box-shadow: 0px 0px 9px rgb(68 14 80 / 93%); border: 1px solid rgba(255,255,255,0.1);}
+				box-shadow: 0px 0px 9px rgb(68 14 80 / 93%); border: 1px solid rgb(132 83 189 / 30%);}
 
-.btn-en {color: #c9dbfb;  border: 1px solid rgb(37 101 239 / 46%);
+.btn-en {color: #c9dbfb;      border: 1px solid rgb(100 146 245);
 		transition: all 0.2s; background-color: rgb(22 41 122 / 63%); } /* Azul */
 		
 .btn-en:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(33 64 201 / 81%);
-				box-shadow: 0 0px 5px rgb(11 96 249 / 95%); border: 1px solid rgba(255,255,255,0.1);}
+				box-shadow: 0 0px 5px rgb(11 96 249 / 95%); border: 1px solid rgb(100 146 245);}
 
-.btn-zh {color: #e5c5c5; border: 1px solid rgb(207 38 38 / 46%); 
+.btn-zh {color: #e5c5c5; border: 1px solid rgb(255 106 106); 
 		transition: all 0.2s; background-color: rgb(118 20 20 / 70%);} /* Rojo */
 
 .btn-zh:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(155 14 14 / 86%);
-				box-shadow: 0 0px 5px rgb(249 11 11 / 95%); border: 1px solid rgba(255,255,255,0.1);}
+				box-shadow: 0 0px 5px rgb(249 11 11 / 95%); border: 1px solid rgb(255 106 106); }
 
-.btn-hi {color: #d8ffd1; border: 1px solid rgb(41 255 0 / 26%); 
+.btn-hi {color: #d8ffd1; border: 1px solid rgb(41 255 0);
 		transition: all 0.2s; background-color: rgb(35 78 15 / 71%);} /* Verde */
 
-.btn-hi:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(26 145 16 / 83%);
-				box-shadow: 0 0px 5px rgb(48 249 11 / 95%); border: 1px solid rgba(255,255,255,0.1);}
+.btn-hi:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(72 167 27 / 78%);
+				box-shadow: 0 0px 5px rgb(48 249 11 / 95%); border: 1px solid rgb(41 255 0 / 26%); }
 
 .btn-de {color: #d8ffd1; border: 1px solid #ffcc00; 
 		transition: all 0.2s; background-color: rgb(116 109 24 / 77%);} /* Amarillo/Dorado */
 		
 .btn-de:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(145 120 13 / 87%);
-				box-shadow: 0 0px 5px rgb(255 204 0 / 75%); border: 1px solid #ffcc00;}
+				box-shadow: 0 0px 5px rgb(255 204 0 / 75%);  border: 1px solid #ffcc00; }
 
 .portal-footer {
          color: #fff;
-    font-size: 21px;
+    font-size: 19px;
     font-weight: 400;
     padding: 0px 10px 0px 10px;
     text-transform: uppercase;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     backdrop-filter: blur(6px);
     animation: waiting-pulse 2s infinite;
     border-radius: 19px;
@@ -4106,27 +4185,29 @@ button {
 /* Contenedor Externo */
 #pod-subtitles-window {
     position: fixed;
-    top: 3px; /* Ajusta según la altura de tu barra para que quede justo encima o debajo */
+    top: 0px;
     left: 0;
     width: 100%;
     z-index: 9999;
-    pointer-events: none; /* Permite clicks a través del div si es necesario */
+    pointer-events: none;
     display: flex;
     justify-content: center;
     animation: fadeIn 0.2s ease;
-	
+    background: rgb(0 0 0 / 80%);
+    box-shadow: 0px 0px 5px rgb(11 73 255 / 98%);
+    height: 40px;
 }
 
 #pod-subtitle-text {
-        background: rgb(0 0 0 / 61%);
-    color: #ffcc00 !important;
-    padding: 2px 6px;
+    background: rgb(0 0 0 / 61%);
+    color: #28ff01 !important;
+    padding: 5px 6px;
     border-radius: 4px;
     text-align: center;
     line-height: 30px;
     max-width: 98%;
     font-size: 23px;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     text-shadow: 1px 1px 4px #000000;
     backdrop-filter: blur(4px);
     /* box-shadow: 0px 0px 8px rgb(11 73 255 / 98%); */
@@ -4139,11 +4220,13 @@ button {
 /* En escritorio: Estilo centrado tipo YouTube en la parte inferior */
 @media (min-width: 768px) {
     #pod-subtitles-window {
-        top: 0.5%;            /* Cancela el top: 7px de móvil */
-        
-        left: 0;              /* Asegura que empiece desde el borde izquierdo */
-        width: 100%;          /* Ocupa todo el ancho para permitir el centrado */
-        justify-content: center; /* Centra el texto horizontalmente */
+        top: 17px;
+    left: 0;
+    width: 100%;
+    justify-content: center;
+    background: transparent;
+    box-shadow: 0px 0px 0px rgb(11 73 255 / 0%);
+    height: 40px;
     }
 
     #pod-subtitle-text {
@@ -4151,6 +4234,7 @@ button {
     max-width: 70%;
     background: rgb(0 0 0 / 52%);
     padding: 2px 15px;
+	color: #ffe001 !important;
     }
 }
 
@@ -4237,7 +4321,7 @@ button {
     left: 0%;
     transform: translateX(-50%);
     font-size: 13px;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     font-weight: bold;
     color: white;
     text-shadow: 1px 1px 3px black;
@@ -4338,7 +4422,7 @@ button {
     overflow: hidden;
     text-overflow: ellipsis;
     text-transform: uppercase;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     color: #27ff00;
 	    padding-bottom: 30px;
 }
@@ -4368,7 +4452,7 @@ button {
     color: #d7d7d7;
     font-size: 19px;
     margin-bottom: 32px;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
 }
 
 /* Sistema de botones nx */
@@ -4382,7 +4466,7 @@ button {
     font-weight: 500;
     font-size: 20px;
     cursor: pointer;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     text-transform: uppercase;
     transition: transform 0.2s, background 0.2s;
     background-color: rgb(26 255 6 / 9%);
@@ -4421,7 +4505,7 @@ button {
     font-size: 19px;
     cursor: pointer;
 	font-weight: 500;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     text-transform: uppercase;
     background-color: rgb(22 41 122 / 20%);
     box-shadow: 0 0px 5px rgb(11 96 249 / 95%);
@@ -4438,7 +4522,7 @@ button {
     font-size: 19px;
 	font-weight: 500;
     cursor: pointer;
-    font-family: 'Barlow Condensed';
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
 	text-transform: uppercase;
 	background-color: rgb(220 0 0 / 18%);
     box-shadow: 0 0px 6px rgb(255 2 2);
@@ -4545,3 +4629,63 @@ button {
 .btn-resume-main:active, .btn-resume-alt:active {
     transform: scale(0.96);
 }*/
+
+
+/* Mensaje para refrescar*/
+
+
+.reading-toast {
+    position: fixed;
+    right: -500px;
+    bottom: 161px;
+    background: rgb(0 0 0 / 66%);
+    border-left: 3px solid #17e939;
+    color: #fff;
+    padding: 7px 12px;
+    border-radius: 8px 0 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 17px;
+    transition: right 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
+    animation: refresh-msg 3s infinite ease-in-out;
+	
+}
+
+.reading-toast.show {
+    right: 0; /* Aparece en pantalla */
+}
+
+.toast-icon {
+    font-size: 18px;
+    color: #24f30a;
+}
+
+
+@keyframes refresh-msg {
+    0%, 100% {box-shadow: 0 0 4px rgb(28 165 34 / 85%);
+    background: rgb(12 12 12 / 65%);}
+    50% {box-shadow: 0 0 9px rgb(38 221 20 / 80%);
+    background: rgb(24 30 21 / 72%);}
+}
+
+@media (min-width: 1024px) {	
+	.reading-toast {
+    bottom: 190px;
+    padding: 14px 48px 14px 12px;
+    gap: 15px;}
+	
+	
+	@keyframes refresh-msg {
+    0%, 100% {box-shadow: 0 0 4px rgb(28 165 34 / 85%);
+    background: rgb(12 12 12 / 95%);}
+    50% {box-shadow: 0 0 9px rgb(38 221 20 / 80%);
+    background: rgb(24 30 21 / 95%);}
+          
+	
+
+    }
+	
