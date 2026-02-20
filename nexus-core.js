@@ -442,9 +442,9 @@ function parseMarkdown(text) {
 
 async function openReader(id, forceCh = null, forceCk = null) {
     // --- 1. CONFIGURACIÓN DE INTERFAZ ---
-   /* if (typeof launchFullScreen === 'function') {
+    if (typeof launchFullScreen === 'function') {
         launchFullScreen(document.documentElement);
-    }*/
+    }
     
     const globalHeader = document.getElementById('nexus-header-global');
     if (globalHeader) {

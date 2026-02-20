@@ -2044,7 +2044,18 @@ body.sidebar-open {
     font-weight: 600;
 	line-height: 15px;
     }
+	
+	.logo-container {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    font-style: italic;
+    font-family: 'barlow condensed', 'ancizar sans', sans-serif !important;
 }
+	
+}
+
+
 
 
 .share-close-btn {
