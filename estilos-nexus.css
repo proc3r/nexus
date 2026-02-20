@@ -278,6 +278,19 @@ body {
     font-family: 'ancizar sans', sans-serif;
 }
 
+.logo-container2 {
+    display: flex; /* Fuerza a que los hijos estén uno al lado del otro */
+    margin: 0;
+    padding: 0;
+    font-size: 31px;
+    line-height: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    font-style: italic;
+    color: #ffcc00;
+    font-family: 'ancizar sans', sans-serif;
+}
+
 .brand-zone {
     display: flex;
     flex-direction: column;
