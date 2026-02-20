@@ -408,16 +408,9 @@ html, body {
 }
 							  
 
-#app, 
-.reader-main-layout, 
-#library-container, 
-#reader-view {
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
-    width: 100%;
-    overflow: hidden;
-    position: relative;
+#app { 
+    height: 100dvh; 
+    overflow: hidden; 
 }
 
 /* Contenedores con scroll optimizado */
@@ -430,6 +423,9 @@ html, body {
     -webkit-overflow-scrolling: auto !important; /* Evita advertencias de rendimiento */
 }
 
+#library-container {
+    height: 100dvh;
+}
 
 /* Configuración Adaptativa Móvil */
 @media (max-width: 768px) {
