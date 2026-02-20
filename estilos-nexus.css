@@ -558,6 +558,12 @@ body.sidebar-open {
 }
 
 
+/* Forzar que en pantalla completa el alto sea perfecto */
+:fullscreen .reader-main-layout,
+:-webkit-full-screen .reader-main-layout {
+    height: 100vh !important;
+    padding-top: 0 !important; /* En full screen no suele haber notch estorbando */
+}
 
 .book-container.dark-mode { 
     background-color: var(--reader-dark); 
