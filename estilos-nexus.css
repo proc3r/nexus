@@ -2055,6 +2055,27 @@ body.sidebar-open {
     padding-right: 0.5rem;
     font-size: 18px;
     font-weight: 600;
+	
+    }
+	
+	.logo-container2 {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    font-style: italic;
+    font-family: 'barlow condensed', 'ancizar sans', sans-serif !important;
+}
+	
+}
+
+/* Ajuste responsivo para que no se amontone en pantallas pequeñas */
+@media (max-width: 300px) {
+    
+    .btn-nav {
+            padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    font-size: 18px;
+    font-weight: 600;
 	line-height: 15px;
     }
 	
@@ -2067,7 +2088,6 @@ body.sidebar-open {
 }
 	
 }
-
 
 
 
