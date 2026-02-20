@@ -390,17 +390,16 @@ body {
 html, body {
     background-color: var(--dark-bg);
     color: var(--text-on-dark);
-/*    font-family: 'Inter', sans-serif;*/
     margin: 0;
-    transition: background-color 0.3s ease;
-    /*height: 100vh; Forzamos altura */
-	min-height: 100vh; /* Usa min-height en su lugar */
-    overflow: hidden; /* Evita barra doble en el body */
-	touch-action: manipulation; /* Optimiza el toque y evita el zoom por doble clic */
-    overflow-x: hidden; /* Evita que aparezcan las barras amarillas laterales que mencionas */
-	width: 100%;
-	-webkit-overflow-scrolling: touch; /* Mejora el scroll en iPhone */
-    position: relative;
+    padding: 0;
+    width: 100%;
+    /* Ajuste dinámico exacto sin el 0.1 extra */
+    height: 100dvh; 
+    overflow: hidden; 
+    position: fixed; 
+    overscroll-behavior-y: none;
+    touch-action: manipulation;
+    -webkit-overflow-scrolling: touch;
 }
 
 			/* Asegura que el modal de imagen no herede el bloqueo de toque */
@@ -409,9 +408,16 @@ html, body {
 }
 							  
 
-#app { 
-    height: 100dvh; 
-    overflow: hidden; 
+#app, 
+.reader-main-layout, 
+#library-container, 
+#reader-view {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
 }
 
 /* Contenedores con scroll optimizado */
@@ -424,9 +430,6 @@ html, body {
     -webkit-overflow-scrolling: auto !important; /* Evita advertencias de rendimiento */
 }
 
-#library-container {
-    height: 100dvh;
-}
 
 /* Configuración Adaptativa Móvil */
 @media (max-width: 768px) {
@@ -2417,24 +2420,23 @@ body.sidebar-open {
 /* Asegurar que el contenedor de lectura no herede animaciones extrañas */
 #reading-container-fixed {
     flex: 1;
-	display: flex; 	
-	flex-direction: column;
-	width: 100%;
-	margin: 0 auto;
-	position: relative;
-	padding: 0 10%; 
-	
-	/* CONTROL DE ALINEACIÓN DINÁMICA */
+    display: flex; 	
+    flex-direction: column;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+    padding: 0 10%; 
+    
+    /* Mantenemos tus ajustes para idiomas como el árabe */
     text-align: var(--reader-text-align, center);
-    text-align-last: var(--reader-text-align-last, auto); /*  */
-	    
-	/* Comportamiento y Scroll */
-    /*overflow-y: auto;*/
+    text-align-last: var(--reader-text-align-last, auto); 
+    
+    /* Scroll controlado */
+    overflow-y: auto; 
     overflow-x: hidden;
-    scroll-behavior: auto !important; /* Evita saltos al cambiar de página */
-    touch-action: pan-y;
+    scroll-behavior: auto !important;
+    touch-action: pan-y; 
     -webkit-overflow-scrolling: touch;
-	
 }
 
 /* Cuando el texto NO está justificado, forzamos que la última línea siga al padre */
