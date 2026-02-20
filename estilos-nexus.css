@@ -3632,9 +3632,9 @@ body.sidebar-open {
 
 
 /* Ocultar elementos en modo Zen */
-.zen-active-ui nav { transform: translateY(-100%); }
+.zen-active-ui nav { transform: transform: translateY(-150%) !important; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 .zen-active-ui footer { transform: translateY(100%); opacity: 0; pointer-events: none; }
-.zen-active-ui #chapter-indicator-container { opacity: 0; transform: translateY(-20px); }
+.zen-active-ui #chapter-indicator-container { opacity: 0; transform: translateY(-100px) !important; }
 .zen-active-ui .zen-hide-group { display: none !important; }
 
 
