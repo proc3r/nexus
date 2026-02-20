@@ -47,7 +47,7 @@ function getDynamicChunkLimit() {
     };
 
     const limit = limits[baseLang] || limits['default'];
-    console.log(`Nexus Voice: Límite de caracteres para '${baseLang}': ${limit}`);
+   /* console.log(`Nexus Voice: Límite de caracteres para '${baseLang}': ${limit}`);*/
     return limit;
 }
 
@@ -149,7 +149,7 @@ async function startSpeech() {
         
         mostrarAvisoLectura(); 
         
-        console.log("Nexus Voice: Iniciando lectura.");
+        /*console.log("Nexus Voice: Iniciando lectura.");*/
         prepareAndStartSpeech(currentText); 
     }
 }
@@ -172,7 +172,7 @@ function pauseSpeech() {
             if (typeof pauseVisualTimer === 'function') pauseVisualTimer();
             isPaused = true;
             updatePauseUI(true);
-            console.log("Nexus Vocal: Barra visual pausada");
+           /* console.log("Nexus Voice: Barra visual pausada");*/
         } else {
             resumeSpeech();
         }
@@ -196,7 +196,7 @@ function pauseSpeech() {
             synth.pause(); 
             isPaused = true; 
             updatePauseUI(true); 
-            console.log("Nexus Voice: Audio pausado");
+         /*   console.log("Nexus Voice: Audio pausado");*/
         } else {
             resumeSpeech(); 
         }
@@ -310,7 +310,7 @@ function stopSpeech() {
         pauseBtn.title = "";
     }
     updatePauseUI(false); 
-    console.log("Nexus Voice: Stop total ejecutado.");
+    /*console.log("Nexus Voice: Stop total ejecutado.");*/
 }
 	
 
@@ -363,10 +363,10 @@ function prepareAndStartSpeech() {
         if (isNotYetTranslated) {
             if (window.romanceRetryCount < 8) {
                 window.romanceRetryCount++;
-                console.log(`Nexus Voice: Esperando señal de Google Translate (${window.romanceRetryCount}/8)...`);
+                /*console.log(`Nexus Voice: Esperando señal de Google Translate (${window.romanceRetryCount}/8)...`);*/
                 
                 if (window.romanceRetryCount === 4) {
-                    console.log("Nexus Voice: Forzando re-escaneo activo de Google...");
+                    /*console.log("Nexus Voice: Forzando re-escaneo activo de Google...");*/
                     const poke = document.createElement('span');
                     poke.style.cssText = "position:absolute; visibility:hidden; width:1px;";
                     poke.innerHTML = " &nbsp; "; 
@@ -378,7 +378,7 @@ function prepareAndStartSpeech() {
                 window.nexusSpeechTimeout = setTimeout(prepareAndStartSpeech, 350);
                 return;
             } else {
-                console.warn("Nexus Voice: Tiempo de espera agotado.");
+             /*   console.warn("Nexus Voice: Tiempo de espera agotado.");*/
             }
         }
     }
@@ -422,7 +422,7 @@ function prepareAndStartSpeech() {
 
     if (typeof splitTextSmartly === 'function') {
         const dynamicLimit = getDynamicChunkLimit();
-        console.log(`Nexus Voice: Fragmentando con límite de ${dynamicLimit} caracteres.`);
+        /*console.log(`Nexus Voice: Fragmentando con límite de ${dynamicLimit} caracteres.`);*/
         
         window.speechSubChunks = splitTextSmartly(textToRead, dynamicLimit);
         
@@ -453,7 +453,7 @@ function speakSubChunk() {
             }
 
             setTimeout(async () => { 
-                console.log("Nexus Voice: Ejecutando salto automático...");
+              /*  console.log("Nexus Voice: Ejecutando salto automático...");*/
                 window.navDirection = 'next'; 
                 window.romanceRetryCount = 0; 
                 await nextChunk(); 
@@ -475,7 +475,7 @@ function speakSubChunk() {
     // Si ya sabemos que no hay voz, salimos antes de configurar la locución.
     // Esto evita que lea números en español y que los eventos 'onend' interfieran con la barra.
     if (window.hasAvailableVoice === false) {
-        console.log("Nexus Voice: Modo Visual activo. TTS bloqueado para evitar interferencias.");
+       /* console.log("Nexus Voice: Modo Visual activo. TTS bloqueado para evitar interferencias.");*/
         return; 
     }
     // ------------------------------------
@@ -497,7 +497,7 @@ function speakSubChunk() {
         }
         if (targetVoice) {
             utterance.voice = targetVoice;
-            console.log("Nexus Voice: Voz asignada ->", targetVoice.name, "[" + targetVoice.lang + "]");
+           /* console.log("Nexus Voice: Voz asignada ->", targetVoice.name, "[" + targetVoice.lang + "]");*/
         }
     }
 
@@ -510,7 +510,7 @@ function speakSubChunk() {
         if (window.isSpeaking && !window.isPaused) {
             // Este bloque captura fallos inesperados (ej: cuando creíamos que había voz pero no)
             if (duration < 100 && !langCode.startsWith('es')) {
-                console.warn("Nexus Voice: Audio demasiado corto. Activando Modo Lectura.");
+              /*  console.warn("Nexus Voice: Audio demasiado corto. Activando Modo Lectura.");*/
                 window.hasAvailableVoice = false;
                 
                 if (typeof showVisualTimer === 'function') {
@@ -555,7 +555,7 @@ function speakSubChunk() {
  * Útil si el traductor tardó en aplicar el idioma.
  */
 async function refreshSpeech() {
-    console.log("Nexus Voice: Solicitando reinicio de lectura...");
+   /* console.log("Nexus Voice: Solicitando reinicio de lectura...");*/
 
     // 1. Detenemos cualquier audio y limpiamos estados
     window.synth.cancel();

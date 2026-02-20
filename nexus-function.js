@@ -413,7 +413,7 @@ function renderTOC() {
 			if (sidebar) sidebar.classList.remove('pinned', 'open');
 			if (trigger) trigger.classList.remove('hidden'); // MOSTRAR el disparador amarillo
 			if (pinBtn) pinBtn.classList.remove('active'); // Resetear icono del pin si lo usas
-			console.log("Reseteo automático: Pantalla pequeña detectada.");
+			/*console.log("Reseteo automático: Pantalla pequeña detectada.");*/
 		}
 	});
 

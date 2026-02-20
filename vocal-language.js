@@ -43,7 +43,7 @@ function checkVoiceAvailability(langCode) {
                 v.lang.toLowerCase().startsWith(base) || 
                 v.lang.toLowerCase().includes(base)
             );
-            console.log(`Nexus Vocal: Comprobando [${base}] -> ¿Voz física?: ${exists}`);
+            /*console.log(`Nexus Vocal: Comprobando [${base}] -> ¿Voz física?: ${exists}`);*/
             return exists;
         };
 
@@ -74,10 +74,10 @@ async function syncLanguageSupport() {
             window.hasAvailableVoice = await checkVoiceAvailability(targetLang);
         }
         
-        console.log(`Nexus Vocal: Sincronización finalizada. Idioma: ${baseLang} | Voz: ${window.hasAvailableVoice}`);
+        /*console.log(`Nexus Vocal: Sincronización finalizada. Idioma: ${baseLang} | Voz: ${window.hasAvailableVoice}`);*/
         return window.hasAvailableVoice;
     } catch (e) {
-        console.warn("Nexus Vocal: Error en sincronización inicial, continuando...", e);
+        /*console.warn("Nexus Vocal: Error en sincronización inicial, continuando...", e);*/
         window.hasAvailableVoice = true; 
         return true;
     }
@@ -115,7 +115,7 @@ function calculateReadingTime(text) {
     // 4. CÁLCULO FINAL
     const finalTime = baseTimeMs / effectiveRate;
 
-    console.log(`Nexus Vocal: Palabras reales: ${words} | Tiempo: ${Math.round(finalTime/1000)}s`);
+    /*console.log(`Nexus Vocal: Palabras reales: ${words} | Tiempo: ${Math.round(finalTime/1000)}s`);*/
 
     return Math.max(finalTime, 3500);
 }
@@ -199,7 +199,7 @@ function pauseVisualTimer() {
             conceptEl.style.left = currentLeft; // Clava el número en su sitio
         }
         
-        console.log("Nexus Vocal: Pausa sincronizada aplicada.");
+        /*console.log("Nexus Vocal: Pausa sincronizada aplicada.");*/
     }
 }
 
@@ -239,7 +239,7 @@ function resumeVisualTimer() {
         }
     }, remaining);
 
-    console.log(`Nexus Vocal: Reanudando lectura. Restan ${Math.round(remaining/1000)}s`);
+    /*console.log(`Nexus Vocal: Reanudando lectura. Restan ${Math.round(remaining/1000)}s`);*/
 }
 
 
@@ -322,6 +322,6 @@ setTimeout(() => {
 
 window.addEventListener('load', () => {
     syncLanguageSupport().then(() => {
-        console.log("Nexus Vocal: Sistema listo tras carga de página.");
+       /* console.log("Nexus Vocal: Sistema listo tras carga de página.");*/
     });
 });

@@ -116,7 +116,7 @@ window.googleTranslateElementInit = function() {
                 isNexusProcessingLang = true;
 
                 const selectedLang = googleTranslateDropdown.value;
-                console.log("Nexus: Google Widget detectó cambio a:", selectedLang);
+               /* console.log("Nexus: Google Widget detectó cambio a:", selectedLang);*/
 
                 // Si es español, aseguramos limpieza total de cookies
                 if (selectedLang === 'es') {
@@ -242,7 +242,7 @@ document.getElementById("translate-overlay").addEventListener("click", function 
  * para forzar que el texto vuelva a ser el original del archivo .md
  */
 function restaurarOriginalYRefrescar() {
-    console.log("Nexus: Eliminando rastro de traducción y refrescando...");
+   /* console.log("Nexus: Eliminando rastro de traducción y refrescando...");*/
 
     // NUEVO: Forzamos que la preferencia sea español antes de recargar
     localStorage.setItem('nexus_preferred_lang', 'es'); 
@@ -379,7 +379,7 @@ function getBestVoice(targetLang) {
 
 async function cambiarIdioma(langCode) {
     const idiomaFinal = langCode || 'es';
-    console.log("Nexus: Sincronizando audio para: " + idiomaFinal);
+    /*console.log("Nexus: Sincronizando audio para: " + idiomaFinal);*/
     
     localStorage.setItem('nexus_preferred_lang', idiomaFinal);
 
@@ -434,7 +434,7 @@ function aplicarDireccionGlobal() {
     
     const isRTL = rtlLangs.includes(currentLang);
 
-    console.log("Nexus Traductor: Detectado idioma " + currentLang + " | RTL: " + isRTL);
+    /*console.log("Nexus Traductor: Detectado idioma " + currentLang + " | RTL: " + isRTL);*/
 
     // 1. Forzamos LTR en el layout general (Menús, botones, etc)
     document.documentElement.dir = "ltr"; 
@@ -491,7 +491,7 @@ function aplicarDireccionGlobal() {
 
 
 function seleccionarIdiomaInicio(lang) {
-    console.log("Nexus: Iniciando en idioma: " + lang);
+   /* console.log("Nexus: Iniciando en idioma: " + lang);*/
     localStorage.setItem('nexus_preferred_lang', lang);
 	
 	
@@ -520,7 +520,7 @@ function cerrarPortalBienvenida() {
 }
 
 function cambiarIdiomaDinamicamente(lang) {
-    console.log("Nexus: Intento de cambio rápido a " + lang);
+    /*console.log("Nexus: Intento de cambio rápido a " + lang);*/
     localStorage.setItem('nexus_preferred_lang', lang);
 
     // 1. Seteamos la cookie (esto es vital para que Google sepa qué idioma queremos)

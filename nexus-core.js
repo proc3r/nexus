@@ -938,7 +938,7 @@ async function renderChunk() {
             // --- NUEVA LÓGICA DE SALTO HÍBRIDO ---
             if (window.hasAvailableVoice === false) {
                 // Si no hay voz, lanzamos la barra directamente al renderizar el nuevo párrafo
-                console.log("Nexus Vocal: Iniciando barra visual en nuevo párrafo.");
+               /* console.log("Nexus Vocal: Iniciando barra visual en nuevo párrafo.");*/
                 setTimeout(() => {
                     if (typeof showVisualTimer === 'function' && typeof calculateReadingTime === 'function') {
                         const text = content.innerText || "";
