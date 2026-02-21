@@ -845,13 +845,81 @@ document.addEventListener('keydown', (e) => {
             if (typeof toggleSpeech === 'function') toggleSpeech();
             break;
 
-        // SALIR
+        // SALIR / RESTABLECER
         case 'Escape':
-            e.preventDefault();
-            if (typeof closeReader === 'function') closeReader();
+            // 1. Detección de estados
+            const layout = document.querySelector('.reader-main-layout');
+            const isZenMode = layout && layout.classList.contains('zen-active-ui');
+            const isFullScreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+
+            // 2. Lógica de "Limpieza"
+            if (isZenMode || isFullScreen) {
+                if (isFullScreen) document.exitFullscreen?.();
+                if (isZenMode) toggleZenMode();
+                console.log("🧹 ESC: Limpieza de capas ejecutada.");
+            } 
+            else {
+                // 3. MODO NORMAL: Confirmación de salida
+                e.preventDefault();
+                mostrarConfirmacionSalida();
+            }
             break;
     }
 });
+
+
+function mostrarConfirmacionSalida() {
+    if (document.getElementById('exit-confirmation')) return;
+
+    const div = document.createElement('div');
+    div.id = 'exit-confirmation';
+    div.className = 'exit-dialog-overlay';
+    div.innerHTML = `
+        <div class="exit-dialog-content">
+            <p>¿Quieres volver a la Biblioteca?</p>
+            <div class="exit-dialog-buttons">
+                <button id="confirm-exit-yes" class="btn-exit">NO</button>
+                <button id="confirm-exit-no" class="btn-exit btn-cancel">SI</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(div);
+
+    const cerrarConfirmacion = () => {
+        div.remove();
+        document.removeEventListener('keydown', handleKeyAction);
+    };
+
+    // --- NUEVA LÓGICA DE CLIC FUERA ---
+    div.onclick = (e) => {
+        // Si el clic es en el overlay (fondo) y no en el contenido blanco
+        if (e.target === div) {
+            cerrarConfirmacion();
+        }
+    };
+
+    const handleKeyAction = (e) => {
+        const key = e.key.toLowerCase();
+        if (key === 's') {
+            cerrarConfirmacion();
+            if (typeof closeReader === 'function') closeReader();
+        } else if (key === 'n' || key === 'escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            cerrarConfirmacion();
+        }
+    };
+
+    document.getElementById('confirm-exit-yes').onclick = () => {
+        cerrarConfirmacion();
+        if (typeof closeReader === 'function') closeReader();
+    };
+
+    document.getElementById('confirm-exit-no').onclick = cerrarConfirmacion;
+
+    document.addEventListener('keydown', handleKeyAction);
+}
+
 
 // --- GESTOR DE CIERRE DE MENÚS (CLIC FUERA) ---
 
@@ -867,6 +935,19 @@ window.addEventListener('mousedown', (e) => {
         });
     }
 });
+
+			// Este evento detecta cuando el Fullscreen se cierra, ya sea por ESC, por F11 o por código
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        // Si acabamos de salir de Fullscreen, verificamos si el Zen sigue puesto
+        const layout = document.querySelector('.reader-main-layout');
+        if (layout && layout.classList.contains('zen-active-ui')) {
+            console.log("🔗 Sincronización: Fullscreen cerrado, desactivando Modo Zen automáticamente...");
+            toggleZenMode(); 
+        }
+    }
+});
+
 
 // Al abrir el modal de traducción
 function openTranslateModal() {

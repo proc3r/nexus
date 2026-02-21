@@ -90,24 +90,24 @@
     </div>
 </div>
 
-
-
-
-		   <div id="reader-view" class="hidden book-container dark-mode">
-			<div id="sidebar-trigger" onmouseenter="openSidebar()" onclick="openSidebar()">
-				<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
-			</div>
 			
-			    <aside id="reader-sidebar" class="custom-scrollbar" onmouseleave="handleSidebarLeave()">
+
+
+	<div id="reader-view" class="hidden book-container dark-mode">
+    <div id="sidebar-trigger" onmouseenter="openSidebar()" onclick="openSidebar()">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
+    </div>
+    
+    <aside id="reader-sidebar" class="custom-scrollbar" onmouseleave="handleSidebarLeave()">
         <div class="sidebar-header" style="padding: 0; display: flex; flex-direction: column;">
             <div id="sidebar-cover-preview" class="w-full h-48 relative overflow-hidden border-b border-white/10 shadow-lg flex-shrink-0">
                 <div class="absolute inset-0 bg-black/40"></div>
                 <div class="px-2.5 pb-4 pt-1 flex flex-col justify-between h-full relative z-10">
                     <div class="flex justify-between pb-0.5 items-start">
-                        <button onclick="closeReader()" class="mi-round text-[40px] text-[#00000] notranslate" style="
+                        <button onclick="closeReader()" class="mi-round text-[40px] text-[#ffffff] notranslate" style="
 								animation: pause-tts 3s infinite ease-in-out;">home</button>
                         <div class="flex items-center px-3 gap-4 bg-black/40 backdrop-blur-sm p-1 rounded-lg border border-white/10">
-                            <button id="expand-mode-btn" onclick="toggleExpandMode()" class="mi-round text-lg text-[#00000] notranslate">expand</button>
+                            <button id="expand-mode-btn" onclick="toggleExpandMode()" class="mi-round text-lg text-[#ffffff] notranslate">expand</button>
                             
 							
 							<button id="pin-btn" onclick="togglePin()" class="text-gray-300 opacity-90 hover:opacity-100">📌</button>
@@ -142,14 +142,14 @@
     </div>
 </div>
 
-						</div>
-					</div>
+                </div>
+            </div>
 
 
-				</div>
-				
-				<div id="chapter-list" class="sidebar-content custom-scrollbar" style="text-shadow: 0.5px 0.5px 1px rgb(103 106 105); flex-grow: 1;"></div>
-			</aside>
+        </div>
+        
+        <div id="chapter-list" class="sidebar-content custom-scrollbar" style="text-shadow: 0.5px 0.5px 1px rgb(103 106 105); flex-grow: 1;"></div>
+    </aside>
 
 
 
@@ -158,12 +158,12 @@
         <span id="timer-text" class="image-timer text-[#ffffff]">La lectura se reanudará en 5s</span>
         <button onclick="togglePauseImageTimer()" class="timer-pause-btn text-[#ffffff]">Pausar</button>
     </div>
-    <nav class="h-8 flex-shrink-0 flex items-center justify-between px-4 border-b-4 border-blue-500 bg-black/20 backdrop-blur-md relative z-50">
+    <nav class="h-8 flex-shrink-0 flex items-center justify-between px-2 sm:px-4 border-b-4 border-blue-500 bg-black/20 backdrop-blur-md relative z-50">
         <button onclick="closeReader()" class="text-[#ffcc00] font-bold uppercase text-[23px] tracking-[0.02em] condensed flex items-center gap-1 hover:text-white transition-colors notranslate" style="text-shadow: -1px 1px 5px rgb(0 0 0 / 79%);">
-            <h1 class="logo-container notranslate"><span class="logo-text1">NE</span><span class="logo-text2">X</span><span class="logo-text3">US</span></h1>
+            <h1 class="logo-container2 notranslate"><span class="logo-text1">NE</span><span class="logo-text2">X</span><span class="logo-text3">US</span></h1>
         </button>
-        <div class="flex items-center gap-2 md:gap-4">
-            <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-2 md:gap-4  font-bold border border-white/5 notranslate">
+        <div class="flex items-center gap-1.5 md:gap-4">
+            <div class="flex items-center bg-white/5 rounded-full px-2 py-0.5 gap-1 md:gap-4  font-bold border border-white/5 text-[14px] notranslate">
                 <button onclick="changeFontSize(-2)" class="hover:text-[#ffcc00]" title="Disminuir Fuente">A-</button>
                 <span id="font-size-val">25</span>
                 <button onclick="changeFontSize(2)" class="hover:text-[#ffcc00]" title="Aumentar Fuente">A+</button>
@@ -227,7 +227,7 @@
 		</div>
     </nav>
 
- <div id="chapter-indicator-container" class="flex-shrink-0 flex justify-center w-full pointer-events-none z-10 -mt-0.5">
+    <div id="chapter-indicator-container" class="flex-shrink-0 flex justify-center w-full pointer-events-none z-10 -mt-0.5">
     <div id="chapter-indicator" class="truncate">
         Capítulo
     </div>
@@ -246,7 +246,7 @@
     <span class="material-icons toast-icon notranslate">refresh</span>
 
 </div>
-    
+
     <div id="reading-container-fixed" class="custom-scrollbar">
         <div class="content-wrapper">
             <div class="max-w-4xl mx-auto w-full">
@@ -254,6 +254,8 @@
             </div>
         </div>
     </div>
+
+
 
     <footer class="flex-shrink-0 px-4 py-1 border-t border-white/10 bg-black/15" style="position: relative;">
     <div id="visual-timer-wrapper" class="hidden">
@@ -290,7 +292,7 @@
 							
                 <div class="flex justify-between items-center pb-2.5 notranslate">
                     <button onclick="prevChunk()" class="btn-nav btn-back">◀ BACK</button>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2">
                         <button id="btn-volume-yt" onclick="toggleVolumePopover(event)" class="btn-volume-nexus">
                             <span id="volume-icon-yt" class="material-icons-round">music_note</span>
                         </button>
@@ -319,16 +321,22 @@
         </div>
     </footer>
 	
-	<div class="reader-controls-wrapper">
-    <button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
-        <span class="material-icons notranslate">stop</span>
-    </button>
+<div class="reader-controls-wrapper">
     <div class="main-audio-trigger">
+        <button id="stop-btn" onclick="stopSpeech()" class="btn-float-stop hidden">
+            <span class="material-icons notranslate">stop</span>
+        </button>
+
         <button id="tts-btn" onclick="startSpeech()" class="btn-float-red">
             <span class="material-icons notranslate">play_arrow</span>
         </button>
-        <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden" title="Si la lectura no reanuda, presione STOP y luego PLAY nuevamente">
+        
+        <button id="pause-btn" onclick="pauseSpeech()" class="btn-float-pause hidden" title="Pausar lectura">
             <span id="pause-icon" class="material-icons notranslate">pause</span>
+        </button>
+
+        <button id="voice-vol-btn" onclick="toggleVoiceStack(event)" class="btn-ttsvolume-nexus hidden">
+            <span class="material-icons notranslate">volume_up</span>
         </button>
     </div>
 </div>
@@ -408,11 +416,23 @@
         <span class="material-icons-round volume-side-icon notranslate">volume_up</span>
         <div class="slider-wrapper">
             <input type="range" id="music-volume-sync" min="0" max="100" value="30" 
-       oninput="globalVolumeControl(this.value, this.id)" class="nexus-slider-vertical">
+                   oninput="globalVolumeControl(this.value, this.id)" class="nexus-slider-vertical">
         </div>
         <span class="material-icons-round volume-side-icon notranslate">volume_off</span>
     </div>
 </div>
+
+<div id="voice-volume-sidebar" class="volume-sidebar hidden">
+    <div class="volume-sidebar-glass voice-theme">
+        <span class="material-icons-round volume-side-icon notranslate">record_voice_over</span>
+        <div class="slider-wrapper">
+            <input type="range" id="voice-volume-sync" min="0" max="1" step="0.1" value="1" 
+                   oninput="controlVoiceVolume(this.value)" class="nexus-slider-vertical voice-slider">
+        </div>
+        <span class="material-icons-round volume-side-icon notranslate">volume_mute</span>
+    </div>
+</div>
+
 
 <div id='translate-overlay' style='display: none;'>
     <div class='overlay-content'>

@@ -618,17 +618,30 @@ function mostrarAvisoLectura() {
 
 document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
-        if (window.isSpeaking) {
+        // 1. Verificamos si el idioma NO es español
+        // Detecta el atributo lang del HTML (es el método más fiable)
+        const currentLang = document.documentElement.lang.toLowerCase();
+        const isSpanish = currentLang.startsWith('es');
+
+        // 2. Solo ejecutamos la parada si se está leyendo Y NO es español
+        if (window.isSpeaking && !isSpanish) {
             window.synth.cancel();
             window.isSpeaking = false;
             window.isPaused = false;
             
             // Actualizar UI de botones
-            document.getElementById('tts-btn').classList.remove('hidden');
-            document.getElementById('pause-btn').classList.add('hidden');
-            document.getElementById('stop-btn').classList.add('hidden');
+            const ttsBtn = document.getElementById('tts-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const stopBtn = document.getElementById('stop-btn');
             
+            if (ttsBtn) ttsBtn.classList.remove('hidden');
+            if (pauseBtn) pauseBtn.classList.add('hidden');
+            if (stopBtn) stopBtn.classList.add('hidden');
+            
+            console.log(`🌍 Idioma detectado: ${currentLang}. Pausando por seguridad de traducción.`);
             crearOverlayMensaje("Lectura detenida para preservar la traducción.");
+        } else if (window.isSpeaking && isSpanish) {
+            console.log("🇪🇸 Idioma español detectado. La lectura continúa en segundo plano.");
         }
     }
 });

@@ -86,11 +86,11 @@ function renderLibrary() {
 // --- GESTIÓN DE MODAL DE SINOPSIS ---
 
 function showSynopsis(bookId) {
-    if (typeof launchFullScreen === 'function') {
+    /*if (typeof launchFullScreen === 'function') {
         setTimeout(() => {
             launchFullScreen(document.documentElement);
         }, 0);
-    }
+    }*/
     
     const book = library.find(b => b.id === bookId);
     if (!book) return;
@@ -212,48 +212,24 @@ function showSynopsis(bookId) {
 	
 
 function closeSynopsis() {
-		window.speechSynthesis.cancel();
-		synopsisSubChunks = [];
-		isSynopsisReading = false;
-		
-		
-		
-		const modal = document.getElementById('synopsis-modal');
-		const body = document.getElementById('synopsis-body');
-		const btnStop = document.getElementById('btn-synopsis-stop');
-		const btnPlay = document.getElementById('btn-synopsis-tts');
-		if (modal) modal.classList.add('hidden');
-		document.body.style.overflow = '';
-		if (body) body.scrollTop = 0;
-		if (btnStop) btnStop.classList.add('hidden');
-		if (btnPlay) btnPlay.classList.remove('hidden');
-	}
-	
-		stopSynopsisTTS(); 
-	
-		document.addEventListener('click', function(event) {
-				const speedMenuReader = document.getElementById('reader-speed-menu');
-				const speedBtnReader = document.querySelector('.speed-btn-center');
-				const speedMenuSynopsis = document.getElementById('synopsis-speed-menu');
-				const speedBtnSynopsis = document.getElementById('btn-synopsis-speed');
-				if (speedMenuReader && !speedMenuReader.classList.contains('hidden')) {
-					const isClickInsideMenu = speedMenuReader.contains(event.target);
-					const isClickOnButton = event.target.closest('.speed-btn-center');
-
-					if (!isClickInsideMenu && !isClickOnButton) {
-						speedMenuReader.classList.add('hidden');
-					}
-				}
-
-				if (speedMenuSynopsis && !speedMenuSynopsis.classList.contains('hidden')) {
-					const isClickInsideMenu = speedMenuSynopsis.contains(event.target);
-					const isClickOnButton = event.target.closest('#btn-synopsis-speed');
-					if (!isClickInsideMenu && !isClickOnButton) {
-						speedMenuSynopsis.classList.add('hidden');
-					}
-				}
-			});
-
+    // 1. Detenemos el audio y reanudamos el podcast (usando la función que ya lo hace)
+    stopSynopsisTTS(); 
+    
+    // 2. Cerramos el modal visualmente
+    const modal = document.getElementById('synopsis-modal');
+    const body = document.getElementById('synopsis-body');
+    
+    if (modal) modal.classList.add('hidden');
+    document.body.style.overflow = ''; // Devolvemos el scroll a la página principal
+    if (body) body.scrollTop = 0;      // Reseteamos el scroll interno para la próxima vez
+    
+    // 3. Limpiamos el timer de las imágenes (si existe)
+    if (typeof imageTimer !== 'undefined' && imageTimer) {
+        clearInterval(imageTimer);
+        imageTimer = null;
+    }
+    console.log("📌 Modal de sinopsis cerrado.");
+}
 // --- LÓGICA DE VOZ PARA SINOPSIS ---
 
 function startSynopsisTTS() {
@@ -352,20 +328,21 @@ function startSynopsisTTS() {
 }
 
 
-	function stopSynopsisTTS() {
-    // Detención total de síntesis
+function stopSynopsisTTS() {
     window.speechSynthesis.cancel();
     synopsisSubChunks = [];
     currentSynopsisIdx = 0;
+    isSynopsisReading = false;
 
-    // Gestión de Interfaz
+    // Actualizar botones
     const btnStop = document.getElementById('btn-synopsis-stop');
     const btnPlay = document.getElementById('btn-synopsis-tts');
     if (btnStop) btnStop.classList.add('hidden');
     if (btnPlay) btnPlay.classList.remove('hidden');
     
-    // Reanudación de podcast si estaba activo
+    // --- ESTA ES LA PARTE CLAVE ---
     if (window.wasPodcastPlayingBeforeTTS) {
+        console.log("▶️ Reanudando podcast tras cerrar sinopsis...");
         if (typeof togglePodcastPlay === 'function') {
             togglePodcastPlay(true);
         }
@@ -383,3 +360,11 @@ function renderSynopsisContent(content) {
 }
 
 
+// Cierre de modal al hacer clic fuera del contenido
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('synopsis-modal');
+    // Si el clic fue exactamente en el fondo del modal (y no en sus hijos)
+    if (event.target === modal) {
+        closeSynopsis();
+    }
+});

@@ -209,7 +209,7 @@ body {
 
 :root {
     --primary-accent: #ffcc00;
-    --dark-bg: #0f1115;
+    --dark-bg: #0f1115; 
     --reader-dark: #1a1b1e;
     --reader-light: #fafbf4;
     --text-on-dark: #e0e0e0;
@@ -232,11 +232,10 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    
-    background-color: #020202ad;
+	background-color: #020202d6;
     border-bottom: 4px solid #3b82f6;
     z-index: 2000;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(3px);
     /* CRÍTICO: Esto permite que la barra se mueva suavemente */
     transition: transform 0.3s ease-in-out;
     transform: translateY(0); 
@@ -489,12 +488,16 @@ html, body {
 
 /* 3. LECTOR Y SIDEBAR */
 #reader-view {
-    width: 100%;
-    height: 100dvh;
-    overflow: hidden; /* La interfaz no se mueve */
-    position: relative;
-    display: flex;
-    flex-direction: column;
+    position: fixed; 
+    inset: 0; 
+    z-index: 100;
+    display: flex; 
+    flex-direction: row; /* VOLVEMOS A ROW: Sidebar a la izquierda, Contenido a la derecha */
+    height: 100dvh;      /* Usamos esto en lugar de inset:0 para evitar el scroll fantasma */
+    width: 100vw;
+    overflow: hidden;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Asegura que el contenedor de los items del TOC también permita el flujo */
@@ -506,7 +509,7 @@ html, body {
 
 #reader-sidebar {
     height: 100dvh; background: rgba(20, 21, 23, 0.3);
-    backdrop-filter: blur(100px); border-right: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(50px); border-right: 1px solid rgba(255, 255, 255, 0.05);
     position: absolute; left: 0; top: 0; display: flex; flex-direction: column; z-index: 110;
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
     box-sizing: border-box; touch-action: pan-y; z-index: 9999;
@@ -515,6 +518,8 @@ html, body {
     overscroll-behavior: contain !important; /* ¡CLAVE! Evita que el scroll afecte al body */
     -webkit-overflow-scrolling: touch; /* Suavidad en iOS */
 	touch-action: pan-y; /* Solo permite scroll vertical */
+	will-change: transform;
+    transform: translateZ(0);
 }
 
 /* Evita que el body se mueva cuando el dedo está sobre el sidebar */
@@ -528,7 +533,7 @@ body.sidebar-open {
 #reader-sidebar.pinned { position: relative; transform: translateX(0); box-shadow: 0 4px 13px rgb(0 0 0 / 20%); }
 
 @media (min-width: 769px) {
-    #reader-sidebar { width: 380px; padding: 0; box-shadow: 8px 10px 10px rgb(0 0 0 / 23%); }
+    #reader-sidebar { width: 400px; padding: 0; box-shadow: 8px 10px 10px rgb(0 0 0 / 23%); }
     .sidebar-header { padding: 0.8rem 0.8rem 1rem 0.8rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
     #chapter-list { padding: 1rem; background: rgb(167 145 39 / 8%); }
 }
@@ -546,14 +551,17 @@ body.sidebar-open {
 .sidebar-header { flex-shrink: 0; }
 .sidebar-content { flex: 1; }
  
+
+
 .reader-main-layout {
-    display: flex;
-    flex-direction: column;
-    height: 100dvh; /* Altura dinámica */
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; /* Este sí es column porque dentro tiene Nav, Contenido y Footer */
+    height: 100dvh; 
     width: 100%;
-    overflow: hidden;
+    overflow: hidden; 
     position: relative;
-    /* Esto evita que la barra de estado del celular empuje el contenido */
+    /* Mantenemos el padding-top env para el notch del celular */
     padding-top: env(safe-area-inset-top, 0px); 
 }
 
@@ -1042,7 +1050,7 @@ body.sidebar-open {
 	background: rgb(9 96 15 / 78%);
     box-shadow: 0px 0px 6px rgb(255 204 0 / 88);
 	animation: resume-beat 2.5s infinite ease-in-out;
-	backdrop-filter: blur(12px);
+	backdrop-filter: blur(2px);
 }
 
 /* Animación de Latido para cuando la música suena */
@@ -1205,7 +1213,7 @@ body.sidebar-open {
     padding: 2px 10px;
     border-radius: 4px;
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 600;
     text-transform: uppercase;
     /*transition: all 0.2s;*/
     font-family: 'Barlow Condensed', 'oswald', sans-serif;
@@ -1218,7 +1226,7 @@ body.sidebar-open {
     color: white;
     padding: 2px 10px;
     border-radius: 4px;
-    font-weight: bold;
+    font-weight: 600;
     text-transform: uppercase;
     transition: all 0.2s;
     font-family: 'Barlow Condensed', 'oswald', sans-serif;
@@ -1234,7 +1242,7 @@ body.sidebar-open {
     color: white;
     padding: 2px 10px;
     border-radius: 4px;
-    font-weight: bold;
+    font-weight: 600;
     text-transform: uppercase;
     transition: all 0.2s;
     font-family: 'Barlow Condensed', 'oswald', sans-serif;
@@ -1250,7 +1258,7 @@ body.sidebar-open {
     color: white;
     padding: 2px 10px;
     border-radius: 4px;
-    font-weight: bold;
+    font-weight: 600;
     text-transform: uppercase;
     transition: all 0.2s;
     font-family: 'Barlow Condensed', 'oswald', sans-serif;
@@ -1271,7 +1279,7 @@ body.sidebar-open {
 #synopsis-modal:not(.hidden) {
     display: flex !important;
 	
-	backdrop-filter: blur(1px);
+	
     background-image: url(https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/refs/heads/master/adjuntos/BabelX.webp);
     background-size: cover;
     background-repeat: no-repeat;
@@ -1342,9 +1350,9 @@ body.sidebar-open {
 /* Reducción drástica de espacios en el Modal */
 #synopsis-modal .modal-container {
     padding: 0.5rem 0.5rem 1rem 0.5rem !important;
-	box-shadow: 0 0 18px rgb(63 219 17 / 81%);
-    background: rgb(15 17 21 / 78%);
-    backdrop-filter: blur(5px);
+	box-shadow: 0 0 6px rgb(63 219 17 / 99%);
+    background: rgb(30 31 32 / 85%);
+    
 }
 
 /* Encabezado en una sola línea */
@@ -1409,7 +1417,7 @@ body.sidebar-open {
 	font-family: 'Barlow Condensed', 'oswald', sans-serif;
     color: #ffcc00;
     font-size: 1.4rem;
-    font-weight: 800;
+    font-weight: 600;
     /*margin-top: 2rem !important;*/
     margin-bottom: 0.8rem !important;
     text-transform: uppercase;
@@ -1653,12 +1661,11 @@ body.sidebar-open {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgb(37 124 19 / 70%);
+	background: rgb(37 124 19 / 94%);
     border: 2px solid rgb(52 243 12 / 42%);
     color: #daf9d3;
     box-shadow: 0px 0px 15px rgb(52 243 12 / 40%);
     border-radius: 8px;
-    backdrop-filter: blur(8px);
     cursor: pointer;
     transition: transform 0.2s, background-color 0.3s;
     animation: fadeIn 0.3s ease;
@@ -1704,8 +1711,7 @@ body.sidebar-open {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: rgba(220, 0, 0, 0.4);
-    backdrop-filter: blur(2px);
+    background-color: rgb(141 18 18 / 82%);
     border: 1px solid rgba(255,255,255,0.1);
     color: white;
     display: flex;
@@ -1714,7 +1720,6 @@ body.sidebar-open {
     cursor: pointer;
     transition: all 0.3s;
 	box-shadow: 0 0px 5px rgb(249 11 11 / 95%);
-	/*box-shadow: 3px 3px 12px rgb(24 24 24 / 55%);*/
 	transition: transform 0.5s, background-color 0.3s;
 	animation: fadeIn 0.3s ease;
 	
@@ -1862,7 +1867,7 @@ body.sidebar-open {
     */
     body.sidebar-pinned .reader-controls-wrapper {
         /* Desplazamos el punto de anclaje 190px a la derecha para centrar en el hueco libre */
-        left: calc(50% + 190px) !important;
+        left: calc(50% + 202px) !important;
         transform: translateX(-50%) !important;
     }
 }
@@ -1900,7 +1905,7 @@ body.sidebar-open {
 #synopsis-modal .modal-container {
     padding: 2rem 1rem 2rem 1rem !important;
     background: rgb(15 17 21 / 78%);
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(3px);
 }
 }
 
@@ -2560,9 +2565,9 @@ body.sidebar-open {
 /* REPRODUCTOR BASE */
 .podcast-floating-bar {
     position: fixed;
-    background: rgb(6 15 74 / 65%);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgb(10 21 94 / 84%);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
     border: 1px solid rgb(12 43 80 / 69%);
     border-radius: 12px;
     z-index: 1000;
@@ -3632,9 +3637,9 @@ body.sidebar-open {
 
 
 /* Ocultar elementos en modo Zen */
-.zen-active-ui nav { transform: transform: translateY(-150%) !important; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+.zen-active-ui nav { transform: translateY(-150%); }
 .zen-active-ui footer { transform: translateY(100%); opacity: 0; pointer-events: none; }
-.zen-active-ui #chapter-indicator-container { opacity: 0; transform: translateY(-100px) !important; }
+.zen-active-ui #chapter-indicator-container { opacity: 0; transform: translateY(-20px); }
 .zen-active-ui .zen-hide-group { display: none !important; }
 
 
@@ -3643,7 +3648,7 @@ body.sidebar-open {
 /* 3. Forzamos los controles TTS al frente total */
 .zen-active-ui .reader-controls-wrapper {
     position: fixed !important;
-    bottom: 9px !important;
+    bottom: 13px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     z-index: 99999 !important; /* Prioridad máxima */
@@ -3665,8 +3670,6 @@ body.sidebar-open {
     opacity: 1 !important;
     pointer-events: auto !important;
 }
-
-
 }
 
 
@@ -3689,8 +3692,6 @@ body.sidebar-open {
     box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
     cursor: pointer;
 }
-
-
 
 
 
@@ -4499,16 +4500,20 @@ button {
 .nx-resume-overlay {
     display: flex;
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgb(0 0 0 / 28%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgb(0 0 0 / 59%);
     z-index: 999999;
     justify-content: center;
     align-items: center;
     font-family: 'Inter', sans-serif;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(1px);
     animation: nx-resume-fade 0.3s ease;
-	transition: opacity 1s ease, visibility 0.3s;
+    transition: opacity 1s ease, visibility 0.3s;
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 /* Tarjeta del Modal */
@@ -4522,7 +4527,7 @@ button {
 	
     width: 92%;
     box-shadow: 0 25px 60px rgb(0 0 0 / 90%);
-    backdrop-filter: blur(4px);
+    
 	box-shadow: 0 0px 11px rgb(249 230 11 / 86%);
 	position: relative;
     overflow: hidden; /* Para que el GIF no se salga de las esquinas redondeadas */
@@ -4720,77 +4725,6 @@ button {
 }
 
 
-
-
-/* Borrado por estar duplicado menu continuar leyendo borrar si no hay errores
-.resume-nexus-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px); 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999; 
-}
-
-.resume-nexus-overlay.hidden {
-    display: none !important;
-}
-
-
-.resume-modal-card {
-    background: #121212;
-    border: 1px solid var(--primary-accent);
-    padding: 30px;
-    border-radius: 16px;
-    text-align: center;
-    max-width: 340px;
-	width: 90%;
-    box-shadow: 0 0 20px rgba(0,0,0,0.6), 0 0 10px var(--primary-accent)1a;
-}
-
-.resume-modal-card h3 {
-    margin: 0 0 10px 0;
-    color: #fff;
-}
-
-.resume-actions-gap {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 25px;
-}
-
-
-.btn-resume-main {
-    background: var(--primary-accent);
-    color: #000;
-    font-weight: bold;
-    border: none;
-    padding: 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.btn-resume-alt {
-    background: rgba(255, 255, 255, 0.05);
-    color: #eee;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 12px;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-.btn-resume-main:active, .btn-resume-alt:active {
-    transform: scale(0.96);
-}*/
-
-
 /* Mensaje para refrescar*/
 
 
@@ -4859,8 +4793,8 @@ button {
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: rgb(10 10 10 / 27%);
-    backdrop-filter: blur(2px);
+    background: rgb(10 10 10 / 45%);
+    /*backdrop-filter: blur(2px);*/
     display: flex;
     justify-content: center;
     align-items: center;
@@ -4869,12 +4803,12 @@ button {
 }
 
 .pause-content {
-    background: linear-gradient(145deg, #1e1e1ecc, #121212d4);
+    background: linear-gradient(145deg, #1e1e1ed9, #121212);
     padding: 40px;
     border-radius: 24px;
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    border: 1px solid rgb(255 192 21 / 79%);
+    box-shadow: 0px 0px 15px rgb(181 146 19 / 94%);
     max-width: 420px;
     width: 90%;
     animation: nexusFadeIn 0.4s ease-out;
@@ -4954,3 +4888,68 @@ button {
 
 .btn-only-read:hover { transform: scale(1.04); color: #ffffff; background-color: rgb(145 120 13 / 87%);
 				box-shadow: 0 0px 8px rgb(255 204 0 / 95%);  border: 1px solid #ffcc00; }
+				
+				
+/* mensaje para salir al inicio con escape*/
+
+.exit-dialog-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.2s ease;
+	backdrop-filter: blur(2px);
+	cursor: pointer; /* Indica que el fondo es interactivo */
+}
+
+.exit-dialog-content {
+    background: #22222270;
+    color: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #444;
+    box-shadow: 0 0px 10px rgb(11 249 46 / 86%);
+    backdrop-filter: blur(1px);
+	animation: fadeInConfirm 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	cursor: default; /* Evita que el cursor de puntero aparezca dentro del recuadro */
+	font-size: 18px;
+}
+
+.exit-dialog-buttons {
+    display: flex; gap: 19px; justify-content: center; margin-top: 20px;
+}
+
+.btn-exit {
+    padding: 10px 50px; border: none; border-radius: 6px; cursor: pointer;
+    font-weight: bold; transition: background 0.2s;
+}
+
+#confirm-exit-yes {color: white;
+    background-color: rgb(22 41 122 / 20%);
+    box-shadow: 0 0px 5px rgb(11 96 249 / 95%);
+    border: 1px solid rgb(37 101 239 / 46%);
+    transition: all 0.2s; }
+#confirm-exit-no { color: white;
+    background-color: rgb(220 0 0 / 18%);
+    box-shadow: 0 0px 6px rgb(255 2 2);
+    border: 1px solid rgb(231 40 40 / 46%);
+    transition: all 0.2s;}
+#confirm-exit-yes:hover { transform: scale(1.04);
+	color: #ffffff;
+	background-color: rgb(40 71 203 / 40%);
+    box-shadow: 0 0px 5px rgb(11 96 249 / 95%);
+    border: 1px solid rgba(255,255,255,0.1); }
+	
+#confirm-exit-no:hover {transform: scale(1.04);
+	color: #ffffff;
+	background-color: rgba(220, 0, 0, 0.4);
+    box-shadow: 0 0px 5px rgb(249 11 11 / 95%);
+    border: 1px solid rgba(255,255,255,0.1); }
+
+@keyframes fadeInConfirm {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+

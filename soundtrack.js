@@ -8,7 +8,7 @@ var isSyncing = isSyncing || false;
 window.currentRandomTime = 0; 
 window.yaSalto = false;
 
-const DEFAULT_VOLUME = 20; 
+const DEFAULT_VOLUME = 15; 
 const DEFAULT_SOUNDTRACK = "3Pw9ZjTs8hs";
 
 // --- L��GICA DE VALOR ALEATORIO ---
@@ -58,14 +58,13 @@ function initPlayer() {
 function updateSoundtrack(newVideoId, shouldPlay = true) {
     const vId = newVideoId || DEFAULT_SOUNDTRACK;
     
-    // 1. Refrescamos el punto de inicio aleatorio si hay un nuevo video
-    if (newVideoId !== null) {
-        refrescarValorAleatorio();
-    }
+    // Permitimos salto aleatorio porque es un cambio manual de pista
+    window.yaSalto = false; 
+    refrescarValorAleatorio();
 
-    // 2. Verificamos si el reproductor de YouTube est芍 listo y sano
+    console.log("%c ?? AUDIO: Solicitado nuevo tema: " + vId, "color: #fff; background: #2ecc71; padding: 2px 5px;");
+
     if (player && isPlayerReady && typeof player.getIframe === 'function' && player.getIframe()) {
-        
         if (shouldPlay) {
             isMusicPlaying = true;
             player.loadVideoById({
@@ -73,27 +72,23 @@ function updateSoundtrack(newVideoId, shouldPlay = true) {
                 startSeconds: window.currentRandomTime,
                 suggestedQuality: 'small'
             });
-            // Actualiza el icono del bot車n a "Sonando"
             if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(true);
         } else {
             isMusicPlaying = false;
             player.cueVideoById({
                 videoId: vId,
-                startSeconds: window.currentRandomTime,
-                suggestedQuality: 'small'
+                startSeconds: window.currentRandomTime
             });
-            // Actualiza el icono del bot車n a "Mudo/Pausado"
             if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(false);
         }
-
     } else {
-        // 3. Si el player fall車 o no existe, lo reiniciamos por completo
-        console.warn("Soundtrack: Player no listo o Iframe perdido. Reiniciando...");
+        console.error("%c ?? AUDIO: Error en el reproductor. Reiniciando API...", "color: #fff; background: #e74c3c;");
         player = null; 
         isPlayerReady = false;
         initPlayer();
     }
 }
+
 
 function onPlayerReady(event) {
     isPlayerReady = true;
@@ -122,63 +117,67 @@ function onPlayerReady(event) {
 
 
 function onPlayerStateChange(event) {
-    // --- 1. TU L車GICA DE SINCRONIZACI車N (Intacta) ---
+    // --- 1. SINCRONIZACI車N INICIAL ---
     if (event.data === YT.PlayerState.PLAYING && !window.yaSalto) {
-        console.log("?? Sincronizando audio con valor global: " + window.currentRandomTime);
+        console.log("%c ?? AUDIO: Aplicando salto aleatorio inicial: " + window.currentRandomTime + "s", "background: #222; color: #bada55");
         
         event.target.seekTo(window.currentRandomTime, true);
-        
-        // Refuerzo de audio
         event.target.unMute();
         event.target.setVolume(DEFAULT_VOLUME);
         
-        window.yaSalto = true;
+        window.yaSalto = true; 
         
         const volBtn = document.getElementById('btn-volume-yt');
         if (volBtn) volBtn.classList.remove('music-waiting-pulse');
     }
 
-    // --- 2. ACTUALIZACI車N DE ESTADOS (Para que el bot車n lata o no) ---
+    // --- 2. GESTI車N DE VISUALES ---
     if (event.data === YT.PlayerState.PLAYING) {
         isMusicPlaying = true;
         if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(true);
     } 
     else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.BUFFERING) {
-        // No ponemos isMusicPlaying en false inmediatamente en buffering para evitar parpadeos
         if (event.data === YT.PlayerState.PAUSED) isMusicPlaying = false;
         if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(false);
     }
 
-    // --- 3. EL BUCLE INFINITO (Evita el frenazo al final) ---
+    // --- 3. REINICIO DEL BUCLE (EL ARREGLO) ---
     if (event.data === YT.PlayerState.ENDED) {
-        console.log("?? Tema finalizado. Reiniciando bucle aleatorio...");
-        refrescarValorAleatorio();
+        console.log("%c ?? AUDIO: Tema finalizado. Reiniciando bucle desde 0s...", "background: #222; color: #00e5ff");
+        
+        // Bloqueamos el salto aleatorio para que la repetici車n sea completa
+        window.yaSalto = true; 
         
         const nextVideoId = (window.currentBook && window.currentBook.soundtrack) 
                             ? window.currentBook.soundtrack 
                             : DEFAULT_SOUNDTRACK;
-                            
-        event.target.loadVideoById({
-            videoId: nextVideoId,
-            startSeconds: window.currentRandomTime
-        });
+        
+        // Usamos un peque?o delay de 100ms para asegurar que YouTube limpie el video anterior
+        setTimeout(() => {
+            event.target.loadVideoById({
+                videoId: nextVideoId,
+                startSeconds: 0,
+                suggestedQuality: 'small'
+            });
+        }, 100);
     }
 }
 
 // --- 4. EL VIGILANTE (Fuera de las funciones, para emergencias) ---
 // Si el bot車n est芍 latiendo (isMusicPlaying) pero YouTube se colg車 (Error 503 o AdBlock),
 // este peque?o bloque intenta despertarlo cada 20 segundos.
+// Este bloque revisa cada 10 segundos si la m迆sica deber赤a sonar pero est芍 trabada
 setInterval(() => {
-    if (isMusicPlaying && player && isPlayerReady) {
+    // Solo actuar si hay un libro cargado y se supone que la m迆sica debe sonar
+    if (window.currentBook && isMusicPlaying && player && isPlayerReady) {
         const state = player.getPlayerState();
-        // Si deber赤a sonar pero est芍 en pausa (2) o buffering eterno (3)
+        // Si deber赤a sonar pero est芍 en pausa (2), buffering (3) o no iniciado (-1)
         if (state === 2 || state === 3 || state === -1) {
-            console.log("?? Vigilante: Recuperando audio tras micro-corte de red...");
+            console.warn("?? AUDIO: Vigilante detect車 silencio en lectura. Forzando Play...");
             player.playVideo();
         }
     }
-}, 20000);
-
+}, 10000);
 
 
 
