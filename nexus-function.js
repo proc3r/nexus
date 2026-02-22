@@ -878,8 +878,8 @@ function mostrarConfirmacionSalida() {
         <div class="exit-dialog-content">
             <p>¿Quieres volver a la Biblioteca?</p>
             <div class="exit-dialog-buttons">
-                <button id="confirm-exit-yes" class="btn-exit">NO</button>
-                <button id="confirm-exit-no" class="btn-exit btn-cancel">SI</button>
+                <button id="confirm-exit-yes" class="btn-exit">SI</button>
+                <button id="confirm-exit-no" class="btn-exit btn-cancel">NO</button>
             </div>
         </div>
     `;

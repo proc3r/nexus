@@ -9,32 +9,29 @@ window.currentRandomTime = 0;
 window.yaSalto = false;
 
 const DEFAULT_VOLUME = 15; 
-const DEFAULT_SOUNDTRACK = "O00n5bg_eHY";
+const DEFAULT_SOUNDTRACK = "3Pw9ZjTs8hs";
 
 // --- LÃ“GICA DE VALOR ALEATORIO ---
 function refrescarValorAleatorio() {
-    window.currentRandomTime = Math.floor(Math.random() * 1501);
+    window.currentRandomTime = Math.floor(Math.random() * 360);
     window.yaSalto = false; 
     console.log("%c ðŸŽ² VALOR GLOBAL REFRESCADO: " + window.currentRandomTime, "color: #000; background: #ffff00; font-weight: bold;");
 }
 
 // 1. InicializaciÃ³n de la API
 function onYouTubeIframeAPIReady() {
-    // Solo refresca si es estrictamente necesario para no empezar en 0
-    if (window.currentRandomTime === undefined || window.currentRandomTime === null) {
-        refrescarValorAleatorio();
-    }
+    if (!window.currentRandomTime) refrescarValorAleatorio();
     initPlayer();
 }
 
 function initPlayer() {
     if (player) return;
-   // const vId = (window.currentBook && window.currentBook.soundtrack) ? window.currentBook.soundtrack : DEFAULT_SOUNDTRACK;
+    const vId = (window.currentBook && window.currentBook.soundtrack) ? window.currentBook.soundtrack : DEFAULT_SOUNDTRACK;
     
     player = new YT.Player('youtube-player', {
         height: '0',
         width: '0',
-         //videoId: vId,  //<-- MANTENLO COMENTADO PARA SILENCIO INICIAL
+        videoId: vId,
         playerVars: {
             'playsinline': 1,
             'enablejsapi': 1,
@@ -43,7 +40,7 @@ function initPlayer() {
             'disablekb': 1,
             'fs': 0,
             'modestbranding': 1,
-            //'start': window.currentRandomTime // Carga inicial
+            'start': window.currentRandomTime // Carga inicial
         },
         events: {
             'onReady': onPlayerReady,
@@ -58,61 +55,39 @@ function initPlayer() {
  * Funci¨®n Maestra para actualizar el soundtrack
  * Combina: Salto aleatorio, protecci¨®n de Iframe y actualizaci¨®n de botones
  */
-  
+ 
+
 function updateSoundtrack(newVideoId, shouldPlay = true) {
     const vId = newVideoId || DEFAULT_SOUNDTRACK;
-    window.lastLoadedSoundtrack = vId; 
+    
+    // Permitimos salto aleatorio porque es un cambio manual de pista
+    window.yaSalto = false; 
+    refrescarValorAleatorio();
 
-    // Solo refrescamos el valor si realmente vamos a REPRODUCIR
-    if (shouldPlay) {
-        window.yaSalto = false; 
-        refrescarValorAleatorio();
-        console.log("%c ?? AUDIO: Solicitado nuevo tema (PLAY): " + vId, "color: #fff; background: #2ecc71; padding: 2px 5px;");
-    } else {
-        console.log("%c ?? AUDIO: Preparando tema en espera: " + vId, "color: #fff; background: #95a5a6; padding: 2px 5px;");
-    }
+    console.log("%c ?? AUDIO: Solicitado nuevo tema: " + vId, "color: #fff; background: #2ecc71; padding: 2px 5px;");
 
-    // Cambiamos la validaci¨®n para ser m¨¢s tolerantes con el estado del reproductor
-    if (player && typeof player.loadVideoById === 'function') {
-        try {
-            if (shouldPlay) {
-                isMusicPlaying = true;
-                player.loadVideoById({
-                    videoId: vId,
-                    startSeconds: window.currentRandomTime,
-                    suggestedQuality: 'small'
-                });
-                
-                // Forzamos unMute y volumen por si el navegador bloque¨® el autoplay
-                player.unMute();
-                player.setVolume(window.currentVolume || DEFAULT_VOLUME);
-
-                if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(true);
-            } else {
-                isMusicPlaying = false;
-                // cueVideoById carga el video en memoria pero NO lo reproduce
-                player.cueVideoById({
-                    videoId: vId,
-                    startSeconds: window.currentRandomTime
-                });
-                if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(false);
-            }
-        } catch (e) {
-            console.warn("?? AUDIO: El reproductor fall¨® al cargar (posible pesta?a inactiva). El Vigilante reintentar¨¢.");
+    if (player && isPlayerReady && typeof player.getIframe === 'function' && player.getIframe()) {
+        if (shouldPlay) {
+            isMusicPlaying = true;
+            player.loadVideoById({
+                videoId: vId,
+                startSeconds: window.currentRandomTime,
+                suggestedQuality: 'small'
+            });
+            if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(true);
+        } else {
+            isMusicPlaying = false;
+            player.cueVideoById({
+                videoId: vId,
+                startSeconds: window.currentRandomTime
+            });
+            if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(false);
         }
     } else {
-        // No matamos el objeto player (player = null) a menos que sea estrictamente necesario.
-        // Solo intentamos re-inicializar si realmente no existe la funci¨®n loadVideoById.
-        console.error("%c ?? AUDIO: Reproductor no listo. Intentando inicializar...", "color: #fff; background: #e74c3c;");
+        console.error("%c ?? AUDIO: Error en el reproductor. Reiniciando API...", "color: #fff; background: #e74c3c;");
+        player = null; 
         isPlayerReady = false;
         initPlayer();
-
-        // Si se solicit¨® reproducir, hacemos un reintento corto
-        if (shouldPlay) {
-            setTimeout(() => {
-                if (isPlayerReady) updateSoundtrack(vId, true);
-            }, 2500);
-        }
     }
 }
 
@@ -120,18 +95,17 @@ function updateSoundtrack(newVideoId, shouldPlay = true) {
 function onPlayerReady(event) {
     isPlayerReady = true;
     
-    // Solo intentamos el play inicial si existe un video cargado en el buffer
+    // LOGICA PARA LECTOR DIRECTO:
+    // Si estamos en el lector (por enlace externo), forzamos el arranque
     if (window.currentBook || window.isLectorFijo) {
-        const videoData = event.target.getVideoData();
-        if (videoData && videoData.video_id) {
-            event.target.unMute();
-            event.target.setVolume(DEFAULT_VOLUME);
-            event.target.playVideo();
-        }
+        event.target.unMute();
+        event.target.setVolume(DEFAULT_VOLUME);
+        event.target.playVideo();
     }
 
     globalVolumeControl(DEFAULT_VOLUME, 'init');
 
+    // Actualizar visuales de interfaz
     const volBtn = document.getElementById('btn-volume-yt');
     if (volBtn && !isMusicPlaying) {
         volBtn.classList.add('music-waiting-pulse');
@@ -145,24 +119,15 @@ function onPlayerReady(event) {
 
 
 function onPlayerStateChange(event) {
-    // --- 1. SINCRONIZACI¨®N INICIAL (CORREGIDA PARA EVITAR TARTAMUDEO) ---
+    // --- 1. SINCRONIZACI¨®N INICIAL ---
     if (event.data === YT.PlayerState.PLAYING && !window.yaSalto) {
+        console.log("%c ?? AUDIO: Aplicando salto aleatorio inicial: " + window.currentRandomTime + "s", "background: #222; color: #bada55");
         
-        const currentTime = event.target.getCurrentTime();
-        // Solo aplicamos seekTo si el video NO est¨¢ ya cerca del tiempo aleatorio
-        // (Esto evita el "tartamudeo" cuando loadVideoById ya hizo su trabajo)
-        if (Math.abs(currentTime - window.currentRandomTime) > 2) {
-            console.log("%c ?? AUDIO: Sincronizando posici¨®n inicial: " + window.currentRandomTime + "s", "background: #222; color: #bada55");
-            event.target.seekTo(window.currentRandomTime, true);
-        } else {
-            console.log("%c ? AUDIO: Posici¨®n inicial ya sincronizada.", "background: #222; color: #bada55");
-        }
-        
-        // Marcamos que ya se proces¨® el salto inicial
-        window.yaSalto = true; 
-        
+        event.target.seekTo(window.currentRandomTime, true);
         event.target.unMute();
         event.target.setVolume(DEFAULT_VOLUME);
+        
+        window.yaSalto = true; 
         
         const volBtn = document.getElementById('btn-volume-yt');
         if (volBtn) volBtn.classList.remove('music-waiting-pulse');
@@ -178,32 +143,25 @@ function onPlayerStateChange(event) {
         if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(false);
     }
 
-    // --- 3. REINICIO DEL BUCLE ---
+    // --- 3. REINICIO DEL BUCLE (EL ARREGLO) ---
     if (event.data === YT.PlayerState.ENDED) {
-        console.log("%c ?? AUDIO: Tema finalizado. Reiniciando bucle...", "background: #222; color: #00e5ff");
+        console.log("%c ?? AUDIO: Tema finalizado. Reiniciando bucle desde 0s...", "background: #222; color: #00e5ff");
         
-        // Prioridad: 1. ID guardado, 2. ID del libro, 3. Default
-        const libroVideoId = window.lastLoadedSoundtrack || 
-                             (window.currentBook && window.currentBook.soundtrack) || 
-                             DEFAULT_SOUNDTRACK;
-
-        // IMPORTANTE: Para el bucle NO queremos salto aleatorio, queremos que empiece de 0
+        // Bloqueamos el salto aleatorio para que la repetici¨®n sea completa
         window.yaSalto = true; 
-
+        
+        const nextVideoId = (window.currentBook && window.currentBook.soundtrack) 
+                            ? window.currentBook.soundtrack 
+                            : DEFAULT_SOUNDTRACK;
+        
+        // Usamos un peque?o delay de 100ms para asegurar que YouTube limpie el video anterior
         setTimeout(() => {
-            player.loadVideoById({
-                videoId: libroVideoId,
+            event.target.loadVideoById({
+                videoId: nextVideoId,
                 startSeconds: 0,
                 suggestedQuality: 'small'
             });
-            
-            // Solo forzamos play si isMusicPlaying es true (evita sonar si se cerr¨® el libro justo al terminar)
-            if (isMusicPlaying) {
-                player.playVideo();
-                player.unMute();
-                player.setVolume(window.currentVolume || DEFAULT_VOLUME);
-            }
-        }, 300);
+        }, 100);
     }
 }
 
