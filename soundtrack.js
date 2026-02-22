@@ -3,6 +3,7 @@ var player;
 var isMusicPlaying = isMusicPlaying || false;
 var isPlayerReady = isPlayerReady || false;
 var isSyncing = isSyncing || false;
+let userWantsSilence = false; // Rastrea si el usuario apag車 la m迆sica manualmente
 
 // --- VARIABLES PARA EL SALTO ALEATORIO ---
 window.currentRandomTime = 0; 
@@ -10,6 +11,8 @@ window.yaSalto = false;
 
 const DEFAULT_VOLUME = 15; 
 const DEFAULT_SOUNDTRACK = "O00n5bg_eHY";
+const PORTAL_SOUNDTRACK = 'O00n5bg_eHY'; // Reemplaza con el ID deseado
+const AMBIENT_VOLUME = 10; // Volumen sutil para el portal
 
 // --- L��GICA DE VALOR ALEATORIO ---
 function refrescarValorAleatorio() {
@@ -60,7 +63,8 @@ function initPlayer() {
  */
   
 function updateSoundtrack(newVideoId, shouldPlay = true) {
-    const vId = newVideoId || DEFAULT_SOUNDTRACK;
+    // Si no viene ID, usamos el del Portal en lugar del Default gen谷rico
+    const vId = newVideoId || PORTAL_SOUNDTRACK; 
     window.lastLoadedSoundtrack = vId; 
 
     // Solo refrescamos el valor si realmente vamos a REPRODUCIR
@@ -77,20 +81,26 @@ function updateSoundtrack(newVideoId, shouldPlay = true) {
         try {
             if (shouldPlay) {
                 isMusicPlaying = true;
+
+                // --- AJUSTE DE VOLUMEN Y SLIDERS ---
+                // Determinamos el volumen objetivo
+                const targetVol = (vId === PORTAL_SOUNDTRACK) ? AMBIENT_VOLUME : DEFAULT_VOLUME;
+                
+                // Sincronizamos los Sliders visuales con el volumen que vamos a poner
+                globalVolumeControl(targetVol, 'system-reset');
+
                 player.loadVideoById({
                     videoId: vId,
                     startSeconds: window.currentRandomTime,
                     suggestedQuality: 'small'
                 });
                 
-                // Forzamos unMute y volumen por si el navegador bloque車 el autoplay
                 player.unMute();
-                player.setVolume(window.currentVolume || DEFAULT_VOLUME);
+                player.setVolume(targetVol);
 
                 if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(true);
             } else {
                 isMusicPlaying = false;
-                // cueVideoById carga el video en memoria pero NO lo reproduce
                 player.cueVideoById({
                     videoId: vId,
                     startSeconds: window.currentRandomTime
@@ -101,13 +111,10 @@ function updateSoundtrack(newVideoId, shouldPlay = true) {
             console.warn("?? AUDIO: El reproductor fall車 al cargar (posible pesta?a inactiva). El Vigilante reintentar芍.");
         }
     } else {
-        // No matamos el objeto player (player = null) a menos que sea estrictamente necesario.
-        // Solo intentamos re-inicializar si realmente no existe la funci車n loadVideoById.
         console.error("%c ?? AUDIO: Reproductor no listo. Intentando inicializar...", "color: #fff; background: #e74c3c;");
         isPlayerReady = false;
         initPlayer();
 
-        // Si se solicit車 reproducir, hacemos un reintento corto
         if (shouldPlay) {
             setTimeout(() => {
                 if (isPlayerReady) updateSoundtrack(vId, true);
@@ -116,11 +123,10 @@ function updateSoundtrack(newVideoId, shouldPlay = true) {
     }
 }
 
-
 function onPlayerReady(event) {
     isPlayerReady = true;
     
-    // Solo intentamos el play inicial si existe un video cargado en el buffer
+    // 1. L車gica de reproducci車n (Lector vs Portal)
     if (window.currentBook || window.isLectorFijo) {
         const videoData = event.target.getVideoData();
         if (videoData && videoData.video_id) {
@@ -128,9 +134,20 @@ function onPlayerReady(event) {
             event.target.setVolume(DEFAULT_VOLUME);
             event.target.playVideo();
         }
+    } else {
+        // Portal: Iniciamos m迆sica ambiente
+        isMusicPlaying = true;
+        event.target.unMute();
+        event.target.setVolume(AMBIENT_VOLUME);
+        player.loadVideoById({
+            videoId: PORTAL_SOUNDTRACK,
+            startSeconds: window.currentRandomTime
+        });
     }
 
-    globalVolumeControl(DEFAULT_VOLUME, 'init');
+     // --- AJUSTE AQU赤: No forzar DEFAULT_VOLUME si estamos en el portal ---
+    const inicialVol = (window.currentBook || window.isLectorFijo) ? DEFAULT_VOLUME : AMBIENT_VOLUME;
+    globalVolumeControl(inicialVol, 'init');
 
     const volBtn = document.getElementById('btn-volume-yt');
     if (volBtn && !isMusicPlaying) {
@@ -141,7 +158,11 @@ function onPlayerReady(event) {
     if (statusText) {
         statusText.innerText = (window.currentBook || window.isLectorFijo) ? "SINCRONIZADO" : "AMBIENTE LISTO";
     }
+
+    // Actualizar el nuevo bot車n de la barra superior
+    if (typeof actualizarBotonAmbienteUI === 'function') actualizarBotonAmbienteUI();
 }
+
 
 
 function onPlayerStateChange(event) {
@@ -149,8 +170,6 @@ function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING && !window.yaSalto) {
         
         const currentTime = event.target.getCurrentTime();
-        // Solo aplicamos seekTo si el video NO est芍 ya cerca del tiempo aleatorio
-        // (Esto evita el "tartamudeo" cuando loadVideoById ya hizo su trabajo)
         if (Math.abs(currentTime - window.currentRandomTime) > 2) {
             console.log("%c ?? AUDIO: Sincronizando posici車n inicial: " + window.currentRandomTime + "s", "background: #222; color: #bada55");
             event.target.seekTo(window.currentRandomTime, true);
@@ -162,7 +181,15 @@ function onPlayerStateChange(event) {
         window.yaSalto = true; 
         
         event.target.unMute();
-        event.target.setVolume(DEFAULT_VOLUME);
+
+        // --- AJUSTE: Volumen din芍mico y sincronizaci車n de Sliders ---
+        const vData = event.target.getVideoData();
+        const isPortal = vData && vData.video_id === PORTAL_SOUNDTRACK;
+        const targetVol = isPortal ? AMBIENT_VOLUME : (window.currentVolume || DEFAULT_VOLUME);
+        
+        event.target.setVolume(targetVol);
+        // Aseguramos que los sliders visuales marquen el volumen real al empezar
+        globalVolumeControl(targetVol, 'system-init'); 
         
         const volBtn = document.getElementById('btn-volume-yt');
         if (volBtn) volBtn.classList.remove('music-waiting-pulse');
@@ -178,16 +205,14 @@ function onPlayerStateChange(event) {
         if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(false);
     }
 
-    // --- 3. REINICIO DEL BUCLE ---
+    // --- 3. REINICIO DEL BUCLE (Loop) ---
     if (event.data === YT.PlayerState.ENDED) {
         console.log("%c ?? AUDIO: Tema finalizado. Reiniciando bucle...", "background: #222; color: #00e5ff");
         
-        // Prioridad: 1. ID guardado, 2. ID del libro, 3. Default
         const libroVideoId = window.lastLoadedSoundtrack || 
                              (window.currentBook && window.currentBook.soundtrack) || 
                              DEFAULT_SOUNDTRACK;
 
-        // IMPORTANTE: Para el bucle NO queremos salto aleatorio, queremos que empiece de 0
         window.yaSalto = true; 
 
         setTimeout(() => {
@@ -197,15 +222,69 @@ function onPlayerStateChange(event) {
                 suggestedQuality: 'small'
             });
             
-            // Solo forzamos play si isMusicPlaying es true (evita sonar si se cerr車 el libro justo al terminar)
             if (isMusicPlaying) {
                 player.playVideo();
                 player.unMute();
-                player.setVolume(window.currentVolume || DEFAULT_VOLUME);
+                // En el loop mantenemos el volumen actual que tenga el usuario
+                const currentVol = player.getVolume();
+                player.setVolume(currentVol);
             }
         }, 300);
     }
 }
+
+
+
+
+/**
+ * Alterna la m迆sica (Play/Pause) desde el bot車n de la barra superior
+ */
+function toggleAmbientMusic() {
+    if (!player || !isPlayerReady) return;
+
+    if (isMusicPlaying) {
+        player.pauseVideo();
+        isMusicPlaying = false;
+        userWantsSilence = true; 
+    } else {
+        userWantsSilence = false; 
+        // Determinamos volumen seg迆n el video que est芍 cargado
+        const vData = player.getVideoData();
+        const isPortal = vData && vData.video_id === PORTAL_SOUNDTRACK;
+        const volActivo = isPortal ? AMBIENT_VOLUME : (window.currentVolume || DEFAULT_VOLUME);
+        
+        player.setVolume(volActivo);
+        player.playVideo();
+        isMusicPlaying = true;
+    }
+    actualizarBotonAmbienteUI();
+}
+
+/**
+ * Actualiza el texto e icono del bot車n en la barra superior
+ */
+function actualizarBotonAmbienteUI() {
+    const btn = document.getElementById('btn-ambient-music');
+    if (!btn) return;
+    
+    const icon = btn.querySelector('.music-icon');
+
+    if (isMusicPlaying) {
+        btn.classList.remove('muted');
+        btn.classList.add('active'); // Activa la animaci車n music-beat
+        if (icon) icon.innerText = 'volume_up';
+    } else {
+        btn.classList.add('muted');
+        btn.classList.remove('active'); // Detiene la animaci車n
+        if (icon) icon.innerText = 'volume_off';
+    }
+}
+
+// Inicializar el evento del clic al cargar el DOM
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('btn-ambient-music');
+    if (btn) btn.addEventListener('click', toggleAmbientMusic);
+});
 
 // --- 4. EL VIGILANTE (Fuera de las funciones, para emergencias) ---
 // Si el bot車n est芍 latiendo (isMusicPlaying) pero YouTube se colg車 (Error 503 o AdBlock),
@@ -267,10 +346,11 @@ function globalVolumeControl(val, originId) {
 
     // 2. Sincronizar Sliders (Escritorio y Emergente)
     const mainSlider = document.getElementById('music-volume');
-    if (mainSlider && originId !== 'music-volume') mainSlider.value = volumeValue;
+    // Eliminamos originId !== 'music-volume' para permitir resets forzados del sistema
+    if (mainSlider) mainSlider.value = volumeValue;
 
     const syncSlider = document.getElementById('music-volume-sync');
-    if (syncSlider && originId !== 'music-volume-sync') syncSlider.value = volumeValue;
+    if (syncSlider) syncSlider.value = volumeValue;
 
     // 3. Visuales del icono de volumen (el peque?o altavoz)
     if (typeof updateVolumeButtonVisuals === 'function') {

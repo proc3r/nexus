@@ -20,7 +20,6 @@
 	const AUDIO_BASE_URL = "https://raw.githubusercontent.com/proc3r/Audios/master/";
 
 
-
 	
 
 // --- 2. FUNCIONES DE CONTROL DE INTERFAZ (MOVER AQUÍ ARRIBA) ---
@@ -687,25 +686,31 @@ function closeReader() {
 
     // --- INTEGRACIÓN SOUNDTRACK: Detener música al salir ---
     if (typeof player !== 'undefined' && player && typeof player.pauseVideo === 'function') {
-        player.pauseVideo();
-        isMusicPlaying = false;
-        
-        // Reset visual de los controles de música
+        // Tus líneas originales de reset visual
         const musicIcon = document.getElementById('music-icon');
         const musicBtn = document.getElementById('btn-music-main');
         const statusText = document.getElementById('music-status-text');
-        const volBtn = document.getElementById('btn-volume-yt'); // Agregado para quitar el beat
+        const volBtn = document.getElementById('btn-volume-yt');
 
         if (musicIcon) musicIcon.innerText = "play_arrow";
-        if (musicBtn) musicBtn.style.background = "#08f0fb7a"; // Color inactivo
+        if (musicBtn) musicBtn.style.background = "#08f0fb7a"; 
         if (statusText) statusText.innerText = "Ambiente listo";
         if (volBtn) volBtn.classList.remove('music-playing-beat');
 
-        // IMPORTANTE: Cargamos el soundtrack por defecto en modo "espera" (silencio)
+        // Lógica de retorno inteligente al Portal
         if (typeof updateSoundtrack === 'function') {
-    updateSoundtrack(null, false); // El 'false' apaga el auto-play
-	
+            if (userWantsSilence) {
+                // Si el usuario marcó OFF antes, volvemos al portal pero en silencio
+                updateSoundtrack(PORTAL_SOUNDTRACK, false);
+                isMusicPlaying = false;
+            } else {
+                // Si no, retomamos la música ambiente
+                updateSoundtrack(PORTAL_SOUNDTRACK, true);
+                isMusicPlaying = true;
+            }
         }
+        
+        if (typeof actualizarBotonAmbienteUI === 'function') actualizarBotonAmbienteUI();
     }
 
     // 2. RESET DE ESTADO INTERNO

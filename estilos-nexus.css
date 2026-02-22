@@ -319,17 +319,84 @@ body {
     font-family: 'Barlow Condensed', 'oswald', sans-serif;
 }
 
+/*
 .status-zone {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    padding-bottom: 0.25rem; /* pb-1 */
+    padding-bottom: 0.25rem;
 }
 
 .status-flex {
     display: flex;
     align-items: center;
-    gap: 0.5rem; /* gap-2 */
+    gap: 0.5rem;
+}
+
+
+/* BOTONES DE AMBIENT MUSIC*/
+
+/* 1. Contenedor principal: Apila botones arriba y texto abajo */
+.status-zone {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-end; /* Alinea a la derecha contra el borde */
+    justify-content: center;
+    gap: 2px; 
+    
+}
+
+/* 2. Fila de botones: Mantiene música y traducción juntos */
+.nav-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+}
+
+/* 3. TU ESTILO ESPECÍFICO: Aplicado al botón de ambiente */
+#btn-ambient-music {
+    font-size: 18px;
+    border-radius: 5px;
+    margin-top: 1px;
+    background: rgb(63 189 183 / 47%) !important;
+    border: 1px solid rgba(68, 189, 183, 0.7);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    transition: all 0.3s ease;
+}
+
+/* Animación de latido (Solo cuando está activo) */
+#btn-ambient-music.active {
+    animation: music-beat 3s infinite ease-in-out;
+}
+
+@keyframes music-beat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Estado cuando está apagado (Muted) */
+#btn-ambient-music.muted {
+    opacity: 0.5;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-color: rgba(255, 255, 255, 0.2);
+    animation: none;
+}
+
+/* 4. El bloque de "Sincronizando" (Debajo de los botones) */
+.status-flex {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85em;
+    color: white;
 }
 
 /* Spinner exacto a Tailwind animate-spin */
@@ -3275,12 +3342,13 @@ body.sidebar-open {
     border-radius: 0.5rem;
     backdrop-filter: blur(2px);
     transition: all 0.3s ease;
+	font-size: 20px;
 }
 
 /* Animación de Latido para cuando la música suena */
 @keyframes music-beat {
     0% { transform: scale(1); box-shadow: 0px 0px 10px rgb(63 189 183 / 90%); }
-    50% { transform: scale(0.9); box-shadow: 0px 0px 4px rgb(63 189 183 / 40%); }
+    50% { transform: scale(0.98); box-shadow: 0px 0px 4px rgb(63 189 183 / 40%); }
     100% { transform: scale(1); box-shadow: 0px 0px 10px rgb(63 189 183 / 90%); }
 }
 
@@ -4952,4 +5020,5 @@ button {
     from { opacity: 0; transform: scale(0.9); }
     to { opacity: 1; transform: scale(1); }
 }
+
 

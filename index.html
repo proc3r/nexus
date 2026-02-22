@@ -106,15 +106,21 @@
 		</div>
 				
         <div id="status-indicator" class="status-zone">
+			<div class="nav-actions">
+				<button id="btn-ambient-music" class="nav-button btn-ambient-style" title="Música de ambiente">
+					<span class="material-icons-round">music_note</span>
+				</button>
+				
+				<button aria-label='Traducir Página' class='translate-toggle show-translate btn'>
+				</button>
+			</div>
 			
-			<button aria-label='Traducir Página' class='translate-toggle show-translate btn'></button>
-			
-            <div class="status-flex">
-                <div id="main-spinner" class="spinner"></div>
-                <div id="sync-led-visual" class="led hidden"></div>
-                <span id="status-text" class="status-label">Sincronizando</span>
-            </div>
-        </div>
+			<div class="status-flex">
+				<div id="main-spinner" class="spinner"></div>
+				<div id="sync-led-visual" class="led hidden"></div>
+				<span id="status-text" class="status-label">Sincronizando</span>
+			</div>
+		</div>
     </div>
 </header>
 
