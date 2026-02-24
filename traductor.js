@@ -379,7 +379,7 @@ function getBestVoice(targetLang) {
 
 async function cambiarIdioma(langCode) {
     const idiomaFinal = langCode || 'es';
-    /*console.log("Nexus: Sincronizando audio para: " + idiomaFinal);*/
+    console.log("Nexus: Sincronizando audio para: " + idiomaFinal);
     
     localStorage.setItem('nexus_preferred_lang', idiomaFinal);
 
@@ -491,7 +491,7 @@ function aplicarDireccionGlobal() {
 
 
 function seleccionarIdiomaInicio(lang) {
-   /* console.log("Nexus: Iniciando en idioma: " + lang);*/
+    console.log("Nexus: Iniciando en idioma: " + lang);
     localStorage.setItem('nexus_preferred_lang', lang);
 	
 	

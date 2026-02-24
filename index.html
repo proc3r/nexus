@@ -108,7 +108,7 @@
         <div id="status-indicator" class="status-zone">
 			<div class="nav-actions">
 				<button id="btn-ambient-music" class="nav-button btn-ambient-style" title="Música de ambiente">
-					<span class="material-icons-round">music_note</span>
+					<span class="material-icons-round notranslate">music_note</span>
 				</button>
 				
 				<button aria-label='Traducir Página' class='translate-toggle show-translate btn'>
@@ -126,8 +126,22 @@
 
 
     <div id="library-container">
-        <div id="book-shelf" class="shelf-container"></div>
-        <div class="shelf-divider"></div>
+        <div class="shelf-wrapper-fix relative px-4"> 
+    <button id="prev-shelf" class="shelf-nav-btn left-0">
+        <span class="material-icons">chevron_left</span>
+    </button>
+
+    <div id="book-shelf" class="shelf-container"></div>
+
+    <button id="next-shelf" class="shelf-nav-btn right-0">
+        <span class="material-icons">chevron_right</span>
+    </button>
+</div>
+<div class="shelf-divider"></div>
+		
+		
+		
+		
         <main class="px-2 md:px-10 pb-[3em] pt-2 md:py-8 max-w-7xl mx-auto">
             <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8 pb-20"></div>
         </main>
@@ -687,19 +701,12 @@
 
 
 <script>
+    // SOLO ESTE BLOQUE ES NECESARIO
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js') // Sin la barra inicial
-          .then(reg => console.log('SW registrado en carpeta /nexus/'))
-          .catch(err => console.log('Error:', err));
+        navigator.serviceWorker.register('sw.js') 
+          .then(reg => console.log('SW registrado correctamente en /nexus/'))
+          .catch(err => console.log('Error al registrar SW:', err));
     }
-	
-	  if ('serviceWorker' in navigator) {
-		window.addEventListener('load', () => {
-		  navigator.serviceWorker.register('/sw.js')
-			.then(reg => console.log('Nexus SW registrado', reg))
-			.catch(err => console.log('Error al registrar SW', err));
-		});
-	  }
 </script>
 	
 <script src="https://www.youtube.com/iframe_api"></script>	 
@@ -711,7 +718,7 @@
 <script src="nexus-podcast.js" defer></script>
 <script src="traductor.js"></script>
 <script src="soundtrack.js"></script>
-<script src="js/extras.js"></script>
+<!--<script src="js/extras.js"></script>-->
 
 	
 </body>

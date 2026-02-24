@@ -16,11 +16,32 @@
     }
 ];
         const DEFAULT_COVER = "https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg";
+		// Red Unificada de Adjuntos (Aquí puedes añadir más en el futuro)
+		
 
 	const AUDIO_BASE_URL = "https://raw.githubusercontent.com/proc3r/Audios/master/";
 
-
 	
+	
+const ADJUNTOS_NETWORK = REPOSITORIES.map(repo => repo.adjuntos);
+
+// Función de búsqueda proactiva (unificada)
+async function buscarImagenEnRepositorios(nombreArchivo) {
+    if (!nombreArchivo) return DEFAULT_COVER;
+    
+    const nombreLimpio = nombreArchivo.replace(/!\[\[|\]\]/g, '').split('|')[0].trim();
+    const redes = REPOSITORIES.map(r => r.adjuntos);
+
+    for (let base of redes) { // <--- Aquí decía "de", ahora es "of"
+        const urlProvisional = base + encodeURIComponent(nombreLimpio);
+        try {
+            const respuesta = await fetch(urlProvisional, { method: 'HEAD' });
+            if (respuesta.ok) return urlProvisional; 
+        } catch (err) { continue; }
+    }
+    return DEFAULT_COVER;
+}
+
 
 // --- 2. FUNCIONES DE CONTROL DE INTERFAZ (MOVER AQUÍ ARRIBA) ---
 
@@ -138,23 +159,39 @@ async function loadDirectBook(params) {
         if (!response.ok) throw new Error(`Error 404`);
         const text = await response.text();
         
-        // Lógica de Portada Original
+        // --- NUEVA LÓGICA DE PORTADA UNIFICADA (Parte 1) ---
         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
-        let coverUrl = DEFAULT_COVER;
+        let coverUrlFinal = DEFAULT_COVER;
+
         if (coverMatch) {
-            let fileNameImg = coverMatch[1].split('|')[0].trim();
-            let rawCoverUrl = repo.adjuntos + encodeURIComponent(fileNameImg);
-            coverUrl = (typeof getOptimizedImageUrl === 'function') ? getOptimizedImageUrl(rawCoverUrl, 400) : rawCoverUrl;
+            let rawName = coverMatch[1].split('|')[0].trim();
+
+            // Saltar audio si es el primer match (consistencia con fetchBooks)
+            if (rawName.toLowerCase().endsWith('.mp3')) {
+                const matches = [...text.matchAll(/!\[\[(.*?)\]\]/g)];
+                const img = matches.find(m => !m[1].toLowerCase().endsWith('.mp3'));
+                if (img) rawName = img[1].split('|')[0].trim();
+            }
+
+            // BUSQUEDA ASINCRONA EN TODOS LOS REPOS
+            const urlVerificada = await buscarImagenEnRepositorios(rawName);
+            
+            // OPTIMIZACION MANUAL (Usando tu función existente)
+            if (urlVerificada !== DEFAULT_COVER) {
+                coverUrlFinal = (typeof getOptimizedImageUrl === 'function') 
+                    ? getOptimizedImageUrl(urlVerificada, 400) 
+                    : `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&w=400&output=webp&q=75`;
+            }
         }
 
         const parsedChapters = parseMarkdown(text);
 
-        // ASIGNACIÓN DE DATOS (Aquí definimos el título real)
+        // ASIGNACIÓN DE DATOS (Con la portada ya verificada)
         currentBook = {
             id: 'direct-load',
             fileName: fileName,
             title: fileName.replace('.md', '').replace(/_/g, ' ').replace(/[^\w\s\u0370-\u03FFáéíóúÁÉÍÓÚñÑ\+]/g, ''),
-            cover: coverUrl,
+            cover: coverUrlFinal, // <--- Aplicada la ruta real
             chapters: parsedChapters,
             rawBase: repo.adjuntos,
             repoIdx: repoIndex,
@@ -179,7 +216,6 @@ async function loadDirectBook(params) {
         renderProgressMarkers();
 
         // GUARDADO DE SEGURIDAD
-        // Ahora que el libro está cargado con nombre real, guardamos la sesión limpia
         saveProgress();
 
         if (statusText) statusText.innerText = "Sincronizado";
@@ -196,7 +232,8 @@ async function loadDirectBook(params) {
         }
 
     } catch (e) {
-        console.error("Error de carga:", e);
+        console.error("Error de carga directa:", e);
+        if (statusText) statusText.innerText = "Error 404";
     }
 }
 
@@ -243,10 +280,7 @@ async function fetchBooks() {
     try {
         for (const repo of REPOSITORIES) {
             const response = await fetch(repo.api);
-            if (!response.ok) {
-                if (response.status === 403) throw new Error("API Rate Limit");
-                continue;
-            }
+            if (!response.ok) continue;
             
             const files = await response.json();
             if (!Array.isArray(files)) continue;
@@ -264,55 +298,43 @@ async function fetchBooks() {
                         if (!res.ok) return;
                         const text = await res.text();
                         
-                        // Extraer Frontmatter
                         const sections = text.split('---');
                         const frontmatter = sections[1] || "";
-                        const hasIndexTag = /indexar:\s*true/.test(frontmatter);
-                        if (!hasIndexTag) return; 
-
-                        // --- DETECTOR DE SOUNDTRACK ---
-                        const soundtrackMatch = frontmatter.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/);
-                        const soundtrackId = soundtrackMatch ? soundtrackMatch[1] : null;
-
-                        // --- DETECTOR DE PODCAST ---
-                        const podcastMatch = text.match(/!\[\[(.*?\.mp3)\]\]/);
-                        let podcastUrl = null;
-                        if (podcastMatch) {
-                            podcastUrl = AUDIO_BASE_URL + encodeURIComponent(podcastMatch[1].trim());
-                        }
+                        if (!/indexar:\s*true/.test(frontmatter)) return; 
 
                         // --- DETECTOR DE PORTADA ---
                         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
-                        let coverUrl = DEFAULT_COVER;
+                        let coverUrlFinal = DEFAULT_COVER;
+
                         if (coverMatch) {
-                            let fileNameImg = coverMatch[1].split('|')[0].trim();
-                            if (fileNameImg.toLowerCase().endsWith('.mp3')) {
-                                const allMatches = [...text.matchAll(/!\[\[(.*?)\]\]/g)];
-                                const imgMatch = allMatches.find(m => !m[1].toLowerCase().endsWith('.mp3'));
-                                if (imgMatch) fileNameImg = imgMatch[1].split('|')[0].trim();
+                            let rawName = coverMatch[1].split('|')[0].trim();
+
+                            // Saltar audio si es el primer match
+                            if (rawName.toLowerCase().endsWith('.mp3')) {
+                                const matches = [...text.matchAll(/!\[\[(.*?)\]\]/g)];
+                                const img = matches.find(m => !m[1].toLowerCase().endsWith('.mp3'));
+                                if (img) rawName = img[1].split('|')[0].trim();
                             }
+
+                            // BUSQUEDA ASINCRONA
+                            const urlVerificada = await buscarImagenEnRepositorios(rawName);
                             
-                            if (!fileNameImg.toLowerCase().endsWith('.mp3')) {
-                                // Usamos encodeURIComponent para que las imágenes con nombres griegos funcionen
-                                coverUrl = getOptimizedImageUrl(repo.adjuntos + encodeURIComponent(fileNameImg), 400); 
+                            // OPTIMIZACION MANUAL
+                            if (urlVerificada !== DEFAULT_COVER) {
+                                coverUrlFinal = `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&w=400&output=webp&q=75`;
                             }
                         }
 
-                        const chapters = parseMarkdown(text);
-
-                        // --- CAMBIO CLAVE: ID COMPATIBLE CON UNICODE ---
-                        // btoa no soporta caracteres griegos directamente, usamos esta alternativa:
                         const safeId = btoa(unescape(encodeURIComponent(file.path + repo.api)));
 
                         library.push({
                             id: safeId, 
                             fileName: file.name,
-                            // Mantenemos el Regex que admite letras griegas
                             title: file.name.replace('.md', '').replace(/_/g, ' ').replace(/[^\w\s\u0370-\u03FFáéíóúÁÉÍÓÚñÑ\+]/g, ''),
-                            cover: coverUrl,
-                            podcastUrl: podcastUrl,
-                            soundtrack: soundtrackId,
-                            chapters: chapters,
+                            cover: coverUrlFinal, // <--- Sincronizado
+                            podcastUrl: text.match(/!\[\[(.*?\.mp3)\]\]/) ? AUDIO_BASE_URL + encodeURIComponent(text.match(/!\[\[(.*?\.mp3)\]\]/)[1].trim()) : null,
+                            soundtrack: frontmatter.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/) ? frontmatter.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/)[1] : null,
+                            chapters: parseMarkdown(text),
                             rawBase: repo.adjuntos,
                             repoIdx: REPOSITORIES.indexOf(repo)
                         });
@@ -325,22 +347,16 @@ async function fetchBooks() {
             sessionStorage.setItem('nexus_library_cache', JSON.stringify(library));
         }
 
-        if (statusText) statusText.innerText = "Sincronizado";
         document.getElementById('main-spinner')?.classList.add('hidden');
-        
         renderLibrary();
         checkAutoLoad(); 
         ocultarSplash();
 
     } catch (e) { 
-        if (statusText) {
-            statusText.innerText = e.message === "API Rate Limit" ? "Límite GitHub excedido" : "Error API";
-        }
         console.error("Error crítico:", e);
         ocultarSplash();
     }
 }
-
 
 
 
@@ -418,24 +434,32 @@ function parseMarkdown(text) {
 	
 	
 
-	function renderShelf() {
-		const shelf = document.getElementById('book-shelf');
-		if (!shelf || !library.length) return;
-		shelf.innerHTML = '';
-		library.forEach((book, index) => {
-			const bookNode = document.createElement('div');
-			bookNode.className = 'shelf-book';
-			bookNode.onclick = () => openReader(book.id);
-			const coverImg = book.cover || (book.chapters[0] && book.chapters[0].attachments && book.chapters[0].attachments[0]) || '';
-			bookNode.innerHTML = `
-				<img src="${coverImg}" alt="${stripHtml(book.title)}" onerror="this.src='https://via.placeholder.com/120x175?text=SIN+PORTADA'">
-				<div class="shelf-book-overlay">
-					<div class="shelf-book-title">${stripHtml(book.title)}</div>
-				</div>
-			`;
-			shelf.appendChild(bookNode);
-		});
-	}
+function renderShelf() {
+    const shelf = document.getElementById('book-shelf');
+    if (!shelf) return;
+
+    shelf.innerHTML = '';
+    const shelfBooks = library.slice(0, 15);
+
+    shelfBooks.forEach(book => {
+        const bookEl = document.createElement('div');
+        bookEl.className = 'shelf-book';
+        bookEl.innerHTML = `
+            <img src="${book.cover}" alt="${book.title}" onerror="this.src='${DEFAULT_COVER}'">
+            <div class="shelf-book-overlay">
+                <div class="shelf-book-title">${book.title}</div>
+            </div>
+        `;
+        bookEl.onclick = () => openBook(book.id);
+        shelf.appendChild(bookEl);
+    });
+
+    // Sin esperas largas ni condiciones: inicializa el scroll siempre
+    if (typeof initShelfScroll === 'function') {
+        initShelfScroll();
+    }
+}
+	
 	
 	
 
@@ -845,11 +869,17 @@ async function renderChunk() {
         }
         
         isImage = true;
-        const rawImageUrl = currentBook.rawBase + encodeURIComponent(originalFileName);
+
+        // --- CAMBIO CLAVE: BÚSQUEDA MULTI-REPO EN MODO LECTURA ---
+        // En lugar de usar currentBook.rawBase, usamos nuestro buscador unificado
+        const rawImageUrl = await buscarImagenEnRepositorios(originalFileName);
         
+        // Optimizamos para la lectura (700px como tenías definido)
         const finalImageUrl = fileNameLower.endsWith('.gif') 
             ? rawImageUrl 
-            : (typeof getOptimizedImageUrl === 'function' ? getOptimizedImageUrl(rawImageUrl, 700) : rawImageUrl);
+            : (typeof getOptimizedImageUrl === 'function' 
+                ? getOptimizedImageUrl(rawImageUrl, 700) 
+                : `https://wsrv.nl/?url=${encodeURIComponent(rawImageUrl)}&w=700&output=webp&q=75`);
 
         finalHtml = `<div class="reader-image-container">
             <img src="${finalImageUrl}" 
@@ -1427,3 +1457,44 @@ window.addEventListener('click', (e) => {
         console.log("Nexus: Modal cerrado por clic externo.");
     }
 });
+
+function initShelfScroll() {
+    const shelf = document.getElementById('book-shelf');
+    const btnLeft = document.getElementById('prev-shelf');
+    const btnRight = document.getElementById('next-shelf');
+
+    if (!shelf || !btnLeft || !btnRight) return;
+
+    // Desplazamiento suave manual (aunque el CSS ya ayuda)
+    const step = 120; 
+
+    btnLeft.onclick = (e) => {
+        e.stopPropagation();
+        shelf.scrollBy({ left: -step, behavior: 'smooth' });
+    };
+
+    btnRight.onclick = (e) => {
+        e.stopPropagation();
+        shelf.scrollBy({ left: step, behavior: 'smooth' });
+    };
+    
+    const checkScroll = () => {
+        // Tolerancia de 10px para evitar desapariciones nerviosas
+        const canScrollLeft = shelf.scrollLeft > 10;
+        const canScrollRight = shelf.scrollLeft + shelf.clientWidth < shelf.scrollWidth - 10;
+
+        // Añadimos o quitamos la clase activa que controla el CSS
+        if (canScrollLeft) btnLeft.classList.add('is-active');
+        else btnLeft.classList.remove('is-active');
+
+        if (canScrollRight) btnRight.classList.add('is-active');
+        else btnRight.classList.remove('is-active');
+    };
+
+    // Escuchamos el scroll con un pequeño throttling para rendimiento
+    shelf.onscroll = checkScroll;
+    window.onresize = checkScroll;
+    
+    // Ejecución inicial con delay para que el render esté completo
+    setTimeout(checkScroll, 600);
+}

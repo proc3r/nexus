@@ -1172,24 +1172,26 @@ body.sidebar-open {
 
 
 /* --- PLUGIN BOOK SHELF --- */
+
+/* Contenedor padre para limitar las flechas */
+/* --- PLUGIN BOOK SHELF --- */
+.shelf-wrapper-fix {
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 .shelf-container {
     display: flex;
     overflow-x: auto;
     gap: 15px;
-    padding: 5px 5px 5px 5px;
+    padding: 10px 3px;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    
-    /* ESTA ES LA LÍNEA NUEVA */
-    justify-content: center; 
-}
-
-/* Para asegurar que en móviles (pantallas pequeñas) 
-   puedas seguir haciendo scroll desde el inicio: */
-@media (max-width: 768px) {
-    .shelf-container {
-        justify-content: flex-start;
-    }
+    justify-content: flex-start;
+    /* MOVIMIENTO SUAVE AL DESPLAZARSE */
+    scroll-behavior: smooth; 
 }
 
 .shelf-container::-webkit-scrollbar { display: none; }
@@ -1246,6 +1248,77 @@ body.sidebar-open {
     background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
     margin: 10px 0 5px 0;
 }
+
+/* --- FLECHAS DE NAVEGACIÓN --- */
+.shelf-nav-btn {
+    display: block;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 110;
+    color: white; /* Texto blanco para que resalte sobre el fondo oscuro */
+    border: none;
+    padding: 25px 12px;
+    cursor: pointer;
+    
+    /* TRANSICIÓN DE APARICIÓN/DESAPARICIÓN */
+    transition: opacity 0.6s ease, background 0.3s ease, visibility 0.6s;
+    opacity: 0; 
+    visibility: hidden;
+}
+
+/* Visibilidad al hacer hover en el contenedor padre */
+@media (min-width: 480px) {
+    .shelf-wrapper-fix:hover .shelf-nav-btn.is-active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+   
+}
+
+/* IZQUIERDO: Azul casi negro */
+.shelf-nav-btn.left-0 { 
+    left: 0;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0px 0px 8px rgb(6 127 255 / 60%);
+    background: rgb(13 78 187 / 85%);
+    font-size: 21px;
+}
+
+.shelf-nav-btn.left-0:hover {
+    background: rgba(0, 30, 80, 0.95); /* Azul un poco más vibrante al entrar */
+    box-shadow: 0px 0px 12px rgb(6 127 255 / 99%);
+    color: #00d4ff; /* El icono brilla en cian/azul */
+    transform: translateY(-50%) scaleX(1.1); /* Efecto de estiramiento leve */
+}
+
+/* DERECHO: Rojo casi negro */
+.shelf-nav-btn.right-0 { 
+    right: 0;
+    border-radius: 8px 0 0 8px;
+    box-shadow: 0px 0px 8px rgb(255 0 0 / 60%);
+    background: rgb(153 6 6 / 91%);/* Rojo muy oscuro */
+    font-size: 21px; 
+}
+
+.shelf-nav-btn.right-0:hover {
+    background: rgba(70, 0, 0, 0.95); /* Rojo un poco más intenso al entrar */
+    box-shadow: 0px 0px 15px rgb(255 0 0 / 99%);
+    color: #ffcaca; /* El icono brilla en rojo claro */
+    transform: translateY(-50%) scaleX(1.1); /* Efecto de estiramiento leve */
+}
+
+/* REGLA DE VISIBILIDAD (Asegúrate de borrar la anterior del amarillo) */
+@media (min-width: 480px) {
+    .shelf-wrapper-fix:hover .shelf-nav-btn.is-active {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+
+
 
 /* TRUCO VISUAL: Intercambio de Spinner por LED */
 #main-spinner.hidden + #sync-led-visual {

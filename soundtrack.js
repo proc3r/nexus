@@ -5,7 +5,7 @@ var isPlayerReady = isPlayerReady || false;
 var isSyncing = isSyncing || false;
 let userWantsSilence = false; // Rastrea si el usuario apag¨® la m¨²sica manualmente
 
-// --- VARIABLES PARA EL SALTO ALEATORIO ---
+// --- VARIABLES PARA EL SALTO ALEATORIO ---ca
 window.currentRandomTime = 0; 
 window.yaSalto = false;
 
@@ -16,7 +16,7 @@ const AMBIENT_VOLUME = 10; // Volumen sutil para el portal
 
 // --- LÃ“GICA DE VALOR ALEATORIO ---
 function refrescarValorAleatorio() {
-    window.currentRandomTime = Math.floor(Math.random() * 1501);
+    window.currentRandomTime = Math.floor(Math.random() * 1500);
     window.yaSalto = false; 
     console.log("%c ðŸŽ² VALOR GLOBAL REFRESCADO: " + window.currentRandomTime, "color: #000; background: #ffff00; font-weight: bold;");
 }
@@ -165,6 +165,7 @@ function onPlayerReady(event) {
 
 
 
+
 function onPlayerStateChange(event) {
     // --- 1. SINCRONIZACI¨®N INICIAL (CORREGIDA PARA EVITAR TARTAMUDEO) ---
     if (event.data === YT.PlayerState.PLAYING && !window.yaSalto) {
@@ -199,9 +200,13 @@ function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
         isMusicPlaying = true;
         if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(true);
+        if (typeof actualizarBotonAmbienteUI === 'function') actualizarBotonAmbienteUI(); // <--- A?ADIR ESTA
     } 
     else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.BUFFERING) {
-        if (event.data === YT.PlayerState.PAUSED) isMusicPlaying = false;
+        if (event.data === YT.PlayerState.PAUSED) {
+            isMusicPlaying = false;
+            if (typeof actualizarBotonAmbienteUI === 'function') actualizarBotonAmbienteUI(); // <--- A?ADIR ESTA
+        }
         if (typeof actualizarVisualesMusica === 'function') actualizarVisualesMusica(false);
     }
 
@@ -213,23 +218,27 @@ function onPlayerStateChange(event) {
                              (window.currentBook && window.currentBook.soundtrack) || 
                              DEFAULT_SOUNDTRACK;
 
+        // IMPORTANTE: Bloqueamos el salto aleatorio para que el bucle empiece en 0
         window.yaSalto = true; 
 
         setTimeout(() => {
+            // Verificamos si es el portal para asignar el volumen correcto
+            const esPortal = libroVideoId === PORTAL_SOUNDTRACK;
+            const volLoop = esPortal ? AMBIENT_VOLUME : DEFAULT_VOLUME;
+
             player.loadVideoById({
                 videoId: libroVideoId,
                 startSeconds: 0,
                 suggestedQuality: 'small'
             });
             
+            // Forzamos el play y el volumen definido
             if (isMusicPlaying) {
-                player.playVideo();
                 player.unMute();
-                // En el loop mantenemos el volumen actual que tenga el usuario
-                const currentVol = player.getVolume();
-                player.setVolume(currentVol);
+                player.setVolume(volLoop);
+                player.playVideo();
             }
-        }, 300);
+        }, 500); // Un peque?o margen para que YouTube limpie el estado anterior
     }
 }
 
@@ -267,16 +276,16 @@ function actualizarBotonAmbienteUI() {
     const btn = document.getElementById('btn-ambient-music');
     if (!btn) return;
     
-    const icon = btn.querySelector('.music-icon');
+    const icon = btn.querySelector('.material-icons-round');
 
     if (isMusicPlaying) {
         btn.classList.remove('muted');
         btn.classList.add('active'); // Activa la animaci¨®n music-beat
-        if (icon) icon.innerText = 'volume_up';
+        if (icon) icon.innerText = 'music_note';
     } else {
         btn.classList.add('muted');
         btn.classList.remove('active'); // Detiene la animaci¨®n
-        if (icon) icon.innerText = 'volume_off';
+        if (icon) icon.innerText = 'music_off';
     }
 }
 
@@ -291,13 +300,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // este peque?o bloque intenta despertarlo cada 20 segundos.
 // Este bloque revisa cada 10 segundos si la m¨²sica deber¨ªa sonar pero est¨¢ trabada
 setInterval(() => {
-    // Solo actuar si hay un libro cargado y se supone que la m¨²sica debe sonar
-    if (window.currentBook && isMusicPlaying && player && isPlayerReady) {
+    // Si la l¨®gica dice que debe sonar y el player est¨¢ listo
+    if (isMusicPlaying && player && isPlayerReady) {
         const state = player.getPlayerState();
-        // Si deber¨ªa sonar pero est¨¢ en pausa (2), buffering (3) o no iniciado (-1)
-        if (state === 2 || state === 3 || state === -1) {
-            console.warn("?? AUDIO: Vigilante detect¨® silencio en lectura. Forzando Play...");
+        // Si est¨¢ en pausa (2), buffering infinito (3), terminado (0) o no iniciado (-1)
+        if (state === 2 || state === 3 || state === -1 || state === 0) {
+            console.warn("?? AUDIO: Vigilante detect¨® silencio. Forzando Play...");
             player.playVideo();
+            
+            // Si el volumen se baj¨® a 0 por error del API, lo restauramos
+            if (player.getVolume() === 0) {
+                const vData = player.getVideoData();
+                const isPortal = vData && vData.video_id === PORTAL_SOUNDTRACK;
+                player.setVolume(isPortal ? AMBIENT_VOLUME : DEFAULT_VOLUME);
+            }
         }
     }
 }, 10000);
