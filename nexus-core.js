@@ -439,22 +439,26 @@ function renderShelf() {
     if (!shelf) return;
 
     shelf.innerHTML = '';
+    // Usamos los primeros 15 libros
     const shelfBooks = library.slice(0, 15);
 
     shelfBooks.forEach(book => {
         const bookEl = document.createElement('div');
         bookEl.className = 'shelf-book';
+        
+        // CAMBIO AQUÍ: Volvemos a openReader que es la función que ya tenías
+        bookEl.onclick = () => openReader(book.id);
+        
         bookEl.innerHTML = `
             <img src="${book.cover}" alt="${book.title}" onerror="this.src='${DEFAULT_COVER}'">
             <div class="shelf-book-overlay">
                 <div class="shelf-book-title">${book.title}</div>
             </div>
         `;
-        bookEl.onclick = () => openBook(book.id);
         shelf.appendChild(bookEl);
     });
 
-    // Sin esperas largas ni condiciones: inicializa el scroll siempre
+    // Inicializa el scroll de las flechas
     if (typeof initShelfScroll === 'function') {
         initShelfScroll();
     }
