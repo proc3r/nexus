@@ -1226,7 +1226,7 @@ body.sidebar-open {
     left: 0;
     right: 0;
     background: linear-gradient(transparent, rgba(0,0,0,0.95));
-    padding: 20px 8px 8px 8px;
+    padding: 20px 2px 8px 2px;
     color: white;
     text-align: center;
 }

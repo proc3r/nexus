@@ -124,7 +124,7 @@ function renderLibrary() {
 
 	function getOptimizedImageUrl(url, width = 400) {
 		if (!url || url === DEFAULT_COVER) return url;
-		return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&output=webp&q=75`;
+		return `https://wsrv.nl/?url=${encodeURIComponent(url)}&v=1&w=${width}&output=webp&q=75`;
 	}
 	
 	
@@ -180,7 +180,7 @@ async function loadDirectBook(params) {
             if (urlVerificada !== DEFAULT_COVER) {
                 coverUrlFinal = (typeof getOptimizedImageUrl === 'function') 
                     ? getOptimizedImageUrl(urlVerificada, 400) 
-                    : `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&w=400&output=webp&q=75`;
+                    : `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&v=1&w=400&output=webp&q=75`;
             }
         }
 
@@ -321,7 +321,7 @@ async function fetchBooks() {
                             
                             // OPTIMIZACION MANUAL
                             if (urlVerificada !== DEFAULT_COVER) {
-                                coverUrlFinal = `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&w=400&output=webp&q=75`;
+                                coverUrlFinal = `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&v=1&w=400&output=webp&q=75`;
                             }
                         }
 
@@ -883,7 +883,7 @@ async function renderChunk() {
             ? rawImageUrl 
             : (typeof getOptimizedImageUrl === 'function' 
                 ? getOptimizedImageUrl(rawImageUrl, 700) 
-                : `https://wsrv.nl/?url=${encodeURIComponent(rawImageUrl)}&w=700&output=webp&q=75`);
+                : `https://wsrv.nl/?url=${encodeURIComponent(rawImageUrl)}&v=1&w=700&output=webp&q=75`);
 
         finalHtml = `<div class="reader-image-container">
             <img src="${finalImageUrl}" 
