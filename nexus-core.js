@@ -569,7 +569,7 @@ async function openReader(id, forceCh = null, forceCk = null) {
         updateProgress(); 
     }
 
-    // --- 6. MOSTRAR/INYECTAR MODAL CON DATOS SINCRONIZADOS ---
+    
 // --- 6. MOSTRAR/INYECTAR MODAL CON DATOS SINCRONIZADOS ---
     if (hasSavedProgress) {
         setTimeout(() => {

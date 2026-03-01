@@ -977,7 +977,7 @@ body.sidebar-open {
 
 #image-timer {
     position: absolute;
-    top: 95px;
+    top: 51px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 50;
