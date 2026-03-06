@@ -82,19 +82,20 @@ function renderLibrary() {
     }
 }
 
-// --- CAPTURA INMEDIATA DE TÍTULO PARA EL SPINNER ---
+// --- CAPTURA INMEDIATA DE TÍTULO PARA EL SPINNER (AJUSTADA) ---
 (function() {
     const urlParams = new URLSearchParams(window.location.search);
-    const bookName = urlParams.get('book');
     const loaderTitle = document.getElementById('loader-book-title');
     
-    // Solo actuamos si existe el elemento dinámico (estamos en el lector)
     if (loaderTitle) {
-        if (bookName) {
-            loaderTitle.innerText = bookName.replace('.md', '').replace(/_/g, ' ').toUpperCase();
-        } else {
-            // Si el lector abre el libro por defecto
-            loaderTitle.innerText = "MODELO NOUMÉNICO";
+        // No importa qué libro sea, primero mostramos un estado neutro
+        // para evitar que el traductor o el sistema muestren el nombre del archivo .md
+        loaderTitle.innerText = "BUSCANDO LIBRO";
+        
+        // Si quieres que el libro por defecto tenga su nombre desde el inicio:
+        const bookParam = urlParams.get('book');
+        if (!bookParam && !urlParams.get('s')) {
+             loaderTitle.innerText = "MODELO NOUMÉNICO";
         }
     }
 })();
@@ -112,20 +113,20 @@ function renderLibrary() {
 			return null;
 		}
 
-	function getUrlParams() {
-		const params = new URLSearchParams(window.location.search);
-		return {
-			repo: params.get('repo'),
-			book: params.get('book'), // Nombre real del archivo .md
-			ch: parseInt(params.get('ch')) || 0,
-			ck: parseInt(params.get('ck')) || 0
-		};
-	}
+		function getUrlParams() {
+			const params = new URLSearchParams(window.location.search);
+			return {
+				repo: params.get('repo'),
+				book: params.get('book'), // Nombre real del archivo .md
+				ch: parseInt(params.get('ch')) || 0,
+				ck: parseInt(params.get('ck')) || 0
+			};
+		}
 
-	function getOptimizedImageUrl(url, width = 400) {
-		if (!url || url === DEFAULT_COVER) return url;
-		return `https://wsrv.nl/?url=${encodeURIComponent(url)}&v=1&w=${width}&output=webp&q=75`;
-	}
+		function getOptimizedImageUrl(url, width = 400) {
+			if (!url || url === DEFAULT_COVER) return url;
+			return `https://wsrv.nl/?url=${encodeURIComponent(url)}&v=1&w=${width}&output=webp&q=75`;
+		}
 	
 	
 	window.onload = () => {
@@ -145,8 +146,35 @@ function renderLibrary() {
 	};
 
 
+function checkAutoLoad() {
+    const params = getUrlParams();
+    if (params.repo !== null && params.book) {
+        // Aseguramos estado neutro por si acaso
+        const loaderTitle = document.getElementById('loader-book-title');
+        if (loaderTitle) loaderTitle.innerText = "BUSCANDO LIBRO";
+
+        const repoIdx = parseInt(params.repo);
+        const book = library.find(b => b.fileName === params.book && b.repoIdx === repoIdx);
+        
+        if (book) {
+            // El libro ya existe en la librería cargada
+            openReader(book.id, params.ch, params.ck);
+        } else {
+            // El libro es de un link externo, requiere fetch
+            loadDirectBook(params);
+        }
+    }
+}
+
 
 async function loadDirectBook(params) {
+    // 1. CONTROL INMEDIATO DEL UI (Evita parpadeos de nombres técnicos)
+    const loaderTitle = document.getElementById('loader-book-title');
+    if (loaderTitle) {
+        loaderTitle.innerText = "BUSCANDO LIBRO";
+    }
+    document.getElementById('auto-loader')?.classList.remove('hidden');
+
     currentBook = null; 
     const statusText = document.getElementById('status-text');
     let repoIndex = (params.repo !== null && !isNaN(params.repo)) ? parseInt(params.repo) : 0;
@@ -159,24 +187,33 @@ async function loadDirectBook(params) {
         if (!response.ok) throw new Error(`Error 404`);
         const text = await response.text();
         
-        // --- NUEVA LÓGICA DE PORTADA UNIFICADA (Parte 1) ---
+        // 2. EXTRACCIÓN DE METADATOS (Título Real)
+        const sections = text.split('---');
+        const frontmatter = sections[1] || "";
+        const titleMatch = frontmatter.match(/titulo:\s*(.+)/);
+        const realTitle = titleMatch ? titleMatch[1].trim() : null;
+
+        // 3. ACTUALIZACIÓN DINÁMICA DEL SPINNER
+        // Solo cambiamos el texto si logramos extraer el metadato real
+        if (loaderTitle && realTitle) {
+            loaderTitle.innerText = realTitle.toUpperCase();
+        }
+
+        // --- 4. LÓGICA DE PORTADA UNIFICADA ---
         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
         let coverUrlFinal = DEFAULT_COVER;
 
         if (coverMatch) {
             let rawName = coverMatch[1].split('|')[0].trim();
 
-            // Saltar audio si es el primer match (consistencia con fetchBooks)
             if (rawName.toLowerCase().endsWith('.mp3')) {
                 const matches = [...text.matchAll(/!\[\[(.*?)\]\]/g)];
                 const img = matches.find(m => !m[1].toLowerCase().endsWith('.mp3'));
                 if (img) rawName = img[1].split('|')[0].trim();
             }
 
-            // BUSQUEDA ASINCRONA EN TODOS LOS REPOS
             const urlVerificada = await buscarImagenEnRepositorios(rawName);
             
-            // OPTIMIZACION MANUAL (Usando tu función existente)
             if (urlVerificada !== DEFAULT_COVER) {
                 coverUrlFinal = (typeof getOptimizedImageUrl === 'function') 
                     ? getOptimizedImageUrl(urlVerificada, 400) 
@@ -186,28 +223,30 @@ async function loadDirectBook(params) {
 
         const parsedChapters = parseMarkdown(text);
 
-        // ASIGNACIÓN DE DATOS (Con la portada ya verificada)
+        // 5. ASIGNACIÓN DE DATOS (displayName para consistencia total)
         currentBook = {
             id: 'direct-load',
             fileName: fileName,
             title: fileName.replace('.md', '').replace(/_/g, ' ').replace(/[^\w\s\u0370-\u03FFáéíóúÁÉÍÓÚñÑ\+]/g, ''),
-            cover: coverUrlFinal, // <--- Aplicada la ruta real
+            displayName: realTitle || fileName.replace('.md', '').replace(/_/g, ' '),
+            cover: coverUrlFinal,
             chapters: parsedChapters,
             rawBase: repo.adjuntos,
             repoIdx: repoIndex,
             soundtrack: parsedChapters.soundtrackId
         };
 
-        // UI ORIGINAL
-        document.getElementById('reader-title').innerText = currentBook.title;
+        // 6. ACTUALIZACIÓN DE INTERFAZ DEL LECTOR
+        document.getElementById('reader-title').innerText = currentBook.displayName || currentBook.title;
+        
         const coverPreview = document.getElementById('sidebar-cover-preview');
         if (coverPreview) coverPreview.style.backgroundImage = `url('${currentBook.cover}')`;
 
-        // Control de contenedores original
+        // Control de contenedores
         document.getElementById('library-container')?.classList.add('hidden');
         document.getElementById('reader-view').classList.remove('hidden');
 
-        // CARGA DE CONTENIDO ORIGINAL
+        // 7. CARGA DE CONTENIDO
         await loadChapter(params.ch || 0);
         currentChunkIndex = params.ck || 0;
         await renderChunk();
@@ -215,14 +254,15 @@ async function loadDirectBook(params) {
         renderTOC();
         renderProgressMarkers();
 
-        // GUARDADO DE SEGURIDAD
+        // 8. PERSISTENCIA (Sincroniza el nuevo título con el historial)
+		document.getElementById('reader-title').innerText = currentBook.displayName || currentBook.title;
         saveProgress();
 
         if (statusText) statusText.innerText = "Sincronizado";
         document.getElementById('main-spinner')?.classList.add('hidden');
         document.getElementById('auto-loader')?.classList.add('hidden');
 
-        // SOUNDTRACK ORIGINAL
+        // 9. LÓGICA DE AUDIO / SOUNDTRACK
         if (currentBook && currentBook.soundtrack) {
             if (typeof refrescarValorAleatorio === 'function') refrescarValorAleatorio();
             setTimeout(() => {
@@ -234,9 +274,9 @@ async function loadDirectBook(params) {
     } catch (e) {
         console.error("Error de carga directa:", e);
         if (statusText) statusText.innerText = "Error 404";
+        if (loaderTitle) loaderTitle.innerText = "ERROR AL CARGAR";
     }
 }
-
 
 
 
@@ -247,9 +287,6 @@ function stripHtml(html) {
     return tmp.textContent || tmp.innerText || "";
 }
 	
-
-
-
 
 
 async function fetchBooks() {
@@ -302,6 +339,11 @@ async function fetchBooks() {
                         const frontmatter = sections[1] || "";
                         if (!/indexar:\s*true/.test(frontmatter)) return; 
 
+                        // --- CAPTURA DE TÍTULO REAL (METADATO) ---
+                        // Buscamos "titulo: ..." dentro del frontmatter
+                        const titleMatch = frontmatter.match(/titulo:\s*(.+)/);
+                        const realTitle = titleMatch ? titleMatch[1].trim() : null;
+
                         // --- DETECTOR DE PORTADA ---
                         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
                         let coverUrlFinal = DEFAULT_COVER;
@@ -309,17 +351,14 @@ async function fetchBooks() {
                         if (coverMatch) {
                             let rawName = coverMatch[1].split('|')[0].trim();
 
-                            // Saltar audio si es el primer match
                             if (rawName.toLowerCase().endsWith('.mp3')) {
                                 const matches = [...text.matchAll(/!\[\[(.*?)\]\]/g)];
                                 const img = matches.find(m => !m[1].toLowerCase().endsWith('.mp3'));
                                 if (img) rawName = img[1].split('|')[0].trim();
                             }
 
-                            // BUSQUEDA ASINCRONA
                             const urlVerificada = await buscarImagenEnRepositorios(rawName);
                             
-                            // OPTIMIZACION MANUAL
                             if (urlVerificada !== DEFAULT_COVER) {
                                 coverUrlFinal = `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&v=1&w=400&output=webp&q=75`;
                             }
@@ -330,8 +369,11 @@ async function fetchBooks() {
                         library.push({
                             id: safeId, 
                             fileName: file.name,
+                            // Mantenemos 'title' como el nombre del archivo limpio para lógica interna
                             title: file.name.replace('.md', '').replace(/_/g, ' ').replace(/[^\w\s\u0370-\u03FFáéíóúÁÉÍÓÚñÑ\+]/g, ''),
-                            cover: coverUrlFinal, // <--- Sincronizado
+                            // 'displayName' tendrá el título con tildes/griego, o el title si no hay metadato
+                            displayName: realTitle || file.name.replace('.md', '').replace(/_/g, ' '),
+                            cover: coverUrlFinal,
                             podcastUrl: text.match(/!\[\[(.*?\.mp3)\]\]/) ? AUDIO_BASE_URL + encodeURIComponent(text.match(/!\[\[(.*?\.mp3)\]\]/)[1].trim()) : null,
                             soundtrack: frontmatter.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/) ? frontmatter.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/)[1] : null,
                             chapters: parseMarkdown(text),
@@ -357,7 +399,6 @@ async function fetchBooks() {
         ocultarSplash();
     }
 }
-
 
 
 function parseMarkdown(text) {
@@ -446,13 +487,16 @@ function renderShelf() {
         const bookEl = document.createElement('div');
         bookEl.className = 'shelf-book';
         
-        // CAMBIO AQUÍ: Volvemos a openReader que es la función que ya tenías
+        // Mantenemos openReader con book.id para que la lógica de carga no cambie
         bookEl.onclick = () => openReader(book.id);
         
+        // Usamos displayName para el texto visual y el ALT de la imagen
+        const tituloAMostrar = book.displayName || book.title;
+        
         bookEl.innerHTML = `
-            <img src="${book.cover}" alt="${book.title}" onerror="this.src='${DEFAULT_COVER}'">
+            <img src="${book.cover}" alt="${tituloAMostrar}" onerror="this.src='${DEFAULT_COVER}'">
             <div class="shelf-book-overlay">
-                <div class="shelf-book-title">${book.title}</div>
+                <div class="shelf-book-title">${tituloAMostrar}</div>
             </div>
         `;
         shelf.appendChild(bookEl);
@@ -527,7 +571,7 @@ async function openReader(id, forceCh = null, forceCk = null) {
     currentChunkIndex = targetChunk;
 
     // --- 3. RENDERIZADO DE INTERFAZ ---
-    document.getElementById('reader-title').innerText = currentBook.title;
+    document.getElementById('reader-title').innerText = currentBook.displayName || currentBook.title;
     const coverPreview = document.getElementById('sidebar-cover-preview');
     if (coverPreview) {
         coverPreview.style.backgroundImage = `url('${currentBook.cover}')`;
@@ -586,15 +630,15 @@ async function openReader(id, forceCh = null, forceCk = null) {
                             <div class="nx-resume-bg-layer"></div>
                             <div class="nx-resume-content">
                                 <div class="nx-resume-header">
-                                    <h2 class="nx-resume-book-title">${currentBook.title}</h2>
+                                    <h2 class="nx-resume-book-title">${currentBook.displayName || currentBook.title}</h2>
                                     <p class="nx-resume-chapter-name">${currentCap}</p>
                                 </div>
                                 <div class="nx-resume-progress-track">
                                     <div id="nx-resume-bar-fill" class="nx-resume-progress-fill" style="width: ${progPercentText};"></div>
                                 </div>
                                 <div class="nx-resume-stats-row">
-                                    <span><b style="color:#fff;">${progPercentText}</b> completado</span>
-                                    <span>${timeLeft}</span>
+                                    <span style=" text-align: left;"><b style="color:#fff;">${progPercentText}</b> Completado</span>
+                                    <span style=" text-align: right;">${timeLeft}</span>
                                 </div>
                                 <div class="nx-resume-actions">
                                     <div class="nx-resume-grid-alt">
@@ -702,6 +746,36 @@ function closeReader() {
     if (typeof refrescarValorAleatorio === 'function') {
         refrescarValorAleatorio();
     }
+	
+	// --- ACTUALIZACIÓN DE TIEMPO EN PORTADA ANTES DEL RESET ---
+    if (currentBook) {
+        let totalWords = 0;
+        currentBook.chapters.forEach(ch => {
+            if (ch.content) {
+                ch.content.forEach(text => { 
+                    totalWords += (text || "").split(/\s+/).filter(w => w.length > 0).length; 
+                });
+            }
+        });
+
+        const nuevoTiempoStr = typeof calcularTiempoLectura === 'function' 
+            ? calcularTiempoLectura(totalWords) 
+            : (Math.ceil(totalWords / 190) + " min");
+
+        // Buscamos la card específica en la biblioteca para actualizar su tiempo visual
+        const allCards = document.querySelectorAll('.book-card');
+        allCards.forEach(card => {
+            // Buscamos la card que contiene el título del libro actual
+            if (card.innerText.includes(currentBook.title)) {
+                const timeContainer = card.querySelector('p .mi-round')?.parentElement;
+                if (timeContainer) {
+                    timeContainer.innerHTML = `<span class="mi-round text-[18px] align-middle mr-1 notranslate">schedule</span>${nuevoTiempoStr}`;
+                }
+            }
+        });
+    }
+    // ---------------------------------------------------------
+
     // 1. LIMPIEZA DE PROCESOS ACTIVOS (Voz, Timers y Música)
     // Detenemos cualquier audio de síntesis inmediatamente
     if (typeof stopSpeech === 'function') {
@@ -1265,20 +1339,7 @@ function focusInitialReaderElement() {
     if (playBtn) playBtn.focus();
 }
 
-function checkAutoLoad() {
-    const params = getUrlParams();
-    if (params.repo !== null && params.book) {
-        const repoIdx = parseInt(params.repo);
-        // Buscamos el libro en la librería cargada
-        const book = library.find(b => b.fileName === params.book && b.repoIdx === repoIdx);
-        if (book) {
-            // AJUSTE: Pasamos ch y ck directamente a openReader.
-            // Si son 0 o null, openReader usará automáticamente la memoria local.
-            // Si tienen valor (link compartido), openReader priorizará esos valores.
-            openReader(book.id, params.ch, params.ck);
-        }
-    }
-}
+
 
 
 // --- LÓGICA DE NAVEGACIÓN GLOBAL (HEADER + PODCAST) ---
@@ -1340,35 +1401,7 @@ function launchFullScreen(element) {
 }
 
 
-function saveProgress() {
-    if (!currentBook) return;
-    
-    // ESCUDO: Si el título es el placeholder del HTML, abortamos el guardado
-    // para no ensuciar el localStorage con "BOOK TITLE"
-    const titleToCheck = (currentBook.title || "").toLowerCase();
-    if (titleToCheck.includes("book title") || titleToCheck === "") return;
 
-    const history = JSON.parse(localStorage.getItem('nexus_reading_history') || '{}');
-
-    const bookProgress = {
-        bookId: currentBook.id,
-        fileName: currentBook.fileName,
-        repoIdx: currentBook.repoIdx,
-        bookTitle: currentBook.title, // Mantenemos tu nombre de variable
-        chapterIndex: currentChapterIndex,
-        chapterTitle: currentBook.chapters[currentChapterIndex]?.title || "Capítulo " + (currentChapterIndex + 1),
-        chunk: currentChunkIndex,
-        timestamp: Date.now(),
-        // Añadimos cover para que la tarjeta la tenga
-        cover: currentBook.cover 
-    };
-
-    history[currentBook.fileName] = bookProgress;
-    localStorage.setItem('nexus_reading_history', JSON.stringify(history));
-    
-    // Sincronizamos con la llave que usa checkLastSession
-    localStorage.setItem('nexus_last_session', JSON.stringify(bookProgress));
-}
 
 function checkBookProgress(fileName) {
     const history = JSON.parse(localStorage.getItem('nexus_reading_history') || '{}');

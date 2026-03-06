@@ -53,6 +53,7 @@ function getDynamicChunkLimit() {
 
 // --- CONTROLADOR DE VOZ DEL LECTOR ---
 
+
 function setReaderSpeed(rate) {
     window.readerSpeechRate = rate;
     const label = document.getElementById('reader-speed-label');
@@ -62,7 +63,14 @@ function setReaderSpeed(rate) {
     if (typeof updateVisualTimerSpeed === 'function') {
         updateVisualTimerSpeed();
     }
+
+    // --- NUEVA LÍNEA CLAVE ---
+    // Forzamos la actualización del cronómetro de lectura al cambiar la velocidad
+    if (typeof updateTimeRemaining === 'function') {
+        updateTimeRemaining();
+    }
 }
+
 	
 	function filterTextForVoice(text) {
 		let cleanText = text;

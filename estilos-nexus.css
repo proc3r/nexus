@@ -4649,7 +4649,7 @@ button {
     z-index: 999999;
     justify-content: center;
     align-items: center;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Barlow Condensed', 'oswald', sans-serif;
     backdrop-filter: blur(1px);
     animation: nx-resume-fade 0.3s ease;
     transition: opacity 1s ease, visibility 0.3s;
@@ -4720,18 +4720,21 @@ button {
     font-family: 'Ancizar Sans', sans-serif;
     font-weight: 800;
     padding: 0 10px;
+	overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .nx-resume-chapter-name {
     font-size: 22px;
     margin: 0;
-    white-space: nowrap;
+    white-space: break-spaces;
     overflow: hidden;
     text-overflow: ellipsis;
     text-transform: uppercase;
     font-family: 'Barlow Condensed', 'oswald', sans-serif;
     color: #27ff00;
-	    padding-bottom: 30px;
+    padding-bottom: 30px;
+    line-height: 22px;
 }
 
 
@@ -4754,12 +4757,15 @@ button {
 }
 
 .nx-resume-stats-row {
-        display: flex;
+    display: flex;
     justify-content: space-between;
     color: #d7d7d7;
     font-size: 19px;
     margin-bottom: 32px;
+    margin-top: 5px;
+    text-transform: capitalize;
     font-family: 'Barlow Condensed', 'oswald', sans-serif;
+    line-height: 19px;
 }
 
 /* Sistema de botones nx */

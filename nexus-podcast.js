@@ -91,7 +91,14 @@ function initPodcast(bookId) {
     const srtUrl = fullUrl.replace(/\.(mp3|m4a|wav|ogg)$/i, '.srt');
     
     podAudioInstance.src = fullUrl;
-    document.getElementById('podcast-book-title').innerText = book.title;
+    
+    // --- MEJORA: PRIORIZAR NOMBRE REAL DEL METADATO ---
+    const podcastTitleEl = document.getElementById('podcast-book-title');
+    if (podcastTitleEl) {
+        // Usamos displayName (que tiene los griegos/tildes) y si no existe, el title limpio
+        podcastTitleEl.innerText = (book.displayName || book.title).toUpperCase();
+    }
+    // -------------------------------------------------
     
     playerContainer.classList.remove('hidden');
     playerContainer.style.display = 'flex';
@@ -348,7 +355,10 @@ function showPodcastEndPortal(bookId) {
     const portalImg = document.getElementById('portal-cover-img');
     const portalTitle = document.getElementById('portal-title-text');
 
-    if (portalTitle) portalTitle.innerText = book.title;
+    if (portalTitle) {
+        // Usamos displayName para asegurar que aparezca "(ESTADOS)" con tildes y caracteres reales
+        portalTitle.innerText = (book.displayName || book.title).toUpperCase();
+    }
     if (portalImg) portalImg.src = book.cover;
 
     portal.classList.remove('hidden');
@@ -414,14 +424,39 @@ function closePodcastEndPortal() {
 
 function setupMediaSession(book) {
     if ('mediaSession' in navigator) {
+        // Usamos el nombre real del metadato para la pantalla de bloqueo
+        const displayTitle = (book.displayName || book.title).toUpperCase();
+        
         navigator.mediaSession.metadata = new MediaMetadata({
-            title: book.title,
+            title: displayTitle,
             artist: 'Nexus Podcast',
-            artwork: [{ src: book.cover, sizes: '512x512', type: 'image/jpeg' }]
+            album: 'Lector Nouménico',
+            artwork: [
+                { 
+                    src: book.cover || DEFAULT_COVER, 
+                    sizes: '512x512', 
+                    type: 'image/webp' // WebP es más ligero para carga rápida
+                }
+            ]
         });
 
-        navigator.mediaSession.setActionHandler('play', () => togglePodcastPlay(true));
-        navigator.mediaSession.setActionHandler('pause', () => togglePodcastPlay(false));
+        // Estos manejadores permiten que los botones físicos de los auriculares
+        // y los botones de la pantalla de bloqueo funcionen con tu código
+        navigator.mediaSession.setActionHandler('play', () => {
+            togglePodcastPlay(true);
+        });
+        
+        navigator.mediaSession.setActionHandler('pause', () => {
+            togglePodcastPlay(false);
+        });
+
+        // Opcional: Permitir saltar 10 segundos atrás/adelante desde el sistema
+        navigator.mediaSession.setActionHandler('seekbackward', () => {
+            if (podAudioInstance) podAudioInstance.currentTime = Math.max(podAudioInstance.currentTime - 10, 0);
+        });
+        navigator.mediaSession.setActionHandler('seekforward', () => {
+            if (podAudioInstance) podAudioInstance.currentTime = Math.min(podAudioInstance.currentTime + 10, podAudioInstance.duration);
+        });
     }
 }
 

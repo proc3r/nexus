@@ -12,41 +12,61 @@
 		const RTL_LANGS = ['ar', 'he', 'fa', 'ur', 'dv', 'ha', 'ps', 'yi'];
 		
 		
-		function saveProgress() {
+function saveProgress() {
     if (!currentBook) return;
     
-    // 1. Obtener el historial completo o crear uno nuevo
+    // ESCUDO: No guardar si el título es un placeholder genérico
+    const titleToCheck = (currentBook.title || "").toLowerCase();
+    if (titleToCheck.includes("book title") || titleToCheck === "") return;
+
     const history = JSON.parse(localStorage.getItem('nexus_reading_history') || '{}');
 
-    // 2. Crear el registro específico de este libro
     const bookProgress = {
         bookId: currentBook.id,
         fileName: currentBook.fileName,
         repoIdx: currentBook.repoIdx,
-        bookTitle: currentBook.title,
+        // PRIORIDAD: Usamos el nombre real del metadato si existe
+        bookTitle: currentBook.displayName || currentBook.title, 
         chapterIndex: currentChapterIndex,
-        chapterTitle: currentBook.chapters[currentChapterIndex].title,
+        chapterTitle: currentBook.chapters[currentChapterIndex]?.title || "Capítulo " + (currentChapterIndex + 1),
         chunk: currentChunkIndex,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        cover: currentBook.cover 
     };
 
-    // 3. Guardar en el historial usando el fileName como clave única
     history[currentBook.fileName] = bookProgress;
     localStorage.setItem('nexus_reading_history', JSON.stringify(history));
     
-    // Mantenemos nexus_last_session solo para la "Card de Continuar" del menú principal
+    // Sincronizamos la sesión para la tarjeta del inicio
     localStorage.setItem('nexus_last_session', JSON.stringify(bookProgress));
 }
 
 	function checkLastSession() {
-		const saved = localStorage.getItem('nexus_last_session');
-		if (saved) {
-			const data = JSON.parse(saved);
-			document.getElementById('resume-chapter-label').innerText = stripHtml(data.chapterTitle) || "Sección desconocida";
-			document.getElementById('resume-book-label').innerText = data.bookTitle || "Libro desconocido";
-			document.getElementById('resume-card').classList.remove('hidden');
-		}
-	}
+    const saved = localStorage.getItem('nexus_last_session');
+    if (saved) {
+        const data = JSON.parse(saved);
+        
+        // --- LIMPIEZA VISUAL DEL TÍTULO DEL LIBRO ---
+        let displayTitle = data.bookTitle || "Libro desconocido";
+        
+        // Si el título guardado tiene el nombre técnico (con .md o guiones bajos), lo limpiamos
+        if (displayTitle.toLowerCase().endsWith('.md') || displayTitle.includes('_')) {
+            displayTitle = displayTitle
+                .replace('.md', '')
+                .replace(/_/g, ' ')
+                .replace(/[^\w\s\u0370-\u03FFáéíóúÁÉÍÓÚñÑ\+]/g, ''); // Limpieza de caracteres raros
+        }
+        
+        // 1. Asignamos el título limpio a la etiqueta
+        document.getElementById('resume-book-label').innerText = displayTitle;
+        
+        // 2. Asignamos el capítulo (usando tu stripHtml)
+        document.getElementById('resume-chapter-label').innerText = stripHtml(data.chapterTitle) || "Sección desconocida";
+        
+        // 3. Mostramos la tarjeta
+        document.getElementById('resume-card').classList.remove('hidden');
+    }
+}
 
 
 
@@ -179,31 +199,93 @@ function processFormatting(str) {
     if (wasSpeaking) startSpeech();
 }				  
 
+	
 	function updateProgress() {
     if(!currentBook || !currentBook.chapters || currentBook.chapters.length === 0) return;
-		const chapterWeight = 100 / currentBook.chapters.length;
-		const progressInChapter = chunks.length > 0 ? currentChunkIndex / chunks.length : 0;
-		const p = (currentChapterIndex * chapterWeight) + (progressInChapter * chapterWeight);
-		document.getElementById('reading-progress-bar').style.width = `${p}%`;
-		document.getElementById('progress-percent').innerText = `${Math.round(p)}%`;
-		document.getElementById('current-p-num').innerText = currentChunkIndex + 1;
-		document.getElementById('total-p-num').innerText = chunks.length;
-		updateTimeRemaining();
-	}
 
-	function updateTimeRemaining() {
-		if (!currentBook) return;
-		let remainingWords = 0;
-		for (let i = currentChunkIndex + 1; i < chunks.length; i++) remainingWords += (chunks[i] || "").split(/\s+/).length;
-		for (let i = currentChapterIndex + 1; i < currentBook.chapters.length; i++) {
-			currentBook.chapters[i].content.forEach(text => { remainingWords += (text || "").split(/\s+/).length; });
-		}
-		const mins = remainingWords / 180;
-		const timeEl = document.getElementById('time-remaining');
-		if (mins < 1) timeEl.innerText = "Falta menos de 1 min";
-		else if (mins < 60) timeEl.innerText = `Faltan ${Math.ceil(mins)} min`;
-		else timeEl.innerText = `Faltan ${Math.floor(mins/60)}h ${Math.ceil(mins%60)}m`;
-	}
+    // 1. Calculamos el total de chunks de todo el libro (igual que en los marcadores)
+    const totalChunks = currentBook.chapters.reduce((acc, ch) => acc + (ch.content ? ch.content.length : 0), 0);
+    
+    if (totalChunks === 0) return;
+
+    // 2. Calculamos cuántos chunks hemos dejado atrás en los capítulos anteriores
+    let chunksBeforeCurrentChapter = 0;
+    for (let i = 0; i < currentChapterIndex; i++) {
+        chunksBeforeCurrentChapter += currentBook.chapters[i].content ? currentBook.chapters[i].content.length : 0;
+    }
+
+    // 3. Sumamos el avance real dentro del capítulo actual (currentChunkIndex)
+    const totalChunksProcessed = chunksBeforeCurrentChapter + currentChunkIndex;
+
+    // 4. El porcentaje real es la posición del párrafo actual sobre el total del libro
+    const p = (totalChunksProcessed / totalChunks) * 100;
+
+    // ACTUALIZACIÓN DE INTERFAZ (Manteniendo tus IDs y lógica original)
+    document.getElementById('reading-progress-bar').style.width = `${p}%`;
+    document.getElementById('progress-percent').innerText = `${Math.round(p)}%`;
+    
+    // Estos muestran el progreso dentro del capítulo actual (se mantienen igual para no confundir al lector)
+    document.getElementById('current-p-num').innerText = currentChunkIndex + 1;
+    document.getElementById('total-p-num').innerText = chunks.length;
+
+    if (typeof updateTimeRemaining === 'function') {
+        updateTimeRemaining();
+    }
+}
+
+function calcularTiempoLectura(totalPalabras) {
+    // Usamos la misma base que el lector (190) 
+    // y aplicamos la velocidad preferida del usuario si existe
+    const rate = window.readerSpeechRate || 1.0;
+    const mins = totalPalabras / (190 * rate);
+    
+    if (mins < 60) return `${Math.ceil(mins)} min`;
+    const h = Math.floor(mins / 60);
+    const m = Math.ceil(mins % 60);
+    return `${h}h ${m}m`;
+}
+
+
+
+function updateTimeRemaining() {
+    if (!currentBook) return;
+    
+    let remainingWords = 0;
+    
+    // 1. Palabras en el capítulo actual
+    for (let i = currentChunkIndex + 1; i < chunks.length; i++) {
+        remainingWords += (chunks[i] || "").split(/\s+/).length;
+    }
+    
+    // 2. Palabras en los capítulos restantes
+    for (let i = currentChapterIndex + 1; i < currentBook.chapters.length; i++) {
+        const chapter = currentBook.chapters[i];
+        if (chapter && chapter.content) {
+            chapter.content.forEach(text => { 
+                remainingWords += (text || "").split(/\s+/).length; 
+            });
+        }
+    }
+
+    // 3. Cálculo dinámico usando tu variable de nexus-voice
+    const currentRate = window.readerSpeechRate || 1.0; 
+    const baseWPM = 190; // Base de palabras por minuto
+    const mins = remainingWords / (baseWPM * currentRate);
+    
+    const timeEl = document.getElementById('time-remaining');
+    if (!timeEl) return;
+
+    if (mins < 1) {
+        timeEl.innerText = "Falta menos de 1 min";
+    } else if (mins < 60) {
+        timeEl.innerText = `Faltan ${Math.ceil(mins)} min`;
+    } else {
+        const h = Math.floor(mins / 60);
+        const m = Math.ceil(mins % 60);
+        timeEl.innerText = `Faltan ${h}h ${m}m`;
+    }
+}
+
 
 function renderTOC() {
     const list = document.getElementById('chapter-list');
@@ -252,54 +334,83 @@ function renderTOC() {
 	function toggleExpandMode() { allExpanded = !allExpanded; document.getElementById('expand-mode-btn').classList.toggle('text-[#ffcc00]', allExpanded); document.querySelectorAll('[id^="child-container-"]').forEach(c => c.classList.toggle('hidden', !allExpanded)); if (!allExpanded) expandActiveHierarchy(currentChapterIndex); }
 	function expandActiveHierarchy(idx) { if (!allExpanded) { let current = document.getElementById(`toc-item-${idx}`); while (current) { const container = current.parentElement; if (container && container.id.startsWith('child-container-')) { container.classList.remove('hidden'); const pIdx = container.id.replace('child-container-', ''); const t = document.querySelector(`#toc-item-${pIdx} .toc-toggle`); if(t) t.innerText = '−'; current = document.getElementById(`toc-item-${pIdx}`); } else current = null; } } }
 	
-	function renderProgressMarkers() {
+
+
+function renderProgressMarkers() {
     const container = document.getElementById('progress-markers-container');
-    if (!container || !currentBook) return; // Validación de seguridad
+    if (!container || !currentBook || !currentBook.chapters) return; 
+    
     container.innerHTML = '';
-		if (!window.ttHideTimer) window.ttHideTimer = null;
-		currentBook.chapters.forEach((ch, i) => {
-			if (ch.level > 2) return;
-			const pos = (i / currentBook.chapters.length) * 100;
-			const marker = document.createElement('div');
-			marker.className = `progress-marker`;
-			marker.style.left = `${pos}%`;
-			marker.innerHTML = ch.level === 1 ? `<div class="marker-h1-dot"></div>` : `<div class="marker-h2-line"></div>`;
-			const tooltip = document.createElement('div');
-			tooltip.className = 'marker-tooltip condensed';
-			tooltip.innerText = stripHtml(ch.title);
-			if (pos < 15) tooltip.classList.add('edge-left');
-			else if (pos > 85) tooltip.classList.add('edge-right');
-			marker.appendChild(tooltip);
-			const showTooltipForced = () => {
-				if (window.ttHideTimer) clearTimeout(window.ttHideTimer);
-				document.querySelectorAll('.marker-tooltip').forEach(t => {
-					t.classList.remove('force-show');
-				});
-				tooltip.classList.add('force-show');
-			};
-			marker.addEventListener('touchstart', (e) => {
-				showTooltipForced();
-				window.ttHideTimer = setTimeout(() => {
-					tooltip.classList.remove('force-show');
-				}, 4000);
-			}, { passive: true });
-			marker.addEventListener('mouseenter', showTooltipForced);
-			marker.addEventListener('mouseleave', () => {
-				if (window.ttHideTimer) clearTimeout(window.ttHideTimer);
-				window.ttHideTimer = setTimeout(() => {
-					tooltip.classList.remove('force-show');
-				}, 1000); // 1 segundo de cortesía en escritorio
-			});
-			marker.onclick = (e) => { 
-				e.stopPropagation(); 
-				tooltip.classList.remove('force-show');
-				if (window.ttHideTimer) clearTimeout(window.ttHideTimer);
-				jumpToChapter(i); 
-			};
-			
-			container.appendChild(marker);
-		});
-	}
+    if (!window.ttHideTimer) window.ttHideTimer = null;
+
+    // 1. Calculamos el total de chunks (párrafos) de todo el libro para tener una base 100%
+    const totalChunks = currentBook.chapters.reduce((acc, ch) => acc + (ch.content ? ch.content.length : 0), 0);
+    
+    // Variable para ir sumando cuántos chunks llevamos recorridos
+    let accumulatedChunks = 0;
+
+    currentBook.chapters.forEach((ch, i) => {
+        // Obtenemos la cantidad de chunks de este capítulo específico
+        const chapterSize = ch.content ? ch.content.length : 0;
+
+        // Solo dibujamos puntos para H1 y H2 (tu lógica original)
+        if (ch.level <= 2) {
+            // 2. EL CAMBIO CLAVE: La posición es (Chunks anteriores / Total Chunks) * 100
+            // Esto hace que la distancia sea proporcional a la cantidad de párrafos
+            const pos = totalChunks > 0 ? (accumulatedChunks / totalChunks) * 100 : 0;
+
+            const marker = document.createElement('div');
+            marker.className = `progress-marker`;
+            marker.style.left = `${pos}%`;
+            
+            // Mantenemos tu diseño de puntos y líneas
+            marker.innerHTML = ch.level === 1 ? `<div class="marker-h1-dot"></div>` : `<div class="marker-h2-line"></div>`;
+            
+            // --- LÓGICA DE TOOLTIP (SE MANTIENE IGUAL) ---
+            const tooltip = document.createElement('div');
+            tooltip.className = 'marker-tooltip condensed';
+            tooltip.innerText = stripHtml(ch.title);
+            
+            if (pos < 15) tooltip.classList.add('edge-left');
+            else if (pos > 85) tooltip.classList.add('edge-right');
+            
+            marker.appendChild(tooltip);
+
+            const showTooltipForced = () => {
+                if (window.ttHideTimer) clearTimeout(window.ttHideTimer);
+                document.querySelectorAll('.marker-tooltip').forEach(t => t.classList.remove('force-show'));
+                tooltip.classList.add('force-show');
+            };
+
+            marker.addEventListener('touchstart', (e) => {
+                showTooltipForced();
+                window.ttHideTimer = setTimeout(() => {
+                    tooltip.classList.remove('force-show');
+                }, 4000);
+            }, { passive: true });
+
+            marker.addEventListener('mouseenter', showTooltipForced);
+            marker.addEventListener('mouseleave', () => {
+                if (window.ttHideTimer) clearTimeout(window.ttHideTimer);
+                window.ttHideTimer = setTimeout(() => {
+                    tooltip.classList.remove('force-show');
+                }, 1000);
+            });
+
+            marker.onclick = (e) => { 
+                e.stopPropagation(); 
+                tooltip.classList.remove('force-show');
+                if (window.ttHideTimer) clearTimeout(window.ttHideTimer);
+                jumpToChapter(i); 
+            };
+            
+            container.appendChild(marker);
+        }
+
+        // 3. Importante: Sumamos el tamaño de este capítulo para el siguiente punto
+        accumulatedChunks += chapterSize;
+    });
+}
 		
     
 	
@@ -492,15 +603,13 @@ function shareCurrentPoint() {
     const previewArea = document.getElementById('share-text-preview');
     const textContainer = document.querySelector('.share-text-content');
     
-    // 1. Datos básicos del título
-    document.getElementById('share-book-title').innerText = currentBook.title;
+    // 1. Datos básicos del título - AJUSTADO PARA USAR EL NOMBRE REAL
+    // Usamos displayName para que aparezca con tildes, letras griegas, etc.
+    document.getElementById('share-book-title').innerText = currentBook.displayName || currentBook.title;
 
     // 2. LÓGICA DE IMAGEN ULTRA-SIMPLE
-    // Prioridad 1: La imagen que ya tiene el objeto currentBook
-    // Prioridad 2: La imagen por defecto (DEFAULT_COVER)
     let finalCover = currentBook.cover || DEFAULT_COVER;
 
-    // Si por algún error de carga la imagen es un audio, forzamos la base
     if (typeof finalCover === 'string' && finalCover.toLowerCase().includes('.mp3')) {
         finalCover = DEFAULT_COVER;
     }
@@ -577,25 +686,29 @@ function shareCurrentPoint() {
 function executeShare(platform) {
     const modal = document.getElementById('share-modal');
     const textSnippet = modal.dataset.fullContent || "";
-    const bookTitle = document.getElementById('share-book-title').innerText.toUpperCase();
+    
+    // --- CAMBIO 1: Título Estético para el mensaje ---
+    // Usamos el displayName si existe, de lo contrario el título actual del elemento
+    const realTitle = currentBook.displayName || document.getElementById('share-book-title').innerText;
+    const bookTitleFormatted = realTitle.toUpperCase();
 
     const currentPath = window.location.pathname;
     const directory = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
     const finalBase = window.location.origin + directory + "lector.html";
 
-    // --- MEJORA DE ENLACE SMART (Legible) ---
-    // 1. Limpiamos el nombre: quitamos .md y cambiamos espacios por guiones bajos
+    // --- MEJORA DE ENLACE SMART (Técnico - NO CAMBIAR A DISPLAYNAME AQUÍ) ---
+    // 1. Limpiamos el nombre del archivo: mantenemos fileName para que el link funcione
     let cleanBookName = currentBook.fileName.replace('.md', '').replace(/\s+/g, '_');
     
-    // 2. Codificamos solo el nombre (para proteger caracteres como el + o tildes)
-    // pero mantenemos los separadores | fuera de la codificación
+    // 2. Codificamos el nombre técnico del archivo
     const smartParams = `${currentBook.repoIdx}|${encodeURIComponent(cleanBookName)}|${currentChapterIndex}|${currentChunkIndex}`;
     
-    // 3. El resultado será ?s=0|Nombre_Libro|1|3 (el navegador respetará los |)
+    // 3. El enlace técnico que usará el receptor
     const shareUrl = `${finalBase}?s=${smartParams}`;
     // ----------------------------------------
 
-    const fullMessage = `*${bookTitle}*\n\n_"${textSnippet}"_\n\n${shareUrl}`;
+    // --- CAMBIO 2: El mensaje ahora usa el título real con caracteres especiales ---
+    const fullMessage = `*${bookTitleFormatted}*\n\n_"${textSnippet}"_\n\n${shareUrl}`;
 
     let finalUrl = "";
     switch(platform) {
@@ -603,14 +716,14 @@ function executeShare(platform) {
             finalUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
             break;
         case 'reddit':
-            finalUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(bookTitle)}`;
+            finalUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(bookTitleFormatted)}`;
             break;
         case 'whatsapp':
             finalUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullMessage)}`;
             break;
         case 'x':
             const xMsg = `"${textSnippet.substring(0, 150)}..."`;
-            finalUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(bookTitle + '\n' + xMsg)}&url=${encodeURIComponent(shareUrl)}`;
+            finalUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(bookTitleFormatted + '\n' + xMsg)}&url=${encodeURIComponent(shareUrl)}`;
             break;
         case 'telegram':
             finalUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(fullMessage)}`;
@@ -619,7 +732,7 @@ function executeShare(platform) {
             finalUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
             break;
         case 'email':
-            finalUrl = `mailto:?subject=${encodeURIComponent(bookTitle)}&body=${encodeURIComponent(fullMessage)}`;
+            finalUrl = `mailto:?subject=${encodeURIComponent(bookTitleFormatted)}&body=${encodeURIComponent(fullMessage)}`;
             break;
         case 'copy':
             navigator.clipboard.writeText(shareUrl).then(() => {

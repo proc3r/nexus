@@ -30,17 +30,22 @@ function renderLibrary() {
         const hasSynopsis = book.chapters.some(ch => 
             ch.content && ch.content.some(text => (text || "").trim().startsWith('# Sinopsis'))
         );
+
         let totalWords = 0;
         book.chapters.forEach(ch => ch.content.forEach(text => { 
             totalWords += (text || "").split(/\s+/).filter(w => w.length > 0).length; 
         }));
-        const totalMins = Math.ceil(totalWords / 185);
-        const timeStr = totalMins >= 60 ? `${Math.floor(totalMins/60)}h ${totalMins%60}m` : `${totalMins} min`;
+
+        // --- CAMBIO UNIFICADO AQUÍ ---
+        // Usamos la función auxiliar que ya agregaste a nexus-functions
+        const timeStr = typeof calcularTiempoLectura === 'function' 
+            ? calcularTiempoLectura(totalWords) 
+            : (Math.ceil(totalWords / 190) + " min"); // Fallback si la función no carga
+        // -----------------------------
         
         const card = document.createElement('div');
         card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[0.5rem] hover:border-[#ffcc00] cursor-pointer text-center overflow-hidden';
         card.onclick = (e) => {
-            // Evitamos que se abra el lector si se hace clic en Sinopsis o Podcast
             if (!e.target.closest('.btn-synopsis') && !e.target.closest('.podcast-badge-btn')) {
                 openReader(book.id);
             }
@@ -61,7 +66,7 @@ function renderLibrary() {
 
                 <div class="book-card-overlay absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black/95 via-black/20 to-transparent">
                     <h3 class="book-card-title-internal text-left text-white font-bold leading-[1em] uppercase condensed text-[1.3rem] mb-[0.2em]">
-                        ${book.title}
+                        ${book.displayName || book.title}
                     </h3>
                     <div class="flex items-center justify-between h-[25%] w-full pt-2 border-t border-white/10">
                         <p class="text-[15px] text-white/70 font-[500] uppercase tracking-[0.01em] condensed">
