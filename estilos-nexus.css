@@ -2121,8 +2121,8 @@ body.sidebar-open {
     position: fixed;
     inset: 0;
     z-index: 2000; /* Por encima de todo */
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
     display: flex;
     flex-direction: column;
     align-items: center;
