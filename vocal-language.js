@@ -63,7 +63,7 @@ async function syncLanguageSupport() {
     try {
         const preferred = localStorage.getItem('nexus_preferred_lang');
         // Limpiamos el código por si viene con sub-regiones (ej: 'zh-CN' -> 'zh')
-        const targetLang = preferred || 'es-ES';
+        const targetLang = preferred || 'es-US';
         const baseLang = targetLang.split('-')[0].toLowerCase();
         
         // Si el idioma base es español, siempre hay voz física disponible

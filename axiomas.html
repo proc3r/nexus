@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MN | Terminal Operador V5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Barlow+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cyan: #22d3ee;
+            --blue: #3b82f6;
+            --glass: rgba(0, 10, 20, 0.85);
+            --neon-glow: 0 0 15px rgba(34, 211, 238, 0.3);
+        }
+
+        body {
+            margin: 0;
+            background-color: #000;
+            color: #f8fafc;
+            font-family: 'JetBrains Mono', monospace;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #starfield {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #001f3f 0%, #000 100%);
+        }
+
+        /* Contenedor de Niveles */
+        #main-viewport {
+            height: 100vh;
+            width: 100vw;
+            transition: transform 1s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-style: preserve-3d;
+        }
+
+        .level-container {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 2000px; /* Mayor perspectiva para el efecto anillo */
+        }
+
+        .wheel-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            /* Inclinación de la cámara: mirada desde arriba */
+            transform: rotateX(15deg) translateY(-20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .axioma-card {
+            position: absolute;
+            width: 85vw;
+            max-width: 480px;
+            aspect-ratio: 16/10;
+            padding: 2.5rem;
+            border-radius: 24px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 211, 238, 0.15);
+            box-shadow: var(--neon-glow);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Shifters (Flechas Escritorio) */
+        .shifter {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 200;
+            width: 60px;
+            height: 60px;
+            background: rgba(34, 211, 238, 0.05);
+            border: 1px solid rgba(34, 211, 238, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        body:hover .shifter {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .shifter:hover {
+            background: rgba(34, 211, 238, 0.2);
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+        }
+
+        .shifter-left { left: 5vw; }
+        .shifter-right { right: 5vw; }
+
+        /* HUD & Indicadores */
+        .hud-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 150;
+            border: 1px solid rgba(34, 211, 238, 0.05);
+            margin: 10px;
+        }
+
+        .level-dots {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border: 1px solid var(--cyan);
+            border-radius: 50%;
+            transition: 0.4s;
+        }
+
+        .dot.active {
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+            height: 30px;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .axioma-card {
+                padding: 1.5rem;
+                height: auto;
+                min-height: 320px;
+            }
+            .shifter { display: none; } /* Ocultar en móvil, usar touch */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="starfield"></div>
+    <div class="hud-overlay"></div>
+
+    <!-- NAVEGACIÓN ESCRITORIO -->
+    <div class="shifter shifter-left" onclick="changeAxioma(-1)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </div>
+    <div class="shifter shifter-right" onclick="changeAxioma(1)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </div>
+
+    <!-- HUD SUPERIOR -->
+    <header class="fixed top-0 left-0 w-full p-6 z-[200] flex justify-between items-start pointer-events-none">
+        <div>
+            <h1 class="text-xl font-bold font-condensed tracking-widest text-white">MODELO_NOUMÉNICO</h1>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></span>
+                <span id="status-label" class="text-[9px] text-cyan-500/70 font-mono uppercase tracking-widest">NIVEL_01: FUNDAMENTOS</span>
+            </div>
+        </div>
+        <div class="text-right font-mono text-[9px] text-cyan-500/40">
+            OS_VERSION: 5.0.1_STABLE<br>
+            USER: OPERADOR_VALIDADO
+        </div>
+    </header>
+
+    <!-- INDICADOR DE NIVEL -->
+    <div class="level-dots" id="level-dots">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+
+    <!-- VIEWPORT PRINCIPAL -->
+    <main id="main-viewport">
+        <section class="level-container" id="level-0"><div class="wheel-wrapper" id="wheel-0"></div></section>
+        <section class="level-container" id="level-1"><div class="wheel-wrapper" id="wheel-1"></div></section>
+        <section class="level-container" id="level-2"><div class="wheel-wrapper" id="wheel-2"></div></section>
+    </main>
+
+    <footer class="fixed bottom-6 w-full text-center z-[200] pointer-events-none">
+        <p class="text-[8px] text-cyan-500/40 uppercase tracking-[0.4em]">Deslizar Vertical (Nivel) | Horizontal (Explorar)</p>
+    </footer>
+
+    <script>
+        const axiomas = [
+            { id: 1, lv: 0, tag: "AX_01", title: "Flujo de Datos", text: "La realidad es información procesada por la consciencia. No hay objetos, hay eventos informacionales." },
+            { id: 2, lv: 0, tag: "AX_02", title: "Principio 3+1X", text: "Conservación y Reescritura. Tres ejes de estabilidad y uno de actualización creativa (X)." },
+            { id: 3, lv: 0, tag: "AX_03", title: "Fractal Holón", text: "El todo está en la parte. Espejo universal." },
+            { id: 4, lv: 0, tag: "AX_04", title: "División 95/5", text: "Percibimos solo el 5% renderizado. El 95% es código fuente noético." },
+            { id: 5, lv: 0, tag: "AX_05", title: "Avatar Interfaz", text: "El cuerpo humano es un biosensor. Una interfaz para la fuente." },
+            { id: 6, lv: 0, tag: "AX_06", title: "Noema Primario", text: "La creencia es la ley. Validamos la física local colectivamente." },
+            { id: 7, lv: 0, tag: "AX_07", title: "Matrioska Qubits", text: "Procesamiento en capas: desde el ego hasta el cosmos." },
+            
+            { id: 8, lv: 1, tag: "META_01", title: "Retrocausalidad", text: "El origen del universo es su propio resultado final. El futuro tira del pasado." },
+            { id: 9, lv: 1, tag: "META_02", title: "Alfa-Omega", text: "Equilibrio absoluto entre el inicio y el destino infinito." },
+            { id: 10, lv: 1, tag: "META_03", title: "Cosecha Noesis", text: "El universo destila conocimiento a través de la experiencia consciente." },
+            
+            { id: 11, lv: 2, tag: "XI_SVRN", title: "Soberanía Final", text: "Despertar del Operador. El fin del determinismo y el inicio de la programación consciente." }
+        ];
+
+        let currentLevel = 0;
+        let currentIndices = [0, 0, 0];
+        let isTransitioning = false;
+
+        function init() {
+            axiomas.forEach(ax => {
+                const wheel = document.getElementById(`wheel-${ax.lv}`);
+                const card = document.createElement('div');
+                card.className = `axioma-card`;
+                card.id = `card-${ax.id}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-[10px] text-cyan-400 font-bold border-b border-cyan-400/30 pb-1 tracking-widest">${ax.tag}</span>
+                        <span class="text-[9px] text-cyan-500/20 font-mono">NODE_0${ax.id}</span>
+                    </div>
+                    <div>
+                        <h2 class="text-4xl md:text-5xl font-condensed font-bold text-white mb-4 uppercase tracking-tighter leading-none">${ax.title}</h2>
+                        <div class="h-0.5 bg-gradient-to-r from-cyan-500 to-transparent w-full mb-6"></div>
+                        <p class="text-slate-300 text-lg md:text-xl font-light italic leading-relaxed">"${ax.text}"</p>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px] text-cyan-500/40 uppercase font-mono">
+                        <span>Status: Validated</span>
+                        <span>[${ax.id}/11]</span>
+                    </div>
+                `;
+                wheel.appendChild(card);
+            });
+            update();
+        }
+
+        function update() {
+            for (let lv = 0; lv < 3; lv++) {
+                const cardsInLv = axiomas.filter(ax => ax.lv === lv);
+                const activeIdx = currentIndices[lv];
+                
+                cardsInLv.forEach((ax, i) => {
+                    const card = document.getElementById(`card-${ax.id}`);
+                    const diff = i - activeIdx;
+                    
+                    // Efecto Anillo: Curvatura hacia el fondo
+                    const radius = 800; // Radio del anillo virtual
+                    const angle = diff * 40; // Separación angular
+                    const z = Math.cos(angle * Math.PI / 180) * radius - radius;
+                    const x = Math.sin(angle * Math.PI / 180) * (radius * 0.8);
+                    const rotateY = -angle;
+                    
+                    const opacity = 1 - Math.abs(diff) * 0.45;
+                    const blur = Math.abs(diff) * 6;
+                    const scale = 1 - Math.abs(diff) * 0.15;
+
+                    card.style.transform = `
+                        translateX(${x}px) 
+                        translateZ(${z}px) 
+                        rotateY(${rotateY}deg) 
+                        scale(${scale})
+                    `;
+                    card.style.opacity = Math.max(0, opacity);
+                    card.style.filter = `blur(${blur}px)`;
+                    card.style.zIndex = 100 - Math.abs(diff);
+                    card.style.pointerEvents = diff === 0 ? 'auto' : 'none';
+                });
+            }
+
+            // Mover el Viewport Verticalmente
+            document.getElementById('main-viewport').style.transform = `translateY(${-currentLevel * 100}vh)`;
+            
+            // Actualizar UI
+            const labels = ["NIVEL_01: FUNDAMENTOS", "NIVEL_02: META-LÓGICA", "NIVEL_03: SOBERANÍA"];
+            document.getElementById('status-label').innerText = labels[currentLevel];
+            
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((d, i) => d.classList.toggle('active', i === currentLevel));
+        }
+
+        // Navegación
+        function changeLevel(dir) {
+            if(isTransitioning) return;
+            const next = currentLevel + dir;
+            if(next >= 0 && next < 3) {
+                currentLevel = next;
+                update();
+                lock();
+            }
+        }
+
+        function changeAxioma(dir) {
+            const cardsInLv = axiomas.filter(ax => ax.lv === currentLevel).length;
+            let next = currentIndices[currentLevel] + dir;
+            if(next >= 0 && next < cardsInLv) {
+                currentIndices[currentLevel] = next;
+                update();
+            }
+        }
+
+        function lock() {
+            isTransitioning = true;
+            setTimeout(() => isTransitioning = false, 1000);
+        }
+
+        // Eventos de entrada
+        let sX, sY;
+        window.addEventListener('touchstart', e => { sX = e.touches[0].clientX; sY = e.touches[0].clientY; });
+        window.addEventListener('touchend', e => {
+            const dX = sX - e.changedTouches[0].clientX;
+            const dY = sY - e.changedTouches[0].clientY;
+            if(Math.abs(dY) > Math.abs(dX)) { if(Math.abs(dY) > 50) changeLevel(dY > 0 ? 1 : -1); }
+            else { if(Math.abs(dX) > 50) changeAxioma(dX > 0 ? 1 : -1); }
+        });
+
+        window.addEventListener('wheel', e => { if(Math.abs(e.deltaY) > 20) changeLevel(e.deltaY > 0 ? 1 : -1); });
+        window.addEventListener('keydown', e => {
+            if(e.key === "ArrowUp") changeLevel(-1);
+            if(e.key === "ArrowDown") changeLevel(1);
+            if(e.key === "ArrowLeft") changeAxioma(-1);
+            if(e.key === "ArrowRight") changeAxioma(1);
+        });
+
+        init();
+    </script>
+</body>
+</html>
