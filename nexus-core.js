@@ -23,6 +23,13 @@
 
 	
 	
+	// Crea una función pequeña para unificar esto y no repetirlo
+function obtenerUrlOptimizada(urlOriginal, ancho = 400) {
+    if (!urlOriginal || urlOriginal === DEFAULT_COVER) return DEFAULT_COVER;
+    
+    // Al usar siempre el mismo orden de parámetros, el navegador reconoce la URL en caché
+    return `https://wsrv.nl/?url=${encodeURIComponent(urlOriginal)}&w=${ancho}&output=webp&q=75&v=1`;
+}
 
 
 // Función de búsqueda proactiva (unificada)
@@ -959,14 +966,14 @@ async function renderChunk() {
         // Optimizamos para la lectura (700px como tenías definido)
         const finalImageUrl = fileNameLower.endsWith('.gif') 
             ? rawImageUrl 
-            : (typeof getOptimizedImageUrl === 'function' 
-                ? getOptimizedImageUrl(rawImageUrl, 700) 
-                : `https://wsrv.nl/?url=${encodeURIComponent(rawImageUrl)}&v=1&w=700&output=webp&q=75`);
+            : obtenerUrlOptimizada(rawImageUrl, 700);
 
         finalHtml = `<div class="reader-image-container">
             <img src="${finalImageUrl}" 
                  class="reader-image cursor-zoom-in" 
-                 alt="${originalFileName}" 
+                 alt="${originalFileName}"
+				 loading="lazy"
+				 onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
                  onclick="openImageModal('${rawImageUrl}', '${originalFileName}')">
             <p class="reader-text">Click para ampliar</p>
         </div>`;
