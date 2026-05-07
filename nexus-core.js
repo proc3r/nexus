@@ -23,27 +23,23 @@
 
 	
 	
-const ADJUNTOS_NETWORK = REPOSITORIES.map(repo => repo.adjuntos);
+
 
 // Función de búsqueda proactiva (unificada)
 async function buscarImagenEnRepositorios(nombreArchivo, urlAdjuntosBase) {
-    if (!nombreArchivo) return DEFAULT_COVER;
+    // Si no hay nombre o no hay base, devolvemos la portada por defecto sin preguntar a la red
+    if (!nombreArchivo || !urlAdjuntosBase) return DEFAULT_COVER;
     
-    // Limpieza de formato Obsidian ![[imagen|thumb]]
     const nombreLimpio = nombreArchivo.replace(/!\[\[|\]\]/g, '').split('|')[0].trim();
-    
-    // Construimos la URL usando únicamente la base del repositorio de este libro
     const urlProvisional = urlAdjuntosBase + encodeURIComponent(nombreLimpio);
 
     try {
-        // Una sola petición HEAD directa al origen
         const respuesta = await fetch(urlProvisional, { method: 'HEAD' });
         if (respuesta.ok) return urlProvisional; 
     } catch (err) { 
-        // Si hay error de red o no existe, fallará silenciosamente aquí
+        // Error de red o bloqueo
     }
 
-    // Si no se encuentra, devolvemos tu imagen local
     return DEFAULT_COVER;
 }
 
