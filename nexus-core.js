@@ -15,7 +15,7 @@
         adjuntos: "https://raw.githubusercontent.com/proc3r/001-Publicados/master/adjuntos/"
     }
 ];
-        const DEFAULT_COVER = "https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg";
+        const DEFAULT_COVER = "./PortadaBase.jpg";
 		// Red Unificada de Adjuntos (Aquí puedes añadir más en el futuro)
 		
 
@@ -26,22 +26,26 @@
 const ADJUNTOS_NETWORK = REPOSITORIES.map(repo => repo.adjuntos);
 
 // Función de búsqueda proactiva (unificada)
-async function buscarImagenEnRepositorios(nombreArchivo) {
+async function buscarImagenEnRepositorios(nombreArchivo, urlAdjuntosBase) {
     if (!nombreArchivo) return DEFAULT_COVER;
     
+    // Limpieza de formato Obsidian ![[imagen|thumb]]
     const nombreLimpio = nombreArchivo.replace(/!\[\[|\]\]/g, '').split('|')[0].trim();
-    const redes = REPOSITORIES.map(r => r.adjuntos);
+    
+    // Construimos la URL usando únicamente la base del repositorio de este libro
+    const urlProvisional = urlAdjuntosBase + encodeURIComponent(nombreLimpio);
 
-    for (let base of redes) { // <--- Aquí decía "de", ahora es "of"
-        const urlProvisional = base + encodeURIComponent(nombreLimpio);
-        try {
-            const respuesta = await fetch(urlProvisional, { method: 'HEAD' });
-            if (respuesta.ok) return urlProvisional; 
-        } catch (err) { continue; }
+    try {
+        // Una sola petición HEAD directa al origen
+        const respuesta = await fetch(urlProvisional, { method: 'HEAD' });
+        if (respuesta.ok) return urlProvisional; 
+    } catch (err) { 
+        // Si hay error de red o no existe, fallará silenciosamente aquí
     }
+
+    // Si no se encuentra, devolvemos tu imagen local
     return DEFAULT_COVER;
 }
-
 
 // --- 2. FUNCIONES DE CONTROL DE INTERFAZ (MOVER AQUÍ ARRIBA) ---
 
@@ -199,7 +203,7 @@ async function loadDirectBook(params) {
             loaderTitle.innerText = realTitle.toUpperCase();
         }
 
-        // --- 4. LÓGICA DE PORTADA UNIFICADA ---
+        // --- LÓGICA DE PORTADA UNIFICADA Y DIRECTA ---
         const coverMatch = text.match(/!\[\[(.*?)\]\]/);
         let coverUrlFinal = DEFAULT_COVER;
 
@@ -212,14 +216,15 @@ async function loadDirectBook(params) {
                 if (img) rawName = img[1].split('|')[0].trim();
             }
 
-            const urlVerificada = await buscarImagenEnRepositorios(rawName);
+            // CAMBIO AQUÍ: Usamos la base de adjuntos del repo ya cargado arriba
+            const urlVerificada = await buscarImagenEnRepositorios(rawName, repo.adjuntos);
             
             if (urlVerificada !== DEFAULT_COVER) {
                 coverUrlFinal = (typeof getOptimizedImageUrl === 'function') 
                     ? getOptimizedImageUrl(urlVerificada, 400) 
                     : `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&v=1&w=400&output=webp&q=75`;
             }
-        }
+        }	
 
         const parsedChapters = parseMarkdown(text);
 
@@ -328,12 +333,12 @@ async function fetchBooks() {
             );
 
             for (let i = 0; i < mdFiles.length; i += 5) {
-                const batch = mdFiles.slice(i, i + 5);
-                await Promise.all(batch.map(async (file) => {
-                    try {
-                        const res = await fetch(file.download_url);
-                        if (!res.ok) return;
-                        const text = await res.text();
+				const batch = mdFiles.slice(i, i + 5);
+				await Promise.all(batch.map(async (file) => {
+					try {
+						const res = await fetch(file.download_url);
+						if (!res.ok) return;
+						const text = await res.text();
                         
                         const sections = text.split('---');
                         const frontmatter = sections[1] || "";
@@ -344,25 +349,27 @@ async function fetchBooks() {
                         const titleMatch = frontmatter.match(/titulo:\s*(.+)/);
                         const realTitle = titleMatch ? titleMatch[1].trim() : null;
 
-                        // --- DETECTOR DE PORTADA ---
-                        const coverMatch = text.match(/!\[\[(.*?)\]\]/);
-                        let coverUrlFinal = DEFAULT_COVER;
+                        // --- DETECTOR DE PORTADA OPTIMIZADO ---
+						const coverMatch = text.match(/!\[\[(.*?)\]\]/);
+						let coverUrlFinal = DEFAULT_COVER;
 
-                        if (coverMatch) {
-                            let rawName = coverMatch[1].split('|')[0].trim();
+						if (coverMatch) {
+							let rawName = coverMatch[1].split('|')[0].trim();
 
-                            if (rawName.toLowerCase().endsWith('.mp3')) {
-                                const matches = [...text.matchAll(/!\[\[(.*?)\]\]/g)];
-                                const img = matches.find(m => !m[1].toLowerCase().endsWith('.mp3'));
-                                if (img) rawName = img[1].split('|')[0].trim();
-                            }
+							// Saltar audios si aparecen primero
+							if (rawName.toLowerCase().endsWith('.mp3')) {
+								const matches = [...text.matchAll(/!\[\[(.*?)\]\]/g)];
+								const img = matches.find(m => !m[1].toLowerCase().endsWith('.mp3'));
+								if (img) rawName = img[1].split('|')[0].trim();
+							}
 
-                            const urlVerificada = await buscarImagenEnRepositorios(rawName);
-                            
-                            if (urlVerificada !== DEFAULT_COVER) {
-                                coverUrlFinal = `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&v=1&w=400&output=webp&q=75`;
-                            }
-                        }
+							// CAMBIO AQUÍ: Pasamos la ruta de adjuntos del repo actual
+							const urlVerificada = await buscarImagenEnRepositorios(rawName, repo.adjuntos);
+							
+							if (urlVerificada !== DEFAULT_COVER) {
+								coverUrlFinal = `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&v=1&w=400&output=webp&q=75`;
+							}
+						}
 
                         const safeId = btoa(unescape(encodeURIComponent(file.path + repo.api)));
 
@@ -950,7 +957,7 @@ async function renderChunk() {
 
         // --- CAMBIO CLAVE: BÚSQUEDA MULTI-REPO EN MODO LECTURA ---
         // En lugar de usar currentBook.rawBase, usamos nuestro buscador unificado
-        const rawImageUrl = await buscarImagenEnRepositorios(originalFileName);
+        const rawImageUrl = await buscarImagenEnRepositorios(originalFileName, currentBook.rawBase);
         
         // Optimizamos para la lectura (700px como tenías definido)
         const finalImageUrl = fileNameLower.endsWith('.gif') 
