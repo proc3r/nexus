@@ -367,6 +367,7 @@ async function fetchBooks() {
 							const urlVerificada = await buscarImagenEnRepositorios(rawName, repo.adjuntos);
 							
 							if (urlVerificada !== DEFAULT_COVER) {
+								// Si la encontró en SU repositorio, aplicamos el optimizador
 								coverUrlFinal = `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&v=1&w=400&output=webp&q=75`;
 							}
 						}

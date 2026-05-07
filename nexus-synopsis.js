@@ -53,7 +53,8 @@ function renderLibrary() {
 
         card.innerHTML = `
             <div class="book-card-cover relative w-full aspect-[2/3]">
-                <img src="${book.cover}" alt="Cover" loading="lazy" class="w-full h-full object-cover">
+                <img src="${book.cover}" alt="Cover" loading="lazy" class="w-full h-full object-cover"
+				onerror="this.onerror=null; this.src='${DEFAULT_COVER}';">
                 
                 ${book.podcastUrl ? `
                     <div id="pod-btn-${book.id}" class="podcast-badge-btn" onclick="event.stopPropagation(); initPodcast('${book.id}')">
