@@ -34,18 +34,19 @@ function obtenerUrlOptimizada(urlOriginal, ancho = 400) {
 
 // Función de búsqueda proactiva (unificada)
 async function buscarImagenEnRepositorios(nombreArchivo, urlAdjuntosBase) {
-    // Si no hay nombre o no hay base, devolvemos la portada por defecto sin preguntar a la red
     if (!nombreArchivo || !urlAdjuntosBase) return DEFAULT_COVER;
     
     const nombreLimpio = nombreArchivo.replace(/!\[\[|\]\]/g, '').split('|')[0].trim();
     const urlProvisional = urlAdjuntosBase + encodeURIComponent(nombreLimpio);
 
     try {
-        const respuesta = await fetch(urlProvisional, { method: 'HEAD' });
+        // Añadimos 'cache: "force-cache"' para que el navegador ni siquiera pregunte al servidor
+        const respuesta = await fetch(urlProvisional, { 
+            method: 'HEAD',
+            cache: "force-cache" 
+        });
         if (respuesta.ok) return urlProvisional; 
-    } catch (err) { 
-        // Error de red o bloqueo
-    }
+    } catch (err) { }
 
     return DEFAULT_COVER;
 }
@@ -371,7 +372,9 @@ async function fetchBooks() {
 							
 							if (urlVerificada !== DEFAULT_COVER) {
 								// Si la encontró en SU repositorio, aplicamos el optimizador
-								coverUrlFinal = `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&v=1&w=400&output=webp&q=75`;
+								coverUrlFinal = (typeof getOptimizedImageUrl === 'function')
+                                    ? getOptimizedImageUrl(urlVerificada, 400)
+                                    : `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&w=400&output=webp&q=75&v=1`;
 							}
 						}
 
@@ -969,14 +972,15 @@ async function renderChunk() {
             : obtenerUrlOptimizada(rawImageUrl, 700);
 
         finalHtml = `<div class="reader-image-container">
-            <img src="${finalImageUrl}" 
-                 class="reader-image cursor-zoom-in" 
-                 alt="${originalFileName}"
-				 loading="lazy"
+			<img src="${finalImageUrl}" 
+				 class="reader-image cursor-zoom-in" 
+				 alt="${originalFileName}" 
+				 loading="eager" 
+				 decoding="async"
 				 onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
-                 onclick="openImageModal('${rawImageUrl}', '${originalFileName}')">
-            <p class="reader-text">Click para ampliar</p>
-        </div>`;
+				 onclick="openImageModal('${finalImageUrl}', '${originalFileName}')">
+			<p class="reader-text">Click para ampliar</p>
+		</div>`;
     } else if (rawText.trim().startsWith('#')) {
         finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
     } else if (rawText.trim().startsWith('>')) {
