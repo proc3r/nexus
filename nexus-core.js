@@ -20,7 +20,8 @@
 		
 
 	const AUDIO_BASE_URL = "https://raw.githubusercontent.com/proc3r/Audios/master/";
-
+	// Diccionario para guardar las imágenes ya descargadas y evitar repetir peticiones
+	const IMAGE_BLOB_CACHE = {};
 	
 	
 	// Crea una función pequeña para unificar esto y no repetirlo
@@ -37,16 +38,23 @@ async function buscarImagenEnRepositorios(nombreArchivo, urlAdjuntosBase) {
     if (!nombreArchivo || !urlAdjuntosBase) return DEFAULT_COVER;
     
     const nombreLimpio = nombreArchivo.replace(/!\[\[|\]\]/g, '').split('|')[0].trim();
-    const urlProvisional = urlAdjuntosBase + encodeURIComponent(nombreLimpio);
+    const urlOriginal = urlAdjuntosBase + encodeURIComponent(nombreLimpio);
+
+    // Si ya la tenemos en memoria, la devolvemos al instante sin ir a la red
+    if (IMAGE_BLOB_CACHE[urlOriginal]) return IMAGE_BLOB_CACHE[urlOriginal];
 
     try {
-        // Añadimos 'cache: "force-cache"' para que el navegador ni siquiera pregunte al servidor
-        const respuesta = await fetch(urlProvisional, { 
-            method: 'HEAD',
-            cache: "force-cache" 
-        });
-        if (respuesta.ok) return urlProvisional; 
-    } catch (err) { }
+        const respuesta = await fetch(urlOriginal);
+        if (respuesta.ok) {
+            const blob = await respuesta.blob();
+            // Creamos una URL de tipo blob:// que el navegador guarda en RAM
+            const blobUrl = URL.createObjectURL(blob);
+            IMAGE_BLOB_CACHE[urlOriginal] = blobUrl;
+            return blobUrl;
+        }
+    } catch (err) {
+        console.error("Error descargando imagen:", err);
+    }
 
     return DEFAULT_COVER;
 }
@@ -962,25 +970,20 @@ async function renderChunk() {
         
         isImage = true;
 
-        // --- CAMBIO CLAVE: BÚSQUEDA MULTI-REPO EN MODO LECTURA ---
-        // En lugar de usar currentBook.rawBase, usamos nuestro buscador unificado
-        const rawImageUrl = await buscarImagenEnRepositorios(originalFileName, currentBook.rawBase);
-        
-        // Optimizamos para la lectura (700px como tenías definido)
-        const finalImageUrl = fileNameLower.endsWith('.gif') 
-            ? rawImageUrl 
-            : obtenerUrlOptimizada(rawImageUrl, 700);
+          // --- SISTEMA DE BLOB PARA PERSISTENCIA TOTAL ---
+        // Obtenemos la URL local (blob://) que ya está en la RAM del navegador
+        const localBlobUrl = await buscarImagenEnRepositorios(originalFileName, currentBook.rawBase);
 
         finalHtml = `<div class="reader-image-container">
-			<img src="${finalImageUrl}" 
-				 class="reader-image cursor-zoom-in" 
-				 alt="${originalFileName}" 
-				 loading="eager" 
-				 decoding="async"
-				 onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
-				 onclick="openImageModal('${finalImageUrl}', '${originalFileName}')">
-			<p class="reader-text">Click para ampliar</p>
-		</div>`;
+            <img src="${localBlobUrl}" 
+                 class="reader-image cursor-zoom-in" 
+                 alt="${originalFileName}" 
+                 loading="eager" 
+                 decoding="async"
+                 onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
+                 onclick="openImageModal('${localBlobUrl}', '${originalFileName}')">
+            <p class="reader-text">Click para ampliar</p>
+        </div>`;
     } else if (rawText.trim().startsWith('#')) {
         finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
     } else if (rawText.trim().startsWith('>')) {
