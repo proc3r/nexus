@@ -20,9 +20,8 @@
 		
 
 	const AUDIO_BASE_URL = "https://raw.githubusercontent.com/proc3r/Audios/master/";
-	// Diccionario para guardar las imágenes ya descargadas y evitar repetir peticiones
-	const IMAGE_BLOB_CACHE = {};
-	
+
+	const IMAGE_CACHE_RAM = {};
 	
 	// Crea una función pequeña para unificar esto y no repetirlo
 function obtenerUrlOptimizada(urlOriginal, ancho = 400) {
@@ -38,23 +37,16 @@ async function buscarImagenEnRepositorios(nombreArchivo, urlAdjuntosBase) {
     if (!nombreArchivo || !urlAdjuntosBase) return DEFAULT_COVER;
     
     const nombreLimpio = nombreArchivo.replace(/!\[\[|\]\]/g, '').split('|')[0].trim();
-    const urlOriginal = urlAdjuntosBase + encodeURIComponent(nombreLimpio);
-
-    // Si ya la tenemos en memoria, la devolvemos al instante sin ir a la red
-    if (IMAGE_BLOB_CACHE[urlOriginal]) return IMAGE_BLOB_CACHE[urlOriginal];
+    const urlProvisional = urlAdjuntosBase + encodeURIComponent(nombreLimpio);
 
     try {
-        const respuesta = await fetch(urlOriginal);
-        if (respuesta.ok) {
-            const blob = await respuesta.blob();
-            // Creamos una URL de tipo blob:// que el navegador guarda en RAM
-            const blobUrl = URL.createObjectURL(blob);
-            IMAGE_BLOB_CACHE[urlOriginal] = blobUrl;
-            return blobUrl;
-        }
-    } catch (err) {
-        console.error("Error descargando imagen:", err);
-    }
+        // Añadimos 'cache: "force-cache"' para que el navegador ni siquiera pregunte al servidor
+        const respuesta = await fetch(urlProvisional, { 
+            method: 'HEAD',
+            cache: "force-cache" 
+        });
+        if (respuesta.ok) return urlProvisional; 
+    } catch (err) { }
 
     return DEFAULT_COVER;
 }
@@ -970,18 +962,24 @@ async function renderChunk() {
         
         isImage = true;
 
-          // --- SISTEMA DE BLOB PARA PERSISTENCIA TOTAL ---
-        // Obtenemos la URL local (blob://) que ya está en la RAM del navegador
-        const localBlobUrl = await buscarImagenEnRepositorios(originalFileName, currentBook.rawBase);
+        // 1. Obtener la URL cruda de GitHub
+        const rawImageUrl = await buscarImagenEnRepositorios(originalFileName, currentBook.rawBase);
+        
+        // 2. Guardar en nuestra "RAM" manual para el Modal
+        IMAGE_CACHE_RAM[originalFileName] = rawImageUrl;
+
+        // 3. Generar la URL para el visor (usando siempre el mismo formato para que use caché)
+        const finalImageUrl = fileNameLower.endsWith('.gif') 
+            ? rawImageUrl 
+            : `https://wsrv.nl/?url=${encodeURIComponent(rawImageUrl)}&w=700&output=webp&q=75&v=1`;
 
         finalHtml = `<div class="reader-image-container">
-            <img src="${localBlobUrl}" 
+            <img src="${finalImageUrl}" 
                  class="reader-image cursor-zoom-in" 
                  alt="${originalFileName}" 
-                 loading="eager" 
-                 decoding="async"
+                 loading="lazy"
                  onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
-                 onclick="openImageModal('${localBlobUrl}', '${originalFileName}')">
+                 onclick="openImageModal('${rawImageUrl}', '${originalFileName}')">
             <p class="reader-text">Click para ampliar</p>
         </div>`;
     } else if (rawText.trim().startsWith('#')) {
