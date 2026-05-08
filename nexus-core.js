@@ -21,7 +21,7 @@
 
 	const AUDIO_BASE_URL = "https://raw.githubusercontent.com/proc3r/Audios/master/";
 
-	const IMAGE_CACHE_RAM = {};
+	
 	
 	// Crea una función pequeña para unificar esto y no repetirlo
 function obtenerUrlOptimizada(urlOriginal, ancho = 400) {
@@ -962,26 +962,25 @@ async function renderChunk() {
         
         isImage = true;
 
-        // 1. Obtener la URL cruda de GitHub
+        // --- CAMBIO CLAVE: BÚSQUEDA MULTI-REPO EN MODO LECTURA ---
+        // En lugar de usar currentBook.rawBase, usamos nuestro buscador unificado
         const rawImageUrl = await buscarImagenEnRepositorios(originalFileName, currentBook.rawBase);
         
-        // 2. Guardar en nuestra "RAM" manual para el Modal
-        IMAGE_CACHE_RAM[originalFileName] = rawImageUrl;
-
-        // 3. Generar la URL para el visor (usando siempre el mismo formato para que use caché)
+        // Optimizamos para la lectura (700px como tenías definido)
         const finalImageUrl = fileNameLower.endsWith('.gif') 
             ? rawImageUrl 
-            : `https://wsrv.nl/?url=${encodeURIComponent(rawImageUrl)}&w=700&output=webp&q=75&v=1`;
+            : obtenerUrlOptimizada(rawImageUrl, 700);
 
         finalHtml = `<div class="reader-image-container">
-            <img src="${finalImageUrl}" 
-                 class="reader-image cursor-zoom-in" 
-                 alt="${originalFileName}" 
-                 loading="lazy"
-                 onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
-                 onclick="openImageModal('${rawImageUrl}', '${originalFileName}')">
-            <p class="reader-text">Click para ampliar</p>
-        </div>`;
+			<img src="${finalImageUrl}" 
+				 class="reader-image cursor-zoom-in" 
+				 alt="${originalFileName}" 
+				 loading="eager" 
+				 decoding="async"
+				 onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
+				 onclick="openImageModal('${finalImageUrl}', '${originalFileName}')">
+			<p class="reader-text">Click para ampliar</p>
+		</div>`;
     } else if (rawText.trim().startsWith('#')) {
         finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
     } else if (rawText.trim().startsWith('>')) {
