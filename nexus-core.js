@@ -22,11 +22,7 @@
 	const AUDIO_BASE_URL = "https://raw.githubusercontent.com/proc3r/Audios/master/";
 
 	
-// Memoria temporal para esta sesión
-const SESSION_CACHE = {
-    optimized: {}, // Guardará las URLs de wsrv.nl ya procesadas
-    original: {}   // Guardará las imágenes originales (Blob) al hacer click
-};
+	
 	
 	
 	
@@ -47,35 +43,8 @@ async function buscarImagenEnRepositorios(nombreArchivo, urlAdjuntosBase) {
 // 2. Optimizador único: Crea la URL para el visor de wsrv.nl
 function getOptimizedImageUrl(url, width) {
     if (!url || url === DEFAULT_COVER) return DEFAULT_COVER;
-    
-    const cacheKey = `${url}_w${width}`;
-    
-    // Si ya la procesamos antes, devolvemos la misma URL exacta
-    if (SESSION_CACHE.optimized[cacheKey]) {
-        return SESSION_CACHE.optimized[cacheKey];
-    }
-
-    // Si es nueva, la creamos y la guardamos
-    const newUrl = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&output=webp&q=75&v=1`;
-    SESSION_CACHE.optimized[cacheKey] = newUrl;
-    return newUrl;
-}
-
-// 3. Apertura Inteligente: Descarga la original UNA SOLA VEZ y la guarda en RAM (Blob)
-async function smartOpenModal(url, alt) {
-    if (SESSION_CACHE.original[url]) {
-        openImageModal(SESSION_CACHE.original[url], alt);
-        return;
-    }
-    try {
-        const resp = await fetch(url);
-        const blob = await resp.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        SESSION_CACHE.original[url] = blobUrl; // Guardado en RAM
-        openImageModal(blobUrl, alt);
-    } catch (e) {
-        openImageModal(url, alt); // Respaldo si falla el fetch
-    }
+    // El &v=1 es CLAVE para que el navegador guarde la imagen en caché
+    return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&output=webp&q=75&v=1`;
 }
 
 // --- 2. FUNCIONES DE CONTROL DE INTERFAZ (MOVER AQUÍ ARRIBA) ---
@@ -1002,9 +971,8 @@ async function renderChunk() {
             <img src="${finalImageUrl}" 
                  class="reader-image cursor-zoom-in" 
                  alt="${originalFileName}" 
-                 loading="eager"
-				 onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
-                 onclick="smartOpenModal('${rawImageUrl}', '${originalFileName}')">
+                 onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
+                 onclick="openImageModal('${rawImageUrl}', '${originalFileName}')">
             <p class="reader-text">Click para ampliar</p>
         </div>`;
     } else if (rawText.trim().startsWith('#')) {
@@ -1110,6 +1078,7 @@ async function renderChunk() {
     
     return Promise.resolve();
 }
+
 
 
 
