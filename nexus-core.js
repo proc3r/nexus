@@ -958,11 +958,12 @@ async function renderChunk() {
         
         isImage = true;
 
-        // --- CAMBIO CLAVE: BÚSQUEDA MULTI-REPO EN MODO LECTURA ---
-        // En lugar de usar currentBook.rawBase, usamos nuestro buscador unificado
-        const rawImageUrl = await buscarImagenEnRepositorios(originalFileName, currentBook.rawBase);
+        // --- SOLUCIÓN: Construcción directa sin petición previa ---
+        // Usamos el repositorio que ya conocemos del libro actual
+        const repoActual = REPOSITORIES[currentBook.repoIdx];
+        const rawImageUrl = repoActual.adjuntos + encodeURIComponent(originalFileName);
         
-        // Optimizamos para la lectura (700px como tenías definido)
+        // URL optimizada para la vista del lector
         const finalImageUrl = fileNameLower.endsWith('.gif') 
             ? rawImageUrl 
             : getOptimizedImageUrl(rawImageUrl, 700);
