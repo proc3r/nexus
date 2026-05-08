@@ -23,32 +23,25 @@
 
 	
 	
-	// Crea una función pequeña para unificar esto y no repetirlo
-function obtenerUrlOptimizada(urlOriginal, ancho = 400) {
-    if (!urlOriginal || urlOriginal === DEFAULT_COVER) return DEFAULT_COVER;
-    
-    // Al usar siempre el mismo orden de parámetros, el navegador reconoce la URL en caché
-    return `https://wsrv.nl/?url=${encodeURIComponent(urlOriginal)}&w=${ancho}&output=webp&q=75&v=1`;
-}
-
-
-// Función de búsqueda proactiva (unificada)
+	
+// 1. Buscador simple: Solo busca la URL cruda
 async function buscarImagenEnRepositorios(nombreArchivo, urlAdjuntosBase) {
     if (!nombreArchivo || !urlAdjuntosBase) return DEFAULT_COVER;
-    
     const nombreLimpio = nombreArchivo.replace(/!\[\[|\]\]/g, '').split('|')[0].trim();
     const urlProvisional = urlAdjuntosBase + encodeURIComponent(nombreLimpio);
-
     try {
-        // Añadimos 'cache: "force-cache"' para que el navegador ni siquiera pregunte al servidor
-        const respuesta = await fetch(urlProvisional, { 
-            method: 'HEAD',
-            cache: "force-cache" 
-        });
-        if (respuesta.ok) return urlProvisional; 
-    } catch (err) { }
+        const respuesta = await fetch(urlProvisional, { method: 'HEAD', cache: 'force-cache' });
+        return respuesta.ok ? urlProvisional : DEFAULT_COVER;
+    } catch (err) {
+        return DEFAULT_COVER;
+    }
+}
 
-    return DEFAULT_COVER;
+// 2. Optimizador único: Crea la URL para el visor de wsrv.nl
+function getOptimizedImageUrl(url, width) {
+    if (!url || url === DEFAULT_COVER) return DEFAULT_COVER;
+    // El &v=1 es CLAVE para que el navegador guarde la imagen en caché
+    return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&output=webp&q=75&v=1`;
 }
 
 // --- 2. FUNCIONES DE CONTROL DE INTERFAZ (MOVER AQUÍ ARRIBA) ---
@@ -969,18 +962,16 @@ async function renderChunk() {
         // Optimizamos para la lectura (700px como tenías definido)
         const finalImageUrl = fileNameLower.endsWith('.gif') 
             ? rawImageUrl 
-            : obtenerUrlOptimizada(rawImageUrl, 700);
+            : getOptimizedImageUrl(rawImageUrl, 700);
 
         finalHtml = `<div class="reader-image-container">
-			<img src="${finalImageUrl}" 
-				 class="reader-image cursor-zoom-in" 
-				 alt="${originalFileName}" 
-				 loading="eager" 
-				 decoding="async"
-				 onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
-				 onclick="openImageModal('${finalImageUrl}', '${originalFileName}')">
-			<p class="reader-text">Click para ampliar</p>
-		</div>`;
+            <img src="${finalImageUrl}" 
+                 class="reader-image cursor-zoom-in" 
+                 alt="${originalFileName}" 
+                 onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
+                 onclick="openImageModal('${rawImageUrl}', '${originalFileName}')">
+            <p class="reader-text">Click para ampliar</p>
+        </div>`;
     } else if (rawText.trim().startsWith('#')) {
         finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
     } else if (rawText.trim().startsWith('>')) {
