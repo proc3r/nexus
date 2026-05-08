@@ -1,4 +1,4 @@
-// Usamos var para permitir que el script se cargue m谩s de una vez sin error fatal
+// Usamos var para permitir que el script se cargue más de una vez sin error fatal
 var player;
 var isMusicPlaying = isMusicPlaying || false;
 var isPlayerReady = isPlayerReady || false;
@@ -14,14 +14,14 @@ const DEFAULT_SOUNDTRACK = "O00n5bg_eHY";
 const PORTAL_SOUNDTRACK = 'O00n5bg_eHY'; // Reemplaza con el ID deseado
 const AMBIENT_VOLUME = 10; // Volumen sutil para el portal
 
-// --- L脫GICA DE VALOR ALEATORIO ---
+// --- LOGICA DE VALOR ALEATORIO ---
 function refrescarValorAleatorio() {
     window.currentRandomTime = Math.floor(Math.random() * 1500);
     window.yaSalto = false; 
-    console.log("%c 馃幉 VALOR GLOBAL REFRESCADO: " + window.currentRandomTime, "color: #000; background: #ffff00; font-weight: bold;");
+    console.log("VALOR GLOBAL REFRESCADO: " + window.currentRandomTime, "color: #000; background: #ffff00; font-weight: bold;");
 }
 
-// 1. Inicializaci贸n de la API
+// 1. Inicializacion de la API
 function onYouTubeIframeAPIReady() {
     // Solo refresca si es estrictamente necesario para no empezar en 0
     if (window.currentRandomTime === undefined || window.currentRandomTime === null) {
@@ -390,7 +390,7 @@ function updateVolumeButtonVisuals(val) {
         btn.classList.remove('music-playing-beat');
         btn.classList.add('music-waiting-pulse');
         
-        // Opcional: Pausar para ahorrar recursos, pero solo si realmente est谩 en 0
+        // Opcional: Pausar para ahorrar recursos, pero solo si realmente está en 0
         if (player && typeof player.pauseVideo === 'function') player.pauseVideo();
     } else {
         // CON VOLUMEN
@@ -399,7 +399,7 @@ function updateVolumeButtonVisuals(val) {
         if (isMusicPlaying) {
             btn.classList.remove('music-waiting-pulse');
             btn.classList.add('music-playing-beat');
-            // Si el volumen subi贸, nos aseguramos de que suene
+            // Si el volumen subió, nos aseguramos de que suene
             if (player && typeof player.playVideo === 'function') {
                 if (player.getPlayerState() !== 1) player.playVideo();
             }
@@ -503,20 +503,20 @@ function toggleVolumePopover(event) {
     }
 }
 
-// Funci贸n para cerrar con animaci贸n hacia el costado
+// Función para cerrar con animación hacia el costado
 function closeVolumeSidebar() {
     const sidebar = document.getElementById('volume-sidebar-container');
     if (sidebar && !sidebar.classList.contains('hidden')) {
-        // A帽adimos una clase de transici贸n (debes ponerla en tu CSS)
+        // A?adimos una clase de transición (debes ponerla en tu CSS)
         sidebar.style.transform = "translateY(-50%) translateX(100px)";
         sidebar.style.opacity = "0";
         
         setTimeout(() => {
             sidebar.classList.add('hidden');
-            // Reseteamos estilos para la pr贸xima vez que se abra
+            // Reseteamos estilos para la próxima vez que se abra
             sidebar.style.transform = "";
             sidebar.style.opacity = "";
-        }, 400); // Duraci贸n de la animaci贸n
+        }, 400); // Duración de la animación
     }
 }
 
@@ -621,21 +621,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Funci贸n de cierre con retraso y animaci贸n
+// Función de cierre con retraso y animación
 function startClosingTimeout() {
     clearTimeout(window.volumeTimeout);
     window.volumeTimeout = setTimeout(() => {
         const sidebar = document.getElementById('volume-sidebar-container');
         if (sidebar && !sidebar.classList.contains('hidden')) {
-            sidebar.classList.add('closing-animation'); // A帽adimos clase de salida
+            sidebar.classList.add('closing-animation'); // A?adimos clase de salida
             
-            // Esperamos a que termine la animaci贸n de CSS para ocultarlo realmente
+            // Esperamos a que termine la animación de CSS para ocultarlo realmente
             setTimeout(() => {
                 sidebar.classList.add('hidden');
                 sidebar.classList.remove('closing-animation');
             }, 400); 
         }
-    }, 3000); // 3 segundos de cortes铆a antes de irse
+    }, 3000); // 3 segundos de cortesía antes de irse
 }
 
 // Función nueva para cerrar la barra de voz con animación
