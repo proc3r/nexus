@@ -61,6 +61,23 @@ function getOptimizedImageUrl(url, width) {
     return newUrl;
 }
 
+// 3. Apertura Inteligente: Descarga la original UNA SOLA VEZ y la guarda en RAM (Blob)
+async function smartOpenModal(url, alt) {
+    if (SESSION_CACHE.original[url]) {
+        openImageModal(SESSION_CACHE.original[url], alt);
+        return;
+    }
+    try {
+        const resp = await fetch(url);
+        const blob = await resp.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        SESSION_CACHE.original[url] = blobUrl; // Guardado en RAM
+        openImageModal(blobUrl, alt);
+    } catch (e) {
+        openImageModal(url, alt); // Respaldo si falla el fetch
+    }
+}
+
 // --- 2. FUNCIONES DE CONTROL DE INTERFAZ (MOVER AQUÍ ARRIBA) ---
 
 function renderLibrary() {
@@ -986,6 +1003,7 @@ async function renderChunk() {
                  class="reader-image cursor-zoom-in" 
                  alt="${originalFileName}" 
                  loading="eager"
+				 onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
                  onclick="smartOpenModal('${rawImageUrl}', '${originalFileName}')">
             <p class="reader-text">Click para ampliar</p>
         </div>`;
@@ -1093,30 +1111,6 @@ async function renderChunk() {
     return Promise.resolve();
 }
 
-
-async function smartOpenModal(url, alt) {
-    // Si ya descargamos la original antes, usamos el Blob guardado
-    if (SESSION_CACHE.original[url]) {
-        openImageModal(SESSION_CACHE.original[url], alt);
-        return;
-    }
-
-    // Si es la primera vez, la descargamos de GitHub
-    try {
-        const resp = await fetch(url);
-        const blob = await resp.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        
-        // La guardamos en el caché de originales
-        SESSION_CACHE.original[url] = blobUrl;
-        
-        // Abrimos el modal con el nuevo Blob
-        openImageModal(blobUrl, alt);
-    } catch (e) {
-        // Si falla el fetch por algo, abrimos la URL normal como respaldo
-        openImageModal(url, alt);
-    }
-}
 
 
 /**
