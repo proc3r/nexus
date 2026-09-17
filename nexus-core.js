@@ -5,26 +5,29 @@
         let chunks = [];
         const REPOSITORIES = [
     {
-        api: "https://api.github.com/repos/proc3r/005-DOCUMENTOS-PROC3R/contents/",
-        raw: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/refs/heads/master/",
-        adjuntos: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/"
+        api: "http://localhost/documentos/",
+        raw: "http://localhost/documentos/",
+        adjuntos: "http://localhost/documentos/adjuntos/"
     },
-    {
-        api: "https://api.github.com/repos/proc3r/001-Publicados/contents/",
-        raw: "https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/",
-        adjuntos: "https://raw.githubusercontent.com/proc3r/001-Publicados/master/adjuntos/"
-    }
+    
 ];
         const DEFAULT_COVER = "./PortadaBase.jpg";
 		// Red Unificada de Adjuntos (Aquí puedes añadir más en el futuro)
 		
 
-	const AUDIO_BASE_URL = "https://raw.githubusercontent.com/proc3r/Audios/master/";
+	const AUDIO_BASE_URL = "http://localhost/documentos/Audios/";
 
 	
+
 	
-	
-	
+	async function initNexus() { // Asegúrate de que tenga 'async'
+    console.log("Iniciando Nexus...");
+    
+    await fetchBooks();         // Espera a los libros
+    
+    
+    renderLibrary();            // Recién aquí dibuja la biblioteca
+}
 	
 	
 // 1. Buscador simple: Solo busca la URL cruda
@@ -49,42 +52,103 @@ function getOptimizedImageUrl(url, width) {
 
 // --- 2. FUNCIONES DE CONTROL DE INTERFAZ (MOVER AQUÍ ARRIBA) ---
 
+
 function renderLibrary() {
     const grid = document.getElementById('library-grid');
+    
+    // 1. Validaciones de Seguridad
     if (window.isLectorFijo || !grid) return;
-	
-	
 
-    // Si la librería está vacía, esperamos un poco y reintentamos (por si el fetch de GitHub es lento)
     if (library.length === 0) {
         console.warn("Nexus Core: Librería vacía, reintentando render en 500ms...");
         setTimeout(renderLibrary, 500);
         return;
     }
 
-    console.log("Renderizando librería...");
     grid.innerHTML = ''; 
 
     library.forEach(book => {
-        // Buscamos la función en window por si se cargó en otro script
-        const createFn = window.createBookCard || createBookCard;
+        // --- 1. RECUPERACIÓN DE SECCIONES ---
+        const displayChapters = book.chaptersCount || (book.chapters ? book.chapters.length : 1);
         
-        if (typeof createFn === 'function') {
-            const card = createFn(book);
-            grid.appendChild(card);
-        } else {
-            console.error("Nexus Core: No se encuentra la función createBookCard.");
+        // --- 2. LÓGICA DE SINOPSIS ---
+        // Se mantiene fiel al valor que traiga el objeto book (actualizado por fetchBooks)
+        const hasSynopsis = book.hasSynopsis === true;
+
+        // --- 3. PROCESAMIENTO DE TIEMPO DE LECTURA (CORREGIDO) ---
+        let timeStr = book.readingTime || "-- min";
+
+        // Solo procesamos si el valor es un número puro o un string numérico sin letras
+        const hasLetters = /[a-zA-Z]/.test(timeStr);
+        
+        if (!hasLetters) {
+            const totalMin = parseInt(timeStr);
+            if (!isNaN(totalMin)) {
+                if (totalMin >= 60) {
+                    const h = Math.floor(totalMin / 60);
+                    const m = totalMin % 60;
+                    timeStr = m > 0 ? `${h} h ${m} min` : `${h} h`;
+                } else {
+                    timeStr = `${totalMin} min`;
+                }
+            }
         }
+        
+        const card = document.createElement('div');
+        card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[0.5rem] hover:border-[#ffcc00] cursor-pointer text-center overflow-hidden';
+        card.onclick = (e) => {
+            if (!e.target.closest('.btn-synopsis') && !e.target.closest('.podcast-badge-btn')) {
+                openReader(book.id);
+            }
+        };
+
+        card.innerHTML = `
+            <div class="book-card-cover relative w-full aspect-[2/3]">
+                <img src="${book.cover}" alt="Cover" loading="lazy" class="w-full h-full object-cover"
+                onerror="this.onerror=null; this.src='${DEFAULT_COVER}';">
+                
+                ${book.podcastUrl ? `
+                    <div id="pod-btn-${book.id}" class="podcast-badge-btn" onclick="event.stopPropagation(); initPodcast('${book.id}')">
+                        <span class="pod-label">PODCAST</span>
+                        <div class="pod-icon-circle notranslate">
+                            <span class="material-icons">headset</span>
+                        </div>
+                    </div>
+                ` : ''}
+
+                <div class="book-card-overlay absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black/95 via-black/20 to-transparent">
+                    <h3 class="book-card-title-internal text-left text-white font-bold leading-[1em] uppercase condensed text-[1.3rem] mb-[0.2em]">
+                        ${book.displayName || book.title}
+                    </h3>
+                    <div class="flex items-center justify-between h-[25%] w-full pt-2 border-t border-white/10">
+                        <p class="text-[15px] text-white/70 font-[500] uppercase tracking-[0.01em] condensed">
+                            ${displayChapters} SECCIONES
+                        </p>
+                        <div id="synopsis-slot-${book.id}" class="flex-1 flex justify-center">
+                            ${hasSynopsis ? `<button class="btn-synopsis" onclick="event.stopPropagation(); showSynopsis('${book.id}')">SINOPSIS</button>` : ''}
+                        </div>
+                        <p class="text-[18px] text-[#ffcc00] font-bold uppercase condensed italic">
+                            <span class="mi-round text-[18px] align-middle mr-1 notranslate">schedule</span>${timeStr}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        grid.appendChild(card);
     });
 
-    // ... resto del código (quitar spinners y splash) ...
+    // Limpieza de Interfaz
     document.getElementById('main-spinner')?.classList.add('hidden');
     const splash = document.getElementById('nexus-splash') || document.getElementById('auto-loader');
     if (splash) {
         splash.style.opacity = "0";
         setTimeout(() => { splash.style.display = "none"; }, 800);
     }
+
+    if (typeof renderShelf === 'function') renderShelf();
 }
+
+
 
 // --- CAPTURA INMEDIATA DE TÍTULO PARA EL SPINNER (AJUSTADA) ---
 (function() {
@@ -293,7 +357,6 @@ function stripHtml(html) {
 }
 	
 
-
 async function fetchBooks() {
     const statusText = document.getElementById('status-text');
     
@@ -307,92 +370,71 @@ async function fetchBooks() {
         }, 500);
     };
 
+    // 1. Intentar cargar desde caché para velocidad instantánea
     const cachedLibrary = sessionStorage.getItem('nexus_library_cache');
     if (cachedLibrary) {
-        library = JSON.parse(cachedLibrary);
-        if (statusText) statusText.innerText = "Ok (Cache)";
-        document.getElementById('main-spinner')?.classList.add('hidden');
+        let tempLibrary = JSON.parse(cachedLibrary);
+        
+        // --- MEJORA: Sincronización dinámica de Sinopsis con el caché ---
+        // Esto asegura que si agregas una sinopsis al .md, el botón aparezca aunque haya caché
+        library = tempLibrary.map(book => {
+            const bookKey = book.fileName.replace('.md', '').trim();
+            const hasGlobal = window.nexusSynopsisMap && window.nexusSynopsisMap[bookKey];
+            return { ...book, hasSynopsis: book.hasSynopsis || !!hasGlobal };
+        });
+
         renderLibrary();
         checkAutoLoad(); 
         ocultarSplash();
+        
+        // Opcional: Si quieres que el sistema busque cambios en segundo plano aunque haya caché,
+        // podrías quitar el 'return', pero por ahora lo dejamos como lo tienes.
         return; 
     }
 
     library = []; 
     try {
-        for (const repo of REPOSITORIES) {
-            const response = await fetch(repo.api);
-            if (!response.ok) continue;
-            
-            const files = await response.json();
-            if (!Array.isArray(files)) continue;
+        // 2. ÚNICA petición a GitHub/Local: el índice JSON
+        // Añadimos un parámetro de tiempo (?v=...) para obligar al navegador a no usar el caché del archivo
+        const response = await fetch('library-index.json?v=' + Date.now());
+        if (!response.ok) throw new Error("No se encontró el índice");
+        const indexFiles = await response.json();
 
-            const mdFiles = files.filter(f => 
-                f.name.toLowerCase().endsWith('.md') && 
-                !f.name.toLowerCase().includes('readme')
-            );
+        // 3. Procesar el JSON (Cero lectura de archivos .md aquí)
+        for (const file of indexFiles) {
+            // Solo procesamos si index es true
+            if (file.index !== true) continue;
 
-            for (let i = 0; i < mdFiles.length; i += 5) {
-				const batch = mdFiles.slice(i, i + 5);
-				await Promise.all(batch.map(async (file) => {
-					try {
-						const res = await fetch(file.download_url);
-						if (!res.ok) return;
-						const text = await res.text();
-                        
-                        const sections = text.split('---');
-                        const frontmatter = sections[1] || "";
-                        if (!/indexar:\s*true/.test(frontmatter)) return; 
+            const safeId = btoa(unescape(encodeURIComponent(file.download_url)));
 
-                        // --- CAPTURA DE TÍTULO REAL (METADATO) ---
-                        // Buscamos "titulo: ..." dentro del frontmatter
-                        const titleMatch = frontmatter.match(/titulo:\s*(.+)/);
-                        const realTitle = titleMatch ? titleMatch[1].trim() : null;
-
-                        // --- DETECTOR DE PORTADA OPTIMIZADO ---
-						const coverMatch = text.match(/!\[\[(.*?)\]\]/);
-						let coverUrlFinal = DEFAULT_COVER;
-
-						if (coverMatch) {
-							let rawName = coverMatch[1].split('|')[0].trim();
-
-							// Saltar audios si aparecen primero
-							if (rawName.toLowerCase().endsWith('.mp3')) {
-								const matches = [...text.matchAll(/!\[\[(.*?)\]\]/g)];
-								const img = matches.find(m => !m[1].toLowerCase().endsWith('.mp3'));
-								if (img) rawName = img[1].split('|')[0].trim();
-							}
-
-							// CAMBIO AQUÍ: Pasamos la ruta de adjuntos del repo actual
-							const urlVerificada = await buscarImagenEnRepositorios(rawName, repo.adjuntos);
-							
-							if (urlVerificada !== DEFAULT_COVER) {
-								// Si la encontró en SU repositorio, aplicamos el optimizador
-								coverUrlFinal = (typeof getOptimizedImageUrl === 'function')
-                                    ? getOptimizedImageUrl(urlVerificada, 400)
-                                    : `https://wsrv.nl/?url=${encodeURIComponent(urlVerificada)}&w=400&output=webp&q=75&v=1`;
-							}
-						}
-
-                        const safeId = btoa(unescape(encodeURIComponent(file.path + repo.api)));
-
-                        library.push({
-                            id: safeId, 
-                            fileName: file.name,
-                            // Mantenemos 'title' como el nombre del archivo limpio para lógica interna
-                            title: file.name.replace('.md', '').replace(/_/g, ' ').replace(/[^\w\s\u0370-\u03FFáéíóúÁÉÍÓÚñÑ\+]/g, ''),
-                            // 'displayName' tendrá el título con tildes/griego, o el title si no hay metadato
-                            displayName: realTitle || file.name.replace('.md', '').replace(/_/g, ' '),
-                            cover: coverUrlFinal,
-                            podcastUrl: text.match(/!\[\[(.*?\.mp3)\]\]/) ? AUDIO_BASE_URL + encodeURIComponent(text.match(/!\[\[(.*?\.mp3)\]\]/)[1].trim()) : null,
-                            soundtrack: frontmatter.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/) ? frontmatter.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/)[1] : null,
-                            chapters: parseMarkdown(text),
-                            rawBase: repo.adjuntos,
-                            repoIdx: REPOSITORIES.indexOf(repo)
-                        });
-                    } catch (e) { console.error("Error en archivo", e); }
-                }));
+            // Optimización de portada si es externa (ImgBB)
+            let coverUrlFinal = DEFAULT_COVER;
+            if (file.coverUrl) {
+                coverUrlFinal = (typeof getOptimizedImageUrl === 'function')
+                    ? getOptimizedImageUrl(file.coverUrl, 400)
+                    : `https://wsrv.nl/?url=${encodeURIComponent(file.coverUrl)}&w=400&output=webp&q=75&v=1`;
             }
+
+            // --- LÓGICA DE SINOPSIS GLOBAL ---
+            // Verificamos si el libro existe en el mapa cargado desde sinopsis.md
+            const bookKey = file.name.replace('.md', '').trim();
+            const hasGlobalSynopsis = window.nexusSynopsisMap && window.nexusSynopsisMap[bookKey];
+
+            library.push({
+                id: safeId, 
+                fileName: file.name,
+                title: file.name.replace('.md', ''),
+                displayName: file.displayName || file.name.replace('.md', ''),
+                cover: coverUrlFinal,
+                soundtrack: file.soundtrack || null,
+                repoIdx: file.repoIdx,
+                path: file.download_url,
+                chaptersCount: file.chaptersCount || 0,
+                readingTime: file.readingTime || "-- min",
+                // Prioridad: Mapa Global OR Valor en JSON OR false
+                hasSynopsis: !!hasGlobalSynopsis || file.hasSynopsis || false, 
+                chapters: [] // IMPORTANTE: Se llenará al abrir el libro
+            });
         }
         
         if (library.length > 0) {
@@ -405,10 +447,11 @@ async function fetchBooks() {
         ocultarSplash();
 
     } catch (e) { 
-        console.error("Error crítico:", e);
+        console.error("Error en sistema Nexus de bajo impacto:", e);
         ocultarSplash();
     }
 }
+
 
 
 function parseMarkdown(text) {
@@ -520,7 +563,6 @@ function renderShelf() {
 	
 	
 	
-
 async function openReader(id, forceCh = null, forceCk = null) {
     // --- 1. CONFIGURACIÓN DE INTERFAZ ---
     if (typeof launchFullScreen === 'function') {
@@ -546,7 +588,33 @@ async function openReader(id, forceCh = null, forceCk = null) {
     if (currentBook.repoIdx === undefined) currentBook.repoIdx = 0;
     if (!currentBook.fileName) currentBook.fileName = currentBook.title + ".md";
 
-    // --- 2. LÓGICA DE POSICIONAMIENTO HÍBRIDA ---
+    // --- 2. PROCESAMIENTO BAJO DEMANDA (NUEVA LÓGICA) ---
+    // Si los capítulos están vacíos, es porque el libro no se ha procesado aún
+    if (!currentBook.chapters || currentBook.chapters.length === 0) {
+        try {
+            console.log("Nexus: Procesando contenido para " + currentBook.title);
+            const res = await fetch(currentBook.path);
+            if (!res.ok) throw new Error("No se pudo obtener el archivo md");
+            const text = await res.text();
+            
+            // Usamos tu función parseMarkdown que ya tienes definida en nexus-core
+            currentBook.chapters = parseMarkdown(text);
+            
+            // Si el libro tiene soundtrack en el MD pero no en el JSON, lo recuperamos
+            if (!currentBook.soundtrack) {
+                const sections = text.split('---');
+                const frontmatter = sections[1] || "";
+                const stMatch = frontmatter.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/);
+                if (stMatch) currentBook.soundtrack = stMatch[1];
+            }
+        } catch (e) {
+            console.error("Error procesando libro al abrir:", e);
+            alert("No se pudo cargar el contenido del libro.");
+            return;
+        }
+    }
+
+    // --- 3. LÓGICA DE POSICIONAMIENTO HÍBRIDA ---
     let targetChapter = 0;
     let targetChunk = 0;
     let hasSavedProgress = false; 
@@ -580,7 +648,7 @@ async function openReader(id, forceCh = null, forceCk = null) {
     currentChapterIndex = targetChapter;
     currentChunkIndex = targetChunk;
 
-    // --- 3. RENDERIZADO DE INTERFAZ ---
+    // --- 4. RENDERIZADO DE INTERFAZ ---
     document.getElementById('reader-title').innerText = currentBook.displayName || currentBook.title;
     const coverPreview = document.getElementById('sidebar-cover-preview');
     if (coverPreview) {
@@ -594,7 +662,7 @@ async function openReader(id, forceCh = null, forceCk = null) {
     document.getElementById('reader-view').classList.remove('hidden');
     document.getElementById('resume-card')?.classList.add('hidden');
     
-    // --- 4. PREFERENCIAS VISUALES (RESTAURADAS COMPLETAS) ---
+    // --- 5. PREFERENCIAS VISUALES ---
     const isMobile = window.innerWidth <= 768;
     const deviceSuffix = isMobile ? '-mobile' : '-desktop';
 
@@ -615,16 +683,14 @@ async function openReader(id, forceCh = null, forceCk = null) {
 
     syncVisualSettings();
 
-    // --- 5. CARGA DE CONTENIDO Y ACTUALIZACIÓN DE DATOS ---
+    // --- 6. CARGA DE CONTENIDO Y ACTUALIZACIÓN DE DATOS ---
     await loadChapter(currentChapterIndex, currentChunkIndex);
     
-    // IMPORTANTE: Llamamos a tus funciones de nexus-function.js para procesar los datos reales
     if (typeof updateProgress === 'function') {
         updateProgress(); 
     }
 
-    
-// --- 6. MOSTRAR/INYECTAR MODAL CON DATOS SINCRONIZADOS ---
+    // --- 7. MOSTRAR/INYECTAR MODAL CON DATOS SINCRONIZADOS ---
     if (hasSavedProgress) {
         setTimeout(() => {
             const progPercentText = document.getElementById('progress-percent')?.innerText || "0%";
@@ -662,22 +728,18 @@ async function openReader(id, forceCh = null, forceCk = null) {
                     </div>`;
                 document.body.insertAdjacentHTML('beforeend', modalHTML);
                 
-                // Vinculación de teclado (Limpiamos el anterior por si acaso)
                 document.removeEventListener('keydown', handleNxResumeKeys, true);
                 document.addEventListener('keydown', handleNxResumeKeys, true);
 
-                // Foco inicial en "Continuar" (Main) para comodidad del usuario
                 const mainBtn = document.querySelector('.nx-resume-btn-main');
                 if (mainBtn) mainBtn.focus();
 
             } else {
-                // Si el modal ya existe (re-entrada rápida), actualizamos sus datos
                 modal.style.display = 'flex';
                 modal.style.opacity = '1';
                 const bar = document.getElementById('nx-resume-bar-fill');
                 if (bar) bar.style.width = progPercentText;
                 
-                // Re-activar teclado y foco
                 document.removeEventListener('keydown', handleNxResumeKeys, true);
                 document.addEventListener('keydown', handleNxResumeKeys, true);
                 const mainBtn = document.querySelector('.nx-resume-btn-main');
@@ -686,13 +748,14 @@ async function openReader(id, forceCh = null, forceCk = null) {
         }, 300); 
     }
 
-    // --- 7. INTEGRACIÓN SOUNDTRACK ---
+    // --- 8. INTEGRACIÓN SOUNDTRACK ---
     setTimeout(() => {
         if (typeof updateSoundtrack === 'function') {
             updateSoundtrack(currentBook.soundtrack);
         }
     }, 300);
-} // Aquí termina openReader
+}
+
 
 function closeNxResume() {
     const modal = document.getElementById('nx-resume-modal');
@@ -942,9 +1005,29 @@ async function renderChunk() {
     // 3. PROCESAMIENTO DE CONTENIDO
     let finalHtml = "";
     let isImage = false;
-    const embedMatch = rawText.match(/!\[\[(.*?)\]\]/);
+     // --- DETECCIÓN DE IMÁGENES ---
+    const embedMatch = rawText.match(/!\[\[(.*?)\]\]/); // Formato Obsidian
+    const externalImgMatch = rawText.match(/!\[.*?\]\((https:\/\/.*?)\)/); // Formato Markdown Estándar (ImgBB)
 
-    if (embedMatch) {
+
+    if (externalImgMatch) {
+        isImage = true;
+        const imageUrl = externalImgMatch[1];
+        
+        // Optimización: Usamos wsrv.nl para no cargar la original de ImgBB directamente
+        const optimizedUrl = getOptimizedImageUrl(imageUrl, 700);
+        
+        finalHtml = `<div class="reader-image-container">
+            <img src="${optimizedUrl}" 
+                 class="reader-image cursor-zoom-in" 
+                 alt="Imagen externa" 
+                 onerror="this.onerror=null; this.src='${DEFAULT_COVER}';"
+                 onclick="openImageModal('${imageUrl}', 'Imagen Externa')">
+            <p class="reader-text">Click para ampliar</p>
+        </div>`;
+
+    } else if (embedMatch) {
+        // --- LÓGICA EXISTENTE PARA ADJUNTOS LOCALES ---
         const originalFileName = embedMatch[1].split('|')[0].trim();
         const fileNameLower = originalFileName.toLowerCase();
         

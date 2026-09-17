@@ -12,7 +12,7 @@ window.currentUtterance = null;
 window.synth = window.speechSynthesis;
 window.pauseTimer = null;
 window.VOICE_REPLACEMENTS = {};
-const DICTIONARY_URL = "https://raw.githubusercontent.com/proc3r/nexus/master/voice-dictionary.json";
+const DICTIONARY_URL = "http://localhost/nexus/voice-dictionary.json";
 window.nexusSpeechTimeout = null; // Guardará el timer actual
 
 
@@ -130,7 +130,7 @@ async function startSpeech() {
     const rawText = chunks[currentChunkIndex] || "";
     const currentText = (contentEl && contentEl.innerText.trim() !== "") ? contentEl.innerText.trim() : rawText;
 
-    const isImage = rawText.match(/!\[\[(.*?)\]\]/);
+    const isImage = rawText.match(/!\[\[(.*?)\]\]/) || rawText.match(/!\[.*?\]\((https:\/\/.*?)\)/);
     
     if (isImage) {
         if (typeof clearImageTimer === 'function') clearImageTimer();
@@ -789,3 +789,157 @@ function controlVoiceVolume(valor) {
     window.voiceTimeout = setTimeout(closeVoiceSidebar, 4000);
 }
 
+
+
+
+
+/* ==========================================================================
+   CONTROL DE VOLUMEN Y POPUP PARA VOZ TTS (Libre de dependencias de música)
+   ========================================================================== */
+
+// Variable global para almacenar el volumen actual de la voz (rango 0.3 a 1.0)
+// var nexusVoiceVolume = nexusVoiceVolume || 1.0;
+
+/**
+ * Cierra la barra lateral de volumen de voz con animación
+ */
+function closeVoiceSidebar() {
+    const sidebar = document.getElementById('voice-volume-sidebar');
+    if (sidebar && !sidebar.classList.contains('hidden')) {
+        sidebar.style.transform = "translateY(-50%) translateX(100px)";
+        sidebar.style.opacity = "0";
+        
+        setTimeout(() => {
+            sidebar.classList.add('hidden');
+            sidebar.style.transform = "";
+            sidebar.style.opacity = "";
+        }, 400); 
+    }
+}
+
+/**
+ * Controla el tiempo de cierre automático del panel de voz
+ */
+function startVoiceClosingTimeout() {
+    clearTimeout(window.volumeTimeout);
+    window.volumeTimeout = setTimeout(closeVoiceSidebar, 3000);
+}
+
+// Configuración de Eventos del DOM para la Voz
+document.addEventListener('DOMContentLoaded', () => {
+    const voiceSidebar = document.getElementById('voice-volume-sidebar');
+    const voiceSlider = document.getElementById('voice-volume-sync');
+
+    // Evitar que al hacer clic dentro del contenedor se cierre el panel
+    voiceSidebar?.addEventListener('click', (e) => e.stopPropagation());
+    voiceSidebar?.addEventListener('mousedown', (e) => e.stopPropagation());
+
+    // Eventos táctiles y de ratón para el Slider de Voz (Verde)
+    if (voiceSlider) {
+        const handleVoiceTouch = (e) => {
+            if (e.cancelable) e.preventDefault();
+            e.stopPropagation();
+            const touch = e.touches[0];
+            const rect = voiceSlider.getBoundingClientRect();
+            const isVertical = rect.height > rect.width;
+            
+            let percentage = isVertical 
+                ? ((rect.bottom - touch.clientY) / rect.height) 
+                : ((touch.clientX - rect.left) / rect.width);
+            
+            // Mínimo de lectura en 0.3 y máximo en 1.0
+            let finalVal = Math.min(Math.max(percentage, 0.3), 1).toFixed(1);
+
+            if (!isNaN(finalVal)) {
+                voiceSlider.value = finalVal;
+                if (typeof controlVoiceVolume === 'function') {
+                    controlVoiceVolume(finalVal);
+                } else {
+                    nexusVoiceVolume = parseFloat(finalVal);
+                }
+            }
+        };
+
+        voiceSlider.addEventListener('touchstart', (e) => {
+            clearTimeout(window.volumeTimeout);
+            handleVoiceTouch(e);
+        }, { passive: false });
+        
+        voiceSlider.addEventListener('touchmove', handleVoiceTouch, { passive: false });
+
+        const releaseVoice = (e) => {
+            e.stopPropagation();
+            clearTimeout(window.volumeTimeout);
+            window.volumeTimeout = setTimeout(closeVoiceSidebar, 3000);
+        };
+        
+        voiceSlider.addEventListener('touchend', releaseVoice);
+        voiceSlider.addEventListener('mouseup', releaseVoice);
+
+        // También asignamos el evento input estándar para escritorio
+        voiceSlider.addEventListener('input', (e) => {
+            const finalVal = parseFloat(e.target.value);
+            if (typeof controlVoiceVolume === 'function') {
+                controlVoiceVolume(finalVal);
+            } else {
+                nexusVoiceVolume = finalVal;
+            }
+        });
+
+        // Reset inicial del slider al 100%
+        voiceSlider.value = "1"; 
+        nexusVoiceVolume = 1.0;
+    }
+});
+
+// Cerrar panel de voz si se hace clic fuera en cualquier parte de la ventana
+window.addEventListener('click', () => {
+    closeVoiceSidebar();
+});
+
+/**
+ * Función puente de compatibilidad.
+ * Si algún script antiguo (como nexus-voice.js) intenta cerrar el panel de música,
+ * redirige la orden para cerrar el panel de voz y evitar que la ejecución falle.
+ */
+function closeVolumeSidebar() {
+    closeVoiceSidebar();
+}
+
+/* ==========================================================================
+   STUBS / FUNCIONES DE COMPATIBILIDAD PARA ELIMINAR ERRORES DE MÚSICA
+   ========================================================================== */
+
+/**
+ * Captura la apertura del panel de volumen de música.
+ * En lugar de dar error, simplemente cierra el panel de voz si estaba abierto.
+ */
+function toggleVolumePopover(event) {
+    if (event && typeof event.stopPropagation === 'function') {
+        event.stopPropagation();
+    }
+    if (typeof closeVoiceSidebar === 'function') {
+        closeVoiceSidebar();
+    }
+}
+
+/**
+ * Captura los clics en el botón de reproducción/pausa de música.
+ */
+function toggleSoundtrack() {
+    // Función vacía intencional para evitar excepciones en consola
+}
+
+/**
+ * Captura los eventos de desplazamiento en el slider de volumen de música.
+ */
+function globalVolumeControl(val, originId) {
+    // Función vacía intencional para evitar excepciones en consola
+}
+
+/**
+ * Captura la función de actualización de interfaz del reproductor de música.
+ */
+function actualizarVisualesMusica(activar) {
+    // Función vacía intencional
+}

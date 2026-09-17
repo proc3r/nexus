@@ -1420,7 +1420,7 @@ body.sidebar-open {
     display: flex !important;
 	
 	
-    background-image: url(https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/refs/heads/master/adjuntos/BabelX.webp);
+    background-image: url(https://i.ibb.co/WpMvZmQJ/Babel-X.webp);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -1511,10 +1511,16 @@ body.sidebar-open {
 	font-family: 'Barlow Condensed', 'oswald', sans-serif;
 }
 
+#synopsis-body * {
+    pointer-events: none; /* Los hijos no reciben clics */
+}
+
 /* Área de lectura sin paddings laterales */
 #synopsis-body {
     padding: 0px 0px 30px 6px !important;
     margin-top: 0.5rem;
+	pointer-events: auto; /* El contenedor sí permite el scroll */
+    user-select: none;    /* Nadie puede seleccionar texto */
 }
 
 /* BOTÓN FLOTANTE DE AUDIO (Estilo Anuncio/Float) */
@@ -3977,7 +3983,7 @@ body { top: 0px !important; }
 	overflow: hidden; /* Evitar scroll en el fondo */
 	backdrop-filter: blur(1px);
 	-webkit-backdrop-filter: blur(2px);
-	background-image: url(https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/refs/heads/master/adjuntos/BabelX.webp);
+	background-image: url(https://i.ibb.co/WpMvZmQJ/Babel-X.webp);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -4003,7 +4009,7 @@ body { top: 0px !important; }
     border-radius: 10px;
     text-align: center;
     overflow: hidden;
-    background-image: url(https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg);
+    background-image: url(https://i.ibb.co/0Vy5p8s9/Portada-Base.jpg);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -4353,7 +4359,7 @@ button {
 	overflow: hidden; /* Evitar scroll en el fondo */
 	backdrop-filter: blur(1px);
 	-webkit-backdrop-filter: blur(2px);
-	background-image: url(https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/refs/heads/master/adjuntos/BabelX.webp);
+	background-image: url(https://i.ibb.co/WpMvZmQJ/Babel-X.webp);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -4375,7 +4381,7 @@ button {
     border-radius: 10px;
     text-align: center;
     overflow: hidden;
-    background-image: url(https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg);
+    background-image: url(https://i.ibb.co/0Vy5p8s9/Portada-Base.jpg);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -4682,7 +4688,7 @@ button {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url(https://raw.githubusercontent.com/proc3r/001-Publicados/refs/heads/master/adjuntos/PortadaBase.jpg);
+    background-image: url(https://i.ibb.co/0Vy5p8s9/Portada-Base.jpg);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;

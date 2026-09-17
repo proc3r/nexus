@@ -11,109 +11,68 @@ let isImageTimerPaused = false;
 let synopsisSubChunks = [];
 let currentSynopsisIdx = 0;
 
-// --- RENDERIZADO DE BIBLIOTECA (INDEX) ---
 
+// Objeto global para almacenar las sinopsis en memoria
+window.nexusSynopsisMap = {};
 
-function renderLibrary() {
-    const grid = document.getElementById('library-grid');
-    grid.innerHTML = library.length ? '' : '<div class="col-span-full py-32 text-center opacity-20 italic text-white">No hay libros disponibles.</div>';
+async function fetchGlobalSynopsis() {
+    const url = "http://localhost/documentos/sinopsis.md";
+    window.nexusSynopsisMap = {}; 
     
-    library.forEach(book => {
-        let chapterCount = 0;
-        book.chapters.forEach(ch => {
-            if (ch.content) {
-                const hasH1 = ch.content.some(text => (text || "").trim().startsWith('# '));
-                if (hasH1) chapterCount++;
+    try {
+        const response = await fetch(url);
+        const text = await response.text();
+        
+        // Dividimos por el símbolo # al inicio de la línea
+        const bloques = text.split(/^#\s+/gm);
+        
+        bloques.forEach(bloque => {
+            if (!bloque.trim()) return;
+            
+            const lineas = bloque.split('\n');
+            // Limpiamos el nombre: quitamos corchetes y la extensión .md si existiera
+            const tituloRaw = lineas[0].trim();
+            const nombreLimpio = tituloRaw.replace(/[\[\]]/g, '').replace('.md', '').trim();
+            
+            const contenido = lineas.slice(1).join('\n').trim();
+            
+            if (nombreLimpio && contenido) {
+                window.nexusSynopsisMap[nombreLimpio] = contenido;
+                console.log(`📖 Sinopsis cargada: [${nombreLimpio}]`);
             }
         });
-        const displayChapters = chapterCount > 0 ? chapterCount : book.chapters.length;
-        const hasSynopsis = book.chapters.some(ch => 
-            ch.content && ch.content.some(text => (text || "").trim().startsWith('# Sinopsis'))
-        );
-
-        let totalWords = 0;
-        book.chapters.forEach(ch => ch.content.forEach(text => { 
-            totalWords += (text || "").split(/\s+/).filter(w => w.length > 0).length; 
-        }));
-
-        // --- CAMBIO UNIFICADO AQUÍ ---
-        // Usamos la función auxiliar que ya agregaste a nexus-functions
-        const timeStr = typeof calcularTiempoLectura === 'function' 
-            ? calcularTiempoLectura(totalWords) 
-            : (Math.ceil(totalWords / 190) + " min"); // Fallback si la función no carga
-        // -----------------------------
         
-        const card = document.createElement('div');
-        card.className = 'book-card group relative bg-white/5 border border-white/10 rounded-[0.5rem] hover:border-[#ffcc00] cursor-pointer text-center overflow-hidden';
-        card.onclick = (e) => {
-            if (!e.target.closest('.btn-synopsis') && !e.target.closest('.podcast-badge-btn')) {
-                openReader(book.id);
-            }
-        };
-
-        card.innerHTML = `
-            <div class="book-card-cover relative w-full aspect-[2/3]">
-                <img src="${book.cover}" alt="Cover" loading="lazy" class="w-full h-full object-cover"
-				onerror="this.onerror=null; this.src='${DEFAULT_COVER}';">
-                
-                ${book.podcastUrl ? `
-                    <div id="pod-btn-${book.id}" class="podcast-badge-btn" onclick="event.stopPropagation(); initPodcast('${book.id}')">
-                        <span class="pod-label">PODCAST</span>
-                        <div class="pod-icon-circle notranslate">
-                            <span class="material-icons">headset</span>
-                        </div>
-                    </div>
-                ` : ''}
-
-                <div class="book-card-overlay absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black/95 via-black/20 to-transparent">
-                    <h3 class="book-card-title-internal text-left text-white font-bold leading-[1em] uppercase condensed text-[1.3rem] mb-[0.2em]">
-                        ${book.displayName || book.title}
-                    </h3>
-                    <div class="flex items-center justify-between h-[25%] w-full pt-2 border-t border-white/10">
-                        <p class="text-[15px] text-white/70 font-[500] uppercase tracking-[0.01em] condensed">
-                            ${displayChapters} SECCIONES
-                        </p>
-                        <div id="synopsis-slot-${book.id}" class="flex-1 flex justify-center">
-                            ${hasSynopsis ? `<button class="btn-synopsis" onclick="event.stopPropagation(); showSynopsis('${book.id}')">SINOPSIS</button>` : ''}
-                        </div>
-                        <p class="text-[18px] text-[#ffcc00] font-bold uppercase condensed italic">
-                            <span class="mi-round text-[18px] align-middle mr-1 notranslate">schedule</span>${timeStr}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `;
-        grid.appendChild(card);
-    });
-    renderShelf();
+    } catch (e) {
+        console.error("❌ Error cargando sinopsis.md:", e);
+    }
 }
-
 
 // --- GESTIÓN DE MODAL DE SINOPSIS ---
 
 function showSynopsis(bookId) {
-    /*if (typeof launchFullScreen === 'function') {
-        setTimeout(() => {
-            launchFullScreen(document.documentElement);
-        }, 0);
-    }*/
-    
     const book = library.find(b => b.id === bookId);
     if (!book) return;
-    const startIndex = book.chapters.findIndex(ch => 
-        ch.content && ch.content.some(t => (t || "").trim().startsWith('# Sinopsis'))
-    );
 
-    if (startIndex !== -1) {
+    // 1. Definimos la clave que buscamos (nombre del archivo sin .md)
+    const targetName = book.fileName.replace('.md', '').trim().toLowerCase();
+    
+    // 2. Buscamos en el mapa global ignorando mayúsculas/minúsculas y espacios
+    const allKeys = Object.keys(window.nexusSynopsisMap || {});
+    const foundKey = allKeys.find(key => key.toLowerCase().trim() === targetName);
+    
+    const synopsisContent = foundKey ? window.nexusSynopsisMap[foundKey] : null;
+
+    if (synopsisContent) {
+        console.log("🎯 Match de sinopsis encontrado:", foundKey);
+        
         const modal = document.getElementById('synopsis-modal');
         const body = document.getElementById('synopsis-body');
         const btnPlay = document.getElementById('btn-synopsis-tts');
 
-        // --- DETECCIÓN DE IDIOMA ---
+        // --- DETECCIÓN DE IDIOMA PARA TRADUCCIÓN ---
         const isTranslated = document.documentElement.lang !== 'es';
 
         if (isTranslated) {
-            // Solo creamos y mostramos el loader si la página NO está en español
             let loader = document.getElementById('synopsis-loader');
             if (!loader) {
                 loader = document.createElement('div');
@@ -130,26 +89,29 @@ function showSynopsis(bookId) {
             if (btnPlay) btnPlay.disabled = true;
         }
 
-        // Bloqueo de selección (siempre activo por seguridad visual)
         if (body) {
+			
             body.style.userSelect = 'none';
             body.style.webkitUserSelect = 'none';
+			
         }
 
-        // (Tu lógica de formateo rawText y lines se mantiene igual...)
-        let rawText = book.chapters.slice(startIndex).map(ch => ch.content.join('\n')).join('\n\n');
-        const lines = rawText.split('\n');
+        // --- PROCESAMIENTO DEL TEXTO (Markdown a HTML) ---
+        const lines = synopsisContent.split('\n');
         let formattedHtml = "";
+        
+        const processMD = (str) => {
+            return str
+                .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/_(.*?)_/g, '<em>$1</em>');
+        };
+
         lines.forEach(line => {
             let cleanLine = line.trim();
-            if (!cleanLine || cleanLine.toLowerCase().startsWith('# sinopsis')) return;
-            const processMD = (str) => {
-                return str
-                    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                    .replace(/_(.*?)_/g, '<em>$1</em>');
-            };
+            if (!cleanLine) return;
+
             if (cleanLine.startsWith('##')) {
                 formattedHtml += `<h2 class="synopsis-h2">${cleanLine.replace(/^#+\s*/, '')}</h2>`;
             } else if (cleanLine.startsWith('>')) {
@@ -160,12 +122,13 @@ function showSynopsis(bookId) {
                 formattedHtml += `<p class="synopsis-p">${text}</p>`;
             }
         });
-
+		
+		
         body.innerHTML = formattedHtml;
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
         
-        // --- BARRIDO CONDICIONAL ---
+        // --- EFECTO DE BARRIDO PARA TRADUCTORES ---
         if (isTranslated) {
             setTimeout(() => {
                 const totalHeight = body.scrollHeight;
@@ -182,24 +145,30 @@ function showSynopsis(bookId) {
                 }, 900);
             }, 200);
         } else {
-            // Si está en español, aseguramos que el botón esté habilitado y no haya scroll
             if (btnPlay) btnPlay.disabled = false;
             body.scrollTop = 0;
         }
         
-        // (Eventos readBtn y modal.onclick se mantienen igual...)
+        // Configuración de botones de acción
         const readBtn = document.getElementById('btn-synopsis-read');
-        readBtn.onclick = (e) => {
-            e.preventDefault();
-            closeSynopsis();
-            openReader(bookId);
-        };
-								
+        if (readBtn) {
+            readBtn.onclick = (e) => {
+                e.preventDefault();
+                closeSynopsis();
+                openReader(bookId);
+            };
+        }
+                                
         modal.onclick = (e) => {
             if (e.target.id === 'synopsis-modal') closeSynopsis();
         };
+    } else {
+        console.warn(`⚠️ No se encontró sinopsis para el archivo: ${book.fileName}`);
+        console.log("Claves cargadas en memoria:", allKeys);
     }
 }
+
+
 	
 	function toggleSynopsisSpeedMenu(event) {
 		if (event) event.stopPropagation(); // ¡Importante! Evita el cierre inmediato
@@ -374,3 +343,10 @@ window.addEventListener('click', function(event) {
         closeSynopsis();
     }
 });
+
+
+// Forzar la carga apenas cargue este archivo JS
+(function() {
+    console.log("🚀 Nexus Synopsis: Auto-ejecución iniciada");
+    fetchGlobalSynopsis();
+})();

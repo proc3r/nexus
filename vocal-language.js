@@ -165,8 +165,6 @@ function showVisualTimer(duration) {
 }
 
 
-
-// Función para pausar (si el usuario presiona PAUSE manualmente)
 // Función para pausar (si el usuario presiona PAUSE manualmente)
 function pauseVisualTimer() {
     const fill = document.getElementById('visual-timer-fill');
