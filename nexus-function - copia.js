@@ -589,6 +589,11 @@ document.addEventListener('keydown', (e) => {
     if (e.key === "Escape") closeImageModal();
 });
 
+	document.addEventListener('keydown', (e) => {
+		if (e.key === "Escape") closeImageModal();
+	});
+
+		
 
 
 function shareCurrentPoint() {
@@ -762,13 +767,16 @@ function executeShare(platform) {
                 textNode.nodeValue = newValue;
             });
         }
-        // Ejemplo de desconexión temporal dentro del observer:
-			const observer = new MutationObserver((mutations) => {
-				observer.disconnect(); // Pausar
-				cleanCalloutTags();
-				const target = document.getElementById('book-content');
-				if (target) observer.observe(target, { childList: true, subtree: true }); // Reanudar
-			});
+        const observer = new MutationObserver((mutations) => {
+            cleanCalloutTags();
+        });
+
+        window.addEventListener('load', () => {
+            const target = document.getElementById('book-content');
+            if (target) {
+                observer.observe(target, { childList: true, subtree: true });
+            }
+        });
 		
      function toggleDropdown(id) {
     const el = document.getElementById(id);

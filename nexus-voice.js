@@ -12,7 +12,7 @@ window.currentUtterance = null;
 window.synth = window.speechSynthesis;
 window.pauseTimer = null;
 window.VOICE_REPLACEMENTS = {};
-const DICTIONARY_URL = "http://localhost/nexus/voice-dictionary.json";
+const DICTIONARY_URL = "./voice-dictionary.json";
 window.nexusSpeechTimeout = null; // Guardará el timer actual
 
 
@@ -43,7 +43,7 @@ function getDynamicChunkLimit() {
         'zh': 55,  // Chino
         'ko': 80,  // Coreano
         'ja': 60,  // Japonés
-        'default': 130
+        'default': 145
     };
 
     const limit = limits[baseLang] || limits['default'];
@@ -791,7 +791,7 @@ function controlVoiceVolume(valor) {
 
 
 
-
+// Todas las secciones que aparecen abajo hay que borrarlas si activamos el script sountrack.js en index.html
 
 /* ==========================================================================
    CONTROL DE VOLUMEN Y POPUP PARA VOZ TTS (Libre de dependencias de música)

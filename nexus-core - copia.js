@@ -13,11 +13,19 @@
 ];
         const DEFAULT_COVER = "./PortadaBase.jpg";
 		// Red Unificada de Adjuntos (Aquí puedes añadir más en el futuro)
-		const AUDIO_BASE_URL = "http://localhost/documentos/Audios/";
+		
+
+	const AUDIO_BASE_URL = "http://localhost/documentos/Audios/";
+
+	
+
 	
 	async function initNexus() { // Asegúrate de que tenga 'async'
     console.log("Iniciando Nexus...");
+    
     await fetchBooks();         // Espera a los libros
+    
+    
     renderLibrary();            // Recién aquí dibuja la biblioteca
 }
 	
@@ -35,29 +43,25 @@ async function buscarImagenEnRepositorios(nombreArchivo, urlAdjuntosBase) {
     }
 }
 
-// Optimizador único: Crea la URL para el visor de wsrv.nl
-function getOptimizedImageUrl(url, width = 400) {
+// 2. Optimizador único: Crea la URL para el visor de wsrv.nl
+function getOptimizedImageUrl(url, width) {
     if (!url || url === DEFAULT_COVER) return DEFAULT_COVER;
     // El &v=1 es CLAVE para que el navegador guarde la imagen en caché
     return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&output=webp&q=75&v=1`;
 }
 
-
 // --- 2. FUNCIONES DE CONTROL DE INTERFAZ (MOVER AQUÍ ARRIBA) ---
 
-	
-	let libraryRetries = 0;
-	function renderLibrary() {
+
+function renderLibrary() {
     const grid = document.getElementById('library-grid');
+    
+    // 1. Validaciones de Seguridad
     if (window.isLectorFijo || !grid) return;
 
     if (library.length === 0) {
-        if (libraryRetries < 5) {
-            libraryRetries++;
-            setTimeout(renderLibrary, 500);
-        } else {
-            console.error("Nexus Core: No se pudo cargar la librería.");
-        }
+        console.warn("Nexus Core: Librería vacía, reintentando render en 500ms...");
+        setTimeout(renderLibrary, 500);
         return;
     }
 
@@ -187,7 +191,11 @@ function getOptimizedImageUrl(url, width = 400) {
 			};
 		}
 
-			
+		function getOptimizedImageUrl(url, width = 400) {
+			if (!url || url === DEFAULT_COVER) return url;
+			return `https://wsrv.nl/?url=${encodeURIComponent(url)}&v=1&w=${width}&output=webp&q=75`;
+		}
+	
 	
 	window.onload = () => {
     loadExternalDictionary().then(() => {
@@ -238,7 +246,7 @@ async function loadDirectBook(params) {
     currentBook = null; 
     const statusText = document.getElementById('status-text');
     let repoIndex = (params.repo !== null && !isNaN(params.repo)) ? parseInt(params.repo) : 0;
-    let fileName = params.book ? decodeURIComponent(params.book) : "Modelo Noumenico.md";
+    let fileName = params.book ? decodeURIComponent(params.book) : "Modelo Nouménico.md";
     const repo = REPOSITORIES[repoIndex] || REPOSITORIES[0];
     const fileUrl = repo.raw + encodeURIComponent(fileName);
 

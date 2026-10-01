@@ -1,40 +1,26 @@
 /**
- * NEXUS SYNOPSIS MODULE - Optimizado para GitHub Pages
- * Maneja la visualización de la biblioteca, modales de sinopsis y TTS.
+ * NEXUS SYNOPSIS MODULE
+ * Maneja la visualización de la biblioteca, modales de sinopsis y timers de imagen.
  */
 
-// --- CONFIGURACIÓN DE ENTORNO ---
-const CONFIG_SYNOPSIS = {
-    // Cambiar a false al publicar en GitHub Pages
-    IS_LOCAL: false, 
-    LOCAL_URL: "http://localhost/documentos/sinopsis.md",
-    REMOTE_URL: "./sinopsis.md" // O la URL Raw de GitHub cuando esté activo
-};
-
-// Variables de estado
+// Variables de estado movidas del core para la sinopsis
 let synopsisSpeechRate = 1.1;
 let imageTimer = null;
 let imageSecondsLeft = 5;
 let isImageTimerPaused = false;
 let synopsisSubChunks = [];
 let currentSynopsisIdx = 0;
-let synopsisScrollTimeout1 = null;
-let synopsisScrollTimeout2 = null;
+
 
 // Objeto global para almacenar las sinopsis en memoria
 window.nexusSynopsisMap = {};
 
 async function fetchGlobalSynopsis() {
-    const url = CONFIG_SYNOPSIS.IS_LOCAL 
-        ? CONFIG_SYNOPSIS.LOCAL_URL 
-        : CONFIG_SYNOPSIS.REMOTE_URL;
-        
+    const url = "http://localhost/nexus/sinopsis.md";
     window.nexusSynopsisMap = {}; 
     
     try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
         const text = await response.text();
         
         // Dividimos por el símbolo # al inicio de la línea
@@ -44,43 +30,46 @@ async function fetchGlobalSynopsis() {
             if (!bloque.trim()) return;
             
             const lineas = bloque.split('\n');
+            // Limpiamos el nombre: quitamos corchetes y la extensión .md si existiera
             const tituloRaw = lineas[0].trim();
             const nombreLimpio = tituloRaw.replace(/[\[\]]/g, '').replace('.md', '').trim();
+            
             const contenido = lineas.slice(1).join('\n').trim();
             
             if (nombreLimpio && contenido) {
                 window.nexusSynopsisMap[nombreLimpio] = contenido;
+                console.log(`📖 Sinopsis cargada: [${nombreLimpio}]`);
             }
         });
-        console.log(`📖 Sinopsis cargadas con éxito (${Object.keys(window.nexusSynopsisMap).length} libros)`);
         
     } catch (e) {
-        console.warn("⚠️ No se pudo cargar sinopsis.md:", e.message);
+        console.error("❌ Error cargando sinopsis.md:", e);
     }
 }
 
 // --- GESTIÓN DE MODAL DE SINOPSIS ---
 
 function showSynopsis(bookId) {
-    // Validación de seguridad para la librería
-    if (typeof library === 'undefined' || !Array.isArray(library)) return;
-
     const book = library.find(b => b.id === bookId);
     if (!book) return;
 
-    const targetName = (book.fileName || book.name || "").replace('.md', '').trim().toLowerCase();
+    // 1. Definimos la clave que buscamos (nombre del archivo sin .md)
+    const targetName = book.fileName.replace('.md', '').trim().toLowerCase();
+    
+    // 2. Buscamos en el mapa global ignorando mayúsculas/minúsculas y espacios
     const allKeys = Object.keys(window.nexusSynopsisMap || {});
     const foundKey = allKeys.find(key => key.toLowerCase().trim() === targetName);
     
     const synopsisContent = foundKey ? window.nexusSynopsisMap[foundKey] : null;
 
     if (synopsisContent) {
+        console.log("🎯 Match de sinopsis encontrado:", foundKey);
+        
         const modal = document.getElementById('synopsis-modal');
         const body = document.getElementById('synopsis-body');
         const btnPlay = document.getElementById('btn-synopsis-tts');
 
-        if (!modal || !body) return;
-
+        // --- DETECCIÓN DE IDIOMA PARA TRADUCCIÓN ---
         const isTranslated = document.documentElement.lang !== 'es';
 
         if (isTranslated) {
@@ -93,19 +82,21 @@ function showSynopsis(bookId) {
                     <div class="synopsis-loader-text">SINCRONIZANDO...</div>
                 `;
                 const modalContent = modal.querySelector('.relative.bg-white\\/5') || modal.children[0];
-                if (modalContent) modalContent.appendChild(loader);
+                modalContent.appendChild(loader);
             }
-            if (loader) {
-                loader.style.opacity = '1';
-                loader.classList.remove('hidden');
-            }
+            loader.style.opacity = '1';
+            loader.classList.remove('hidden');
             if (btnPlay) btnPlay.disabled = true;
         }
 
-        body.style.userSelect = 'none';
-        body.style.webkitUserSelect = 'none';
+        if (body) {
+			
+            body.style.userSelect = 'none';
+            body.style.webkitUserSelect = 'none';
+			
+        }
 
-        // Procesamiento Markdown a HTML
+        // --- PROCESAMIENTO DEL TEXTO (Markdown a HTML) ---
         const lines = synopsisContent.split('\n');
         let formattedHtml = "";
         
@@ -131,18 +122,19 @@ function showSynopsis(bookId) {
                 formattedHtml += `<p class="synopsis-p">${text}</p>`;
             }
         });
-
+		
+		
         body.innerHTML = formattedHtml;
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
         
-        // Control de traducción y desplazamiento
+        // --- EFECTO DE BARRIDO PARA TRADUCTORES ---
         if (isTranslated) {
-            synopsisScrollTimeout1 = setTimeout(() => {
+            setTimeout(() => {
                 const totalHeight = body.scrollHeight;
                 body.scrollTo({ top: totalHeight, behavior: 'smooth' });
                 
-                synopsisScrollTimeout2 = setTimeout(() => {
+                setTimeout(() => {
                     body.scrollTo({ top: 0, behavior: 'instant' });
                     const loader = document.getElementById('synopsis-loader');
                     if (loader) {
@@ -157,12 +149,13 @@ function showSynopsis(bookId) {
             body.scrollTop = 0;
         }
         
+        // Configuración de botones de acción
         const readBtn = document.getElementById('btn-synopsis-read');
         if (readBtn) {
             readBtn.onclick = (e) => {
                 e.preventDefault();
                 closeSynopsis();
-                if (typeof openReader === 'function') openReader(bookId);
+                openReader(bookId);
             };
         }
                                 
@@ -170,47 +163,53 @@ function showSynopsis(bookId) {
             if (e.target.id === 'synopsis-modal') closeSynopsis();
         };
     } else {
-        console.warn(`⚠️ No se encontró sinopsis para: ${targetName}`);
+        console.warn(`⚠️ No se encontró sinopsis para el archivo: ${book.fileName}`);
+        console.log("Claves cargadas en memoria:", allKeys);
     }
 }
 
-function toggleSynopsisSpeedMenu(event) {
-    if (event) event.stopPropagation();
-    const menu = document.getElementById('synopsis-speed-menu');
-    if (menu) menu.classList.toggle('hidden');
-}
 
-function setSynopsisSpeed(rate) {
-    synopsisSpeechRate = rate;
-    const label = document.getElementById('current-speed-label');
-    if (label) label.innerText = rate + 'x';
-    const menu = document.getElementById('synopsis-speed-menu');
-    if (menu) menu.classList.add('hidden');
-}
+	
+	function toggleSynopsisSpeedMenu(event) {
+		if (event) event.stopPropagation(); // ¡Importante! Evita el cierre inmediato
+		const menu = document.getElementById('synopsis-speed-menu');
+		if (menu) {
+			menu.classList.toggle('hidden');
+		}
+	}
+
+	function setSynopsisSpeed(rate) {
+		synopsisSpeechRate = rate;
+		document.getElementById('current-speed-label').innerText = rate + 'x';
+		document.getElementById('synopsis-speed-menu').classList.add('hidden');
+		// El cambio se aplicará automáticamente en el siguiente chunk
+	}
+	
 
 function closeSynopsis() {
+    // 1. Detenemos el audio y reanudamos el podcast (usando la función que ya lo hace)
     stopSynopsisTTS(); 
     
-    // Limpieza de temporizadores de scroll
-    if (synopsisScrollTimeout1) clearTimeout(synopsisScrollTimeout1);
-    if (synopsisScrollTimeout2) clearTimeout(synopsisScrollTimeout2);
-
+    // 2. Cerramos el modal visualmente
     const modal = document.getElementById('synopsis-modal');
     const body = document.getElementById('synopsis-body');
     
     if (modal) modal.classList.add('hidden');
-    document.body.style.overflow = ''; 
-    if (body) body.scrollTop = 0;      
+    document.body.style.overflow = ''; // Devolvemos el scroll a la página principal
+    if (body) body.scrollTop = 0;      // Reseteamos el scroll interno para la próxima vez
     
+    // 3. Limpiamos el timer de las imágenes (si existe)
     if (typeof imageTimer !== 'undefined' && imageTimer) {
         clearInterval(imageTimer);
         imageTimer = null;
     }
+    console.log("📌 Modal de sinopsis cerrado.");
 }
-
-// --- LÓGICA DE VOZ PARA SINOPSIS (TTS) ---
+// --- LÓGICA DE VOZ PARA SINOPSIS ---
 
 function startSynopsisTTS() {
+    // 1. GESTIÓN DE AUDIO PREVIO (Podcast)
+    // Guardamos el estado para reanudarlo al terminar la lectura
     if (typeof podAudioInstance !== 'undefined' && podAudioInstance && !podAudioInstance.paused) {
         window.wasPodcastPlayingBeforeTTS = true;
         if (typeof togglePodcastPlay === 'function') togglePodcastPlay(false);
@@ -221,37 +220,45 @@ function startSynopsisTTS() {
     const body = document.getElementById('synopsis-body');
     if (!body) return;
     
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    // 2. LIMPIEZA DE SÍNTESIS PREVIA
+    window.speechSynthesis.cancel();
     if (window.synth) window.synth.cancel();
     synopsisSubChunks = [];
     currentSynopsisIdx = 0;
 
+    // 3. PREPARACIÓN DEL TEXTO 
+    // Captura el texto del DOM (si hubo barrido de traducción, ya vendrá traducido)
     let textToRead = body.innerText; 
 
-    textToRead = textToRead.replace(/^>\s*-\s*/gm, "… ")
-                           .replace(/^-\s+/gm, "… ")
-                           .replace(/([a-zA-ZáéíóúÁÉÍÓÚ])\s*-\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1 … $2")
-                           .replace(/\*\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/_/g, '')
-                           .replace(/\s+-\s+([a-zA-Z])/g, " … $1")
-                           .replace(/([a-zA-ZáéíóúÁÉÍÓÚ0-9])\s*—\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1,$2");
+    // Limpieza de formato Markdown y caracteres especiales
+    textToRead = textToRead.replace(/^>\s*-\s*/gm, "… ");
+    textToRead = textToRead.replace(/^-\s+/gm, "… ");
+    textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ])\s*-\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1 … $2");
+    textToRead = textToRead.replace(/\*\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/_/g, '');
+    textToRead = textToRead.replace(/\s+-\s+([a-zA-Z])/g, " … $1");
+    textToRead = textToRead.replace(/([a-zA-ZáéíóúÁÉÍÓÚ0-9])\s*—\s*([a-zA-ZáéíóúÁÉÍÓÚ])/g, "$1,$2");
 
+    // Gestión de Interfaz: Ocultar Play, Mostrar Stop
     const btnPlay = document.getElementById('btn-synopsis-tts');
     const btnStop = document.getElementById('btn-synopsis-stop');
     if (btnPlay) btnPlay.classList.add('hidden');
     if (btnStop) btnStop.classList.remove('hidden');
 
+    // Segmentación inteligente (usando el límite de 140 caracteres para mejor entonación)
     if (typeof splitTextSmartly === 'function') {
         synopsisSubChunks = splitTextSmartly(textToRead, 140);
     } else {
         synopsisSubChunks = [textToRead];
     }
 
+    // 4. FUNCIÓN INTERNA DE LOCUCIÓN (Recursiva)
     function speakNextSynopsis() {
         const modal = document.getElementById('synopsis-modal');
         const modalVisible = modal && !modal.classList.contains('hidden');
         
+        // Finalización por fin de texto o cierre del modal
         if (!modalVisible || currentSynopsisIdx >= synopsisSubChunks.length) {
-            stopSynopsisTTS(); 
+            stopSynopsisTTS(); // Esta función debe encargarse de reanudar el podcast
             return;
         }
 
@@ -263,9 +270,17 @@ function startSynopsisTTS() {
         }
 
         const utter = new SpeechSynthesisUtterance(currentText);
+
+        // --- AJUSTE DE IDIOMA DINÁMICO ---
+        // Ahora usará la versión corregida que detecta si el original está abierto
         utter.lang = (typeof getTTSLanguageCode === 'function') ? getTTSLanguageCode() : 'es-ES';
-        utter.rate = synopsisSpeechRate; 
         
+        // --- AJUSTE DE VELOCIDAD ---
+        // Sincronizamos con el lector principal (window.readerSpeechRate) 
+        // o con la de la sinopsis si esa falla.
+       // utter.rate = window.readerSpeechRate || synopsisSpeechRate || 1.1;
+		utter.rate = synopsisSpeechRate; // <--- Cambiado de 1.0 a la variable
+		
         utter.onend = () => {
             currentSynopsisIdx++;
             speakNextSynopsis();
@@ -278,26 +293,31 @@ function startSynopsisTTS() {
             }
         };
 
-        if (window.speechSynthesis) {
-            window.speechSynthesis.cancel(); 
-            window.speechSynthesis.speak(utter);
-        }
+        // Limpieza de cualquier audio residual justo antes de hablar
+        window.speechSynthesis.cancel(); 
+        window.speechSynthesis.speak(utter);
     }
 
+    // Iniciar la cadena de locución
     speakNextSynopsis();
 }
 
+
 function stopSynopsisTTS() {
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    window.speechSynthesis.cancel();
     synopsisSubChunks = [];
     currentSynopsisIdx = 0;
+    isSynopsisReading = false;
 
+    // Actualizar botones
     const btnStop = document.getElementById('btn-synopsis-stop');
     const btnPlay = document.getElementById('btn-synopsis-tts');
     if (btnStop) btnStop.classList.add('hidden');
     if (btnPlay) btnPlay.classList.remove('hidden');
     
+    // --- ESTA ES LA PARTE CLAVE ---
     if (window.wasPodcastPlayingBeforeTTS) {
+        console.log("▶️ Reanudando podcast tras cerrar sinopsis...");
         if (typeof togglePodcastPlay === 'function') {
             togglePodcastPlay(true);
         }
@@ -306,21 +326,27 @@ function stopSynopsisTTS() {
 }
 
 function renderSynopsisContent(content) {
-    const synopsisBody = document.getElementById('synopsis-body-content');
+    const synopsisBody = document.getElementById('synopsis-body-content'); // Ajusta al ID real
     if (synopsisBody) {
+        // Añadimos 'notranslate' para evitar que Google inyecte etiquetas que capten clics
         synopsisBody.classList.add('notranslate');
         synopsisBody.innerHTML = content;
     }
 }
 
+
+// Cierre de modal al hacer clic fuera del contenido
 window.addEventListener('click', function(event) {
     const modal = document.getElementById('synopsis-modal');
+    // Si el clic fue exactamente en el fondo del modal (y no en sus hijos)
     if (event.target === modal) {
         closeSynopsis();
     }
 });
 
-// Inicialización de la carga global de sinopsis
+
+// Forzar la carga apenas cargue este archivo JS
 (function() {
+    console.log("🚀 Nexus Synopsis: Auto-ejecución iniciada");
     fetchGlobalSynopsis();
 })();
