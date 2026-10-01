@@ -33,6 +33,11 @@
         const result = document.getElementById('result');
         const jsonOutput = document.getElementById('jsonOutput');
 
+        // Constantes de URLs Base
+        const RAW_DOCS_BASE = "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/";
+        const RAW_ATTACHMENTS_BASE = "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/";
+        const DEFAULT_COVER_URL = "https://raw.githubusercontent.com/proc3r/nexus/main/img/PortadaBase.jpg";
+
         dropZone.onclick = () => fileInput.click();
 
         fileInput.onchange = (e) => handleFile(e.target.files[0]);
@@ -51,53 +56,74 @@
             reader.readAsText(file);
         }
 
-function processContent(fileName, text) {
-    // 1. Extraer Título Real
-    const titleMatch = text.match(/titulo:\s*(.+)/);
-    const displayName = titleMatch ? titleMatch[1].trim() : fileName.replace('.md', '');
+        function processContent(fileName, text) {
+            // 1. Extraer Título Real
+            const titleMatch = text.match(/titulo:\s*(.+)/);
+            const displayName = titleMatch ? titleMatch[1].trim() : fileName.replace('.md', '');
 
-    // 2. Extraer Soundtrack (con fallback automático)
-    const stMatch = text.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/);
-    // Si hay match, usa el ID; si no, usa el soundtrack base
-    const soundtrack = stMatch ? stMatch[1] : "EqbnlPZKEcM"; 
+            // 2. Extraer Soundtrack (con fallback automático)
+            const stMatch = text.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/);
+            const soundtrack = stMatch ? stMatch[1] : "EqbnlPZKEcM"; 
 
-    // 3. Contar Secciones (Lógica: Líneas que empiezan con '# ')
-    const lines = text.split('\n');
-    const sectionsCount = lines.filter(line => line.trim().startsWith('# ')).length;
+            // 3. Contar Secciones (Lógica: Líneas que empiezan con '# ')
+            const lines = text.split('\n');
+            const sectionsCount = lines.filter(line => line.trim().startsWith('# ')).length;
 
-    // 4. Calcular Tiempo de Lectura (Palabras / 190)
-    const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
-    const totalMinutes = Math.ceil(words / 190);
+            // 4. Calcular Tiempo de Lectura (Palabras / 190)
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+            const totalMinutes = Math.ceil(words / 190);
 
-    // Función para formatear minutos a Horas y Minutos
-    let timeFormatted = "";
-    if (totalMinutes >= 60) {
-        const horas = Math.floor(totalMinutes / 60);
-        const minsRestantes = totalMinutes % 60;
-        timeFormatted = minsRestantes > 0 ? `${horas} h ${minsRestantes} min` : `${horas} h`;
-    } else {
-        timeFormatted = `${totalMinutes} min`;
-    }
+            let timeFormatted = "";
+            if (totalMinutes >= 60) {
+                const horas = Math.floor(totalMinutes / 60);
+                const minsRestantes = totalMinutes % 60;
+                timeFormatted = minsRestantes > 0 ? `${horas} h ${minsRestantes} min` : `${horas} h`;
+            } else {
+                timeFormatted = `${totalMinutes} min`;
+            }
 
-    // 5. Detectar si existe sección de Sinopsis
-    const hasSynopsis = text.toLowerCase().includes('# sinopsis');
+            // 5. Detectar si existe sección de Sinopsis
+            const hasSynopsis = text.toLowerCase().includes('# sinopsis');
 
-    const jsonSnippet = {
-        "name": fileName,
-        "download_url": "http://localhost/documentos/" + fileName,
-        "coverUrl": "URL_DE_IMGBB_AQUI",
-        "displayName": displayName,        
-        "chaptersCount": sectionsCount,
-        "readingTime": timeFormatted,
-        "hasSynopsis": hasSynopsis,
-        "soundtrack": soundtrack, // Siempre será un string con comillas
-        "index": true,
-        "repoIdx": 0
-    };
+            // 6. Procesamiento de Portada / Imagen
+            const imageMatches = [...text.matchAll(/!\[\[(.*?)\]\]/g)];
+            let coverUrlFinal = DEFAULT_COVER_URL;
 
-    document.getElementById('jsonOutput').innerText = JSON.stringify(jsonSnippet, null, 2);
-    document.getElementById('result').style.display = 'block';
-}
+            if (imageMatches.length > 0) {
+                // Buscamos el primer adjunto que no sea un archivo de audio
+                const validImg = imageMatches.find(m => {
+                    const name = m[1].toLowerCase();
+                    return !name.endsWith('.mp3') && !name.endsWith('.m4a') && !name.endsWith('.wav');
+                });
+
+                if (validImg) {
+					const imageName = validImg[1].split('|')[0].trim();
+					// Guardamos la URL limpia de RAW (sin wsrv.nl estático)
+					coverUrlFinal = RAW_ATTACHMENTS_BASE + encodeURIComponent(imageName);
+                }
+            }
+
+            // Detección del valor 'index' en metadatos (Frontmatter)
+            const indexMatch = text.match(/^index:\s*(true|false)/m);
+            const isIndexActive = indexMatch ? (indexMatch[1] === 'true') : false;
+
+            // 7. Generar objeto JSON final
+            const jsonSnippet = {
+                "name": fileName,
+                "download_url": RAW_DOCS_BASE + encodeURIComponent(fileName),
+                "coverUrl": coverUrlFinal,
+                "displayName": displayName,        
+                "chaptersCount": sectionsCount,
+                "readingTime": timeFormatted,
+                "hasSynopsis": hasSynopsis,
+                "soundtrack": soundtrack,
+                "index": isIndexActive,
+                "repoIdx": 0
+            };
+
+            document.getElementById('jsonOutput').innerText = JSON.stringify(jsonSnippet, null, 2);
+            document.getElementById('result').style.display = 'block';
+        }
 
         function copyToClipboard() {
             navigator.clipboard.writeText(jsonOutput.innerText);

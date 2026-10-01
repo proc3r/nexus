@@ -3,17 +3,17 @@
         let currentChapterIndex = 0;
         let currentChunkIndex = 0;
         let chunks = [];
-const REPOSITORIES = [
+        const REPOSITORIES = [
     {
-        api: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/",
-        raw: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/",
-        adjuntos: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/"
-    }
+        api: "http://localhost/documentos/",
+        raw: "http://localhost/documentos/",
+        adjuntos: "http://localhost/documentos/adjuntos/"
+    },
+    
 ];
-
         const DEFAULT_COVER = "./PortadaBase.jpg";
 		// Red Unificada de Adjuntos (Aquí puedes añadir más en el futuro)
-		const AUDIO_BASE_URL = "https://raw.githubusercontent.com/proc3r/Audios/refs/heads/master/";
+		const AUDIO_BASE_URL = "http://localhost/documentos/Audios/";
 	
 	async function initNexus() { // Asegúrate de que tenga 'async'
     console.log("Iniciando Nexus...");

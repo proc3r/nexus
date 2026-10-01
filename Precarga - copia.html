@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nexus Metadata Generator</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: #e0e0e0; padding: 40px; }
+        .drop-zone { border: 2px dashed #4a4a4a; padding: 40px; text-align: center; cursor: pointer; border-radius: 10px; transition: 0.3s; }
+        .drop-zone:hover { border-color: #007bff; background: #252525; }
+        #result { margin-top: 20px; background: #000; padding: 20px; border-radius: 5px; display: none; }
+        pre { white-space: pre-wrap; word-wrap: break-word; color: #00ff00; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Generador de Metadatos Nexus</h1>
+    <p>Arrastra aquí tu archivo .md para obtener los datos del JSON.</p>
+    
+    <div class="drop-zone" id="dropZone">
+        Arrastra tu archivo .md aquí o haz clic para seleccionar
+    </div>
+    <input type="file" id="fileInput" hidden accept=".md">
+
+    <div id="result">
+        <h3>Resultado para library-index.json:</h3>
+        <pre id="jsonOutput"></pre>
+        <button onclick="copyToClipboard()">Copiar al portapapeles</button>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const result = document.getElementById('result');
+        const jsonOutput = document.getElementById('jsonOutput');
+
+        dropZone.onclick = () => fileInput.click();
+
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = '#007bff'; };
+        dropZone.ondragleave = () => dropZone.style.borderColor = '#4a4a4a';
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            handleFile(e.dataTransfer.files[0]);
+        };
+
+        function handleFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => processContent(file.name, e.target.result);
+            reader.readAsText(file);
+        }
+
+function processContent(fileName, text) {
+    // 1. Extraer Título Real
+    const titleMatch = text.match(/titulo:\s*(.+)/);
+    const displayName = titleMatch ? titleMatch[1].trim() : fileName.replace('.md', '');
+
+    // 2. Extraer Soundtrack (con fallback automático)
+    const stMatch = text.match(/soundtrack:\s*([a-zA-Z0-9_-]{11})/);
+    // Si hay match, usa el ID; si no, usa el soundtrack base
+    const soundtrack = stMatch ? stMatch[1] : "EqbnlPZKEcM"; 
+
+    // 3. Contar Secciones (Lógica: Líneas que empiezan con '# ')
+    const lines = text.split('\n');
+    const sectionsCount = lines.filter(line => line.trim().startsWith('# ')).length;
+
+    // 4. Calcular Tiempo de Lectura (Palabras / 190)
+    const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+    const totalMinutes = Math.ceil(words / 190);
+
+    // Función para formatear minutos a Horas y Minutos
+    let timeFormatted = "";
+    if (totalMinutes >= 60) {
+        const horas = Math.floor(totalMinutes / 60);
+        const minsRestantes = totalMinutes % 60;
+        timeFormatted = minsRestantes > 0 ? `${horas} h ${minsRestantes} min` : `${horas} h`;
+    } else {
+        timeFormatted = `${totalMinutes} min`;
+    }
+
+    // 5. Detectar si existe sección de Sinopsis
+    const hasSynopsis = text.toLowerCase().includes('# sinopsis');
+
+    const jsonSnippet = {
+        "name": fileName,
+        "download_url": "http://localhost/documentos/" + fileName,
+        "coverUrl": "URL_DE_IMGBB_AQUI",
+        "displayName": displayName,        
+        "chaptersCount": sectionsCount,
+        "readingTime": timeFormatted,
+        "hasSynopsis": hasSynopsis,
+        "soundtrack": soundtrack, // Siempre será un string con comillas
+        "index": true,
+        "repoIdx": 0
+    };
+
+    document.getElementById('jsonOutput').innerText = JSON.stringify(jsonSnippet, null, 2);
+    document.getElementById('result').style.display = 'block';
+}
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText(jsonOutput.innerText);
+            alert("¡Copiado!");
+        }
+    </script>
+</body>
+</html>
