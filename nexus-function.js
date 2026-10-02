@@ -163,9 +163,21 @@ function updateTimerDisplay() {
         textEl.innerHTML = getTxt(storePausado);
         if (btnEl) btnEl.innerHTML = getTxt(storeBtnReanudar);
     } else {
-        // Solo el número tiene 'notranslate' para evitar el parpadeo
-        textEl.innerHTML = `${getTxt(storeComenzando)} <span class="notranslate">${NexusImage.secondsLeft}</span>`;
-        if (btnEl) btnEl.innerHTML = getTxt(storeBtnPausar);
+        let numSpan = textEl.querySelector('.timer-num');
+        
+        if (!numSpan) {
+            // Construimos la estructura inicial.
+            // El span del número tiene ancho fijo (evita el salto) y translate="no" (evita el choque de Google)
+            textEl.innerHTML = `${getTxt(storeComenzando)} <span class="timer-num notranslate" translate="no" style="display: inline-block; min-width: 1.2em; text-align: center;">${NexusImage.secondsLeft}</span>`;
+            if (btnEl) btnEl.innerHTML = getTxt(storeBtnPausar);
+        } else {
+            // Actualización directa del nodo de texto interno
+            if (numSpan.firstChild && numSpan.firstChild.nodeType === 3) {
+                numSpan.firstChild.nodeValue = NexusImage.secondsLeft;
+            } else {
+                numSpan.textContent = NexusImage.secondsLeft;
+            }
+        }
     }
 }
 
