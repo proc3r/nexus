@@ -175,7 +175,7 @@ Este documento es ideal para lectores que:
 
 # [Soplaris]
 
-###  ¿Qué es la realidad si la despojamos de su máscara material?
+###  ¿Qué es la realidad si le quitamos su máscara material?
 
 Sοplάris propone una ruptura radical con la visión tradicional del cosmos. En esta obra, el universo no es un vacío silente regido por fuerzas ciegas, sino una intrincada red de información: un Sistema Operativo Estelar. 
 
