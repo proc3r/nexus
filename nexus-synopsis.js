@@ -8,7 +8,7 @@ const CONFIG_SYNOPSIS = {
     // Cambiar a false al publicar en GitHub Pages
     IS_LOCAL: false, 
     LOCAL_URL: "http://localhost/documentos/sinopsis.md",
-    REMOTE_URL: "./sinopsis.md" // O la URL Raw de GitHub cuando esté activo
+    REMOTE_URL: "https://raw.githubusercontent.com/proc3r/nexus/refs/heads/main/Sinopsis.md" // O la URL Raw de GitHub cuando esté activo
 };
 
 // Variables de estado
