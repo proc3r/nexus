@@ -23,6 +23,101 @@
   "soundtrack": "VO_LcRkkyWo",
   "index": true,
   "repoIdx": 0
+},
+{
+  "name": "Cosmogonia Noumenica.md",
+  "download_url": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/Cosmogonia%20Noumenica.md",
+  "coverUrl": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/Cosmogonia%20Noumenica.jpg",
+  "displayName": "Cosmogonía Nouménica",
+  "chaptersCount": 4,
+  "readingTime": "53 min",
+  "hasSynopsis": false,
+  "soundtrack": "QTXC2vIYH5Y",
+  "index": true,
+  "repoIdx": 0
+},
+{
+  "name": "Holonomia y Ciencia.md",
+  "download_url": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/Holonomia%20y%20Ciencia.md",
+  "coverUrl": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/Holonomia%20Full.png",
+  "displayName": "Holonomía",
+  "chaptersCount": 4,
+  "readingTime": "50 min",
+  "hasSynopsis": false,
+  "soundtrack": "QujRfiLk3oI",
+  "index": true,
+  "repoIdx": 0
+},
+{
+  "name": "Ingenieria Ontologica.md",
+  "download_url": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/Ingenieria%20Ontologica.md",
+  "coverUrl": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/Holon%20Planetario.jpg",
+  "displayName": "Ingeniería Ontológica",
+  "chaptersCount": 7,
+  "readingTime": "1 h 43 min",
+  "hasSynopsis": false,
+  "soundtrack": "USz9cwVSaqg",
+  "index": true,
+  "repoIdx": 0
+},
+{
+  "name": "Civilizacion Tipo 3.md",
+  "download_url": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/Civilizacion%20Tipo%203.md",
+  "coverUrl": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/Civilizacion%20Tipo%203x.jpg",
+  "displayName": "Civilización Tipo 3",
+  "chaptersCount": 6,
+  "readingTime": "2 h 22 min",
+  "hasSynopsis": false,
+  "soundtrack": "oNocVBCWeuc",
+  "index": true,
+  "repoIdx": 0
+},
+{
+  "name": "Matriz Algoritmica Noumenica.md",
+  "download_url": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/Matriz%20Algoritmica%20Noumenica.md",
+  "coverUrl": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/01%20-%20Atomico2.jpg",
+  "displayName": "Matriz Algorítmica Nouménica",
+  "chaptersCount": 9,
+  "readingTime": "8 h 5 min",
+  "hasSynopsis": false,
+  "soundtrack": "Z8ANihFXlgU",
+  "index": true,
+  "repoIdx": 0
+},
+{
+  "name": "Lucha Noematica y Noema Primordial.md",
+  "download_url": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/Lucha%20Noematica%20y%20Noema%20Primordial.md",
+  "coverUrl": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/Lucha%20Noematica.jpg",
+  "displayName": "Lucha Noematica y Noema Primordial",
+  "chaptersCount": 10,
+  "readingTime": "1 h 18 min",
+  "hasSynopsis": false,
+  "soundtrack": "XLPli3UYcBc",
+  "index": true,
+  "repoIdx": 0
+},
+{
+  "name": "Calendarios y Desincronizacion del Cosmos.md",
+  "download_url": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/Calendarios%20y%20Desincronizacion%20del%20Cosmos.md",
+  "coverUrl": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/Calendars.jpg",
+  "displayName": "Calendarios y Desincronizacion del Cosmos",
+  "chaptersCount": 11,
+  "readingTime": "1 h 5 min",
+  "hasSynopsis": true,
+  "soundtrack": "2bburzrOK2k",
+  "index": true,
+  "repoIdx": 0
+},
+{
+  "name": "Fisica de la Informacion Noumenica.md",
+  "download_url": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/Fisica%20de%20la%20Informacion%20Noumenica.md",
+  "coverUrl": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/Cuanto%20Minimo%20de%20Accion.jpg",
+  "displayName": "Física de la Información Nouménica",
+  "chaptersCount": 7,
+  "readingTime": "3 h 41 min",
+  "hasSynopsis": false,
+  "soundtrack": "QujRfiLk3oI",
+  "index": true,
+  "repoIdx": 0
 }
-  
 ]

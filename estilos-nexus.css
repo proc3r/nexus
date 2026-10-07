@@ -5106,4 +5106,21 @@ button {
     to { opacity: 1; transform: scale(1); }
 }
 
+/* Escala proporcional de la fórmula si supera el ancho de la pantalla */
+.nexus-latex-wrapper mjx-container[jax="SVG"][display="true"] > svg {
+    max-width: 100% !important;
+    height: auto !important;
+}
 
+/* Forzar comportamiento inline estricto para elementos en línea */
+.nexus-latex-inline,
+.nexus-latex-inline mjx-container[jax="SVG"] {
+    display: inline !important;
+    margin: 0 0.15em !important;
+    vertical-align: middle !important;
+}
+
+.nexus-latex-inline mjx-container[jax="SVG"] > svg {
+    display: inline !important;
+    vertical-align: middle !important;
+}

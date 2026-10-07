@@ -399,19 +399,27 @@ function prepareAndStartSpeech() {
     if (contentEl) {
         const tempDiv = contentEl.cloneNode(true);
         
-        // Buscamos y eliminamos el ancla de validación DENTRO del clon
-        // Así, no importa el idioma o lo que diga, la IA nunca lo verá.
+        // a) Buscamos y eliminamos el ancla de validación DENTRO del clon
         const internalAnchor = tempDiv.querySelector('#nexus-validation-anchor');
         if (internalAnchor) {
             internalAnchor.remove();
         }
+
+        // b) FILTRADO DE FÓRMULAS LATEX / MATHJAX PARA LA VOZ
+        // Eliminamos del clon el wrapper de LaTeX y cualquier elemento visual inyectado por MathJax
+        const latexWrappers = tempDiv.querySelectorAll('.nexus-latex-wrapper, mjx-container, script[type="math/tex"]');
+        latexWrappers.forEach(el => el.remove());
         
-        // También eliminamos posibles restos de clases de Apple/Google que causan ruidos
+        // c) Eliminamos posibles restos de clases de Apple/Google que causan ruidos
         const appleNewline = tempDiv.querySelector('.Apple-interchange-newline');
         if (appleNewline) appleNewline.remove();
 
         textToRead = tempDiv.innerText.trim();
     }
+
+    // Limpieza de marcadores residuarios del pipeline de LaTeX ($$ o del de sustitución NXMathBlock)
+    textToRead = textToRead.replace(/NXMathBlock\d+Nx/gi, "");
+    textToRead = textToRead.replace(/\$\$.*?\$\$/gs, "");
 
     // 5. REEMPLAZOS DE DICCIÓN Y NORMALIZACIÓN
     textToRead = textToRead.replace(/^>\s*-\s*/gm, "… ");
@@ -436,14 +444,33 @@ function prepareAndStartSpeech() {
         
         if (typeof speakSubChunk === 'function' && window.speechSubChunks.length > 0) {
             speakSubChunk();
+        } else {
+            // Manejo de caso borde: el chunk carece de texto audible.
+            // Verificamos si en el DOM del chunk original existe una fórmula LaTeX/MathJax
+            const hasLatexInDOM = contentEl && (
+                contentEl.querySelector('.nexus-latex-wrapper') !== null ||
+                contentEl.querySelector('mjx-container') !== null ||
+                contentEl.innerHTML.includes('$$')
+            );
+
+            if (hasLatexInDOM) {
+                // Chunk compuesto exclusivamente por LaTeX: pausa de 4 segundos para lectura visual
+                window.nexusSpeechTimeout = setTimeout(() => {
+                    if (window.isSpeaking && !window.isPaused && typeof nextChunk === 'function') {
+                        nextChunk();
+                    }
+                }, 4000);
+            } else {
+                // Si está vacío pero NO es LaTeX (retraso de traducción o renderizado), reintentamos en 350ms
+                window.nexusSpeechTimeout = setTimeout(prepareAndStartSpeech, 350);
+            }
         }
     }
 }
-	
-	
-	
-	
 
+	
+	
+	
 function speakSubChunk() {
     if (!window.isSpeaking || window.isPaused) return;
 
@@ -460,12 +487,23 @@ function speakSubChunk() {
                 window.nexusSpeechTimeout = null;
             }
 
+            // DETECCIÓN DE BLOQUE LATEX COMPLETO EN EL CHUNK VISUAL ACTUAL
+            const contentEl = document.getElementById('book-content');
+            const hasBlockLatex = contentEl && (
+                contentEl.querySelector('.nexus-latex-wrapper') !== null || 
+                contentEl.querySelector('mjx-container[display="true"]') !== null || 
+                contentEl.innerHTML.includes('$$')
+            );
+
+            // Si hay un bloque de fórmula LaTeX, aplicamos la pausa de 4 segundos; de lo contrario, 600ms estándar.
+            const autoAdvanceDelay = hasBlockLatex ? 4000 : 600;
+
             setTimeout(async () => { 
-              /*  console.log("Nexus Voice: Ejecutando salto automático...");*/
+                /* console.log("Nexus Voice: Ejecutando salto automático..."); */
                 window.navDirection = 'next'; 
                 window.romanceRetryCount = 0; 
                 await nextChunk(); 
-            }, 600); 
+            }, autoAdvanceDelay); 
         } else {
             stopSpeech();
         }
@@ -555,7 +593,9 @@ function speakSubChunk() {
             window.synth.speak(utterance);
         }
     }, 50);
-}
+}	
+
+
 
 
 /**

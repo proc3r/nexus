@@ -5,8 +5,8 @@
         let chunks = [];
 const REPOSITORIES = [
     {
-        api: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/",
-        raw: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/",
+        api: "http://localhost/documentos/",
+        raw: "http://localhost/documentos/",
         adjuntos: "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/"
     }
 ];
@@ -1252,7 +1252,6 @@ async function renderChunk() {
     
     return Promise.resolve();
 }
-
 
 
 

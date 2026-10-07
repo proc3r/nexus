@@ -533,8 +533,31 @@ function changeVolume(value) {
     })();
 
 
+<!-- Configuración e Integración de MathJax 3 para LaTeX (Solo Bloques $$) -->
 
-    </script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true
+    },
+    svg: {
+      fontCache: 'global',
+      displayAlign: 'center'
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+      processHtmlClass: '.*' // Fuerza a MathJax a procesar MathJax dentro de etiquetas blockquote / citas
+    }
+  };
+
+
+
+
+
+</script>
+
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>	
 	
 <script src="nexus-function.js" defer></script>
 <script src="https://www.youtube.com/iframe_api"></script>

@@ -445,177 +445,79 @@ async function fetchBooks() {
 }
 
 
-// Arreglos temporales para preservar fórmulas
-let latexBlocks = [];
-let latexInline = [];
-
-function protectLatex(text) {
-    if (!text) return "";
-    latexBlocks = [];
-    latexInline = [];
-
-    // 1. Proteger bloques $$...$$ (display mode)
-    text = text.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
-        latexBlocks.push(formula.trim());
-        return `NXMathBlock${latexBlocks.length - 1}Nx`;
-    });
-
-    // 2. Proteger inline $...$ (evitando coincidir con precios o símbolos aislados)
-    text = text.replace(/(^|[^\\])\$([^\$\n]+?)\$/g, (match, prefix, formula) => {
-        latexInline.push(formula.trim());
-        return `${prefix}NXMathInline${latexInline.length - 1}Nx`;
-    });
-
-    return text;
-}
-
-function restoreLatex(text) {
-    if (!text) return "";
-
-    // Restaurar bloques $$...$$ (Display mode centrado)
-    text = text.replace(/NXMathBlock(\d+)Nx/g, (match, index) => {
-        const latex = latexBlocks[parseInt(index)];
-        if (!latex) return match;
-        return `<div class="nexus-latex-wrapper" style="display: flex; justify-content: center; align-items: center; width: 100%; margin: 1em 0; text-align: center;">\\[${latex}\\]</div>`;
-    });
-
-    // Restaurar inline $...$ (Inline puro en el mismo párrafo)
-    text = text.replace(/NXMathInline(\d+)Nx/g, (match, index) => {
-        const latex = latexInline[parseInt(index)];
-        if (!latex) return match;
-        // Inyectamos un span estricto inline para evitar saltos de línea
-        return `<span class="nexus-latex-inline" style="display: inline !important; vertical-align: baseline;">\\(${latex}\\)</span>`;
-    });
-
-    return text;
-}
-
-
 
 function parseMarkdown(text) {
-    const lines = text.split('\n');
-    const chapters = [];
-    let currentChapter = null;
-    let inFrontmatter = false;
-    let startLine = 0;
-    let inMediaBlock = false;
-    
-    // --- VARIABLES DE CONTROL LATEX $$ ---
-    let inLatexBlock = false;
-    let accumulatedLatex = ""; 
+		const lines = text.split('\n');
+		const chapters = [];
+		let currentChapter = null;
+		let inFrontmatter = false;
+		let startLine = 0;
+		let inMediaBlock = false; 																	  
+																								
+		// --- LÓGICA DE SOUNDTRACK (LIMPIEZA AGRESIVA) ---
+		let soundtrackId = null;
+		if (lines.length > 0 && lines[0].trim() === "---") {
+			inFrontmatter = true;
+			for (let i = 1; i < lines.length; i++) {
+				const line = lines[i].trim();
+				if (line.toLowerCase().startsWith('soundtrack:')) {
+					// Limpiamos comillas, espacios y caracteres especiales del ID
+					soundtrackId = line.split(':')[1].replace(/['"\r\s]/g, '').trim();
+				}
+				if (line === "---") { inFrontmatter = false; startLine = i + 1; break; }
+			}
+		}
+		// ------------------------------------------------
 
-    // --- LÓGICA DE SOUNDTRACK (LIMPIEZA AGRESIVA) ---
-    let soundtrackId = null;
-    if (lines.length > 0 && lines[0].trim() === "---") {
-        inFrontmatter = true;
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (line.toLowerCase().startsWith('soundtrack:')) {
-                soundtrackId = line.split(':')[1].replace(/['"\r\s]/g, '').trim();
-            }
-            if (line === "---") { inFrontmatter = false; startLine = i + 1; break; }
-        }
-    }
-    // ------------------------------------------------
-
-    if (inFrontmatter) startLine = 0;
-    for (let i = startLine; i < lines.length; i++) {
-        const line = lines[i];
-        const trimmed = line.trim();
-
-        if (trimmed.startsWith('```media')) {
-            inMediaBlock = true;
-            continue;
-        }
-        if (inMediaBlock) {
-            if (trimmed.startsWith('```')) inMediaBlock = false;
-            continue;
-        }
-        if (trimmed.toLowerCase().includes('.pptx]]')) continue;
-                                                
-        const titleMatch = trimmed.match(/^(#+)\s+(.*)/);
-        
-        if (titleMatch) {
-            if (currentChapter) chapters.push(currentChapter);
-            currentChapter = { level: titleMatch[1].length, title: titleMatch[2].trim(), content: [] };
-            currentChapter.content.push(trimmed); 
-        } else if (trimmed !== "") {
-            if (!currentChapter) currentChapter = { level: 1, title: "Inicio", content: [] };
-            
-            const isQuote = trimmed.startsWith('>');
-            const cleanLine = isQuote ? trimmed.replace(/^>\s?/, '').trim() : trimmed;
-
-            // --- CAPTURA EXCLUSIVA DE BLOQUES LATEX $$ EN CITAS ---
-            
-            // Caso A: Fórmula completa $$ ... $$ en una sola línea (con o sin '>')
-            if (cleanLine.startsWith('$$') && cleanLine.endsWith('$$') && cleanLine.length > 2) {
-                if (currentChapter.content.length > 0) {
-                    const lastIdx = currentChapter.content.length - 1;
-                    // Se acopla únicamente al párrafo anterior
-                    currentChapter.content[lastIdx] += '\n' + trimmed;
-                } else {
-                    currentChapter.content.push(trimmed);
-                }
-                continue;
-            }
-
-            // Caso B: Inicio de bloque multilínea $$
-            if (cleanLine.startsWith('$$') && !inLatexBlock) {
-                inLatexBlock = true;
-                accumulatedLatex = trimmed;
-                continue;
-            }
-
-            // Caso C: Dentro de bloque multilínea $$
-            if (inLatexBlock) {
-                accumulatedLatex += '\n' + trimmed;
-                if (cleanLine.endsWith('$$')) {
-                    inLatexBlock = false;
-                    if (currentChapter.content.length > 0) {
-                        const lastIdx = currentChapter.content.length - 1;
-                        // Se acopla el bloque multilínea completo únicamente al párrafo anterior
-                        currentChapter.content[lastIdx] += '\n' + accumulatedLatex;
-                    } else {
-                        currentChapter.content.push(accumulatedLatex);
-                    }
-                    accumulatedLatex = "";
-                }
-                continue;
-            }
-            // ------------------------------------
-
-            // Si es una línea de cita puramente vacía ('>'), no crea un chunk nuevo
-            if (isQuote && cleanLine === "") {
-                continue;
-            }
-
-            const parts = trimmed.split(/(!\[\[.*?\]\])/g);
-            for (let j = 0; j < parts.length; j++) {
-                let subChunk = parts[j].trim();
-                if (!subChunk) continue;
-
-                if (subChunk.startsWith('> [!')) {
-                    let calloutBlock = subChunk;
-                    if (i + 1 < lines.length && lines[i+1].trim().startsWith('>')) {
-                        calloutBlock += '\n' + lines[i+1].trim();
-                        i++; 
-                    }
-                    currentChapter.content.push(calloutBlock);
-                } 
-                else if (subChunk.match(/^!\[\[.*?\]\]/)) {
-                    currentChapter.content.push(isQuote && !subChunk.startsWith('>') ? '> ' + subChunk : subChunk);
-                } else {
-                    // Cadenas de texto normales se guardan cada una en su chunk independiente
-                    currentChapter.content.push(subChunk);
-                }
-            }
-        }
-    }
-    if (currentChapter) chapters.push(currentChapter);
-    
-    chapters.soundtrackId = soundtrackId;
-    return chapters;
-}
+		if (inFrontmatter) startLine = 0;
+		for (let i = startLine; i < lines.length; i++) {
+			const line = lines[i];
+			const trimmed = line.trim();
+			if (trimmed.startsWith('```media')) {
+				inMediaBlock = true;
+				continue;
+			}
+			if (inMediaBlock) {
+				if (trimmed.startsWith('```')) inMediaBlock = false;
+				continue;
+			}
+			if (trimmed.toLowerCase().includes('.pptx]]')) continue;
+													
+			const titleMatch = trimmed.match(/^(#+)\s+(.*)/);
+			
+			if (titleMatch) {
+				if (currentChapter) chapters.push(currentChapter);
+				currentChapter = { level: titleMatch[1].length, title: titleMatch[2].trim(), content: [] };
+				currentChapter.content.push(trimmed); 
+			} else if (trimmed !== "") {
+				if (!currentChapter) currentChapter = { level: 1, title: "Inicio", content: [] };
+				const isQuote = trimmed.startsWith('>');
+				const parts = trimmed.split(/(!\[\[.*?\]\])/g);
+				parts.forEach(part => {
+					let subChunk = part.trim();
+					if (subChunk === "") return;
+					if (subChunk.startsWith('> [!')) {
+						let calloutBlock = subChunk;
+						if (i + 1 < lines.length && lines[i+1].trim().startsWith('>')) {
+							calloutBlock += '\n' + lines[i+1].trim();
+							i++; 
+						}
+						currentChapter.content.push(calloutBlock);
+					} 
+					else if (subChunk.match(/^!\[\[.*?\]\]/)) {
+						currentChapter.content.push(isQuote && !subChunk.startsWith('>') ? '> ' + subChunk : subChunk);
+					} else {
+						currentChapter.content.push(isQuote && !subChunk.startsWith('>') ? '> ' + subChunk : subChunk);
+					}
+				});
+			}
+		}
+		if (currentChapter) chapters.push(currentChapter);
+		
+		chapters.soundtrackId = soundtrackId;
+		return chapters;
+	}
+	
 	
 
 function renderShelf() {
@@ -1050,7 +952,6 @@ function loadChapter(idx, chunkToLoad = 0) {
         }
 	 
 
-
 async function renderChunk() {
     clearImageTimer();
     // Limpieza de barra visual para que no se duplique en el nuevo párrafo
@@ -1063,7 +964,7 @@ async function renderChunk() {
     // 1. DETECCIÓN DE TRADUCCIÓN
     const isTranslated = document.cookie.includes('googtrans') && !document.cookie.includes('/es/es');
 
-    // --- LIMPIEZA INMEDIATA ---
+    // --- MEJORA: LIMPIEZA INMEDIATA ---
     if (window.isSpeaking) window.synth.cancel();
 
     // 2. LIMPIEZA PROFUNDA (Atomic Reset)
@@ -1093,17 +994,19 @@ async function renderChunk() {
         else return nextChunk(); 
     }
 
-    // 3. PROCESAMIENTO DE CONTENIDO CON PROTECCIÓN LATEX GLOBAL
+    // 3. PROCESAMIENTO DE CONTENIDO
     let finalHtml = "";
     let isImage = false;
-    
-    // --- DETECCIÓN DE IMÁGENES ---
+     // --- DETECCIÓN DE IMÁGENES ---
     const embedMatch = rawText.match(/!\[\[(.*?)\]\]/); // Formato Obsidian
     const externalImgMatch = rawText.match(/!\[.*?\]\((https:\/\/.*?)\)/); // Formato Markdown Estándar (ImgBB)
+
 
     if (externalImgMatch) {
         isImage = true;
         const imageUrl = externalImgMatch[1];
+        
+        // Optimización: Usamos wsrv.nl para no cargar la original de ImgBB directamente
         const optimizedUrl = getOptimizedImageUrl(imageUrl, 700);
         
         finalHtml = `<div class="reader-image-container">
@@ -1116,6 +1019,7 @@ async function renderChunk() {
         </div>`;
 
     } else if (embedMatch) {
+        // --- LÓGICA EXISTENTE PARA ADJUNTOS LOCALES ---
         const originalFileName = embedMatch[1].split('|')[0].trim();
         const fileNameLower = originalFileName.toLowerCase();
         
@@ -1128,9 +1032,13 @@ async function renderChunk() {
         }
         
         isImage = true;
+
+        // --- SOLUCIÓN: Construcción directa sin petición previa ---
+        // Usamos el repositorio que ya conocemos del libro actual
         const repoActual = REPOSITORIES[currentBook.repoIdx];
         const rawImageUrl = repoActual.adjuntos + encodeURIComponent(originalFileName);
         
+        // URL optimizada para la vista del lector
         const finalImageUrl = fileNameLower.endsWith('.gif') 
             ? rawImageUrl 
             : getOptimizedImageUrl(rawImageUrl, 700);
@@ -1143,40 +1051,30 @@ async function renderChunk() {
                  onclick="openImageModal('${rawImageUrl}', '${originalFileName}')">
             <p class="reader-text">Click para ampliar</p>
         </div>`;
-
     } else if (rawText.trim().startsWith('#')) {
         finalHtml = `<div class="reader-section-title">${cleanMarkdown(rawText.replace(/^#+\s+/, '').trim())}</div>`;
-
     } else if (rawText.trim().startsWith('>')) {
-        // --- PROTECCIÓN DE LATEX DENTRO DE CITAS (BLOCKQUOTES) ---
-        const protectedText = protectLatex(rawText);
-        let lines = protectedText.split('\n');
+        let lines = rawText.split('\n');
         
+        // Creamos un separador que es un "div" invisible con un salto de línea.
+        // Esto garantiza que el TTS haga una pausa sin pronunciar "punto".
         const ttsPause = '<div style="display:none;">\n</div>';
+        
+        // El separador visual sigue siendo tu span con borde punteado
         const visualSeparator = '<span style="display: block; opacity: 70%; border-bottom: 2px dotted; margin-bottom: 10px;"></span>';
 
-        // Mapeamos las líneas limpiando el prefijo '>' y procesando markdown
-        let processedLines = lines
-            .map(l => processFormatting(cleanMarkdown(l.trim().replace(/^>\s?/, ''))))
-            .filter(l => l.trim().length > 0) // Filtra líneas vacías para evitar duplicación de puntos
-            .join(ttsPause + visualSeparator);
+        let processedLines = lines.map(l => {
+            // Limpiamos el markdown de la línea de forma segura
+            return cleanMarkdown(l.trim().replace(/^>\s?/, ''));
+        }).join(ttsPause + visualSeparator);
         
-        const contentWithLatex = restoreLatex(processedLines);
-        finalHtml = `<div class="custom-blockquote">${contentWithLatex}</div>`;
-
+        finalHtml = `<div class="custom-blockquote">${processFormatting(processedLines)}</div>`;
     } else {
-        const protectedText = protectLatex(rawText);
-        const markdownProcessed = processFormatting(cleanMarkdown(protectedText));
-        finalHtml = restoreLatex(markdownProcessed);
+        finalHtml = processFormatting(cleanMarkdown(rawText));
     }
 
     // 4. INSERCIÓN DE CONTENIDO
     content.innerHTML = finalHtml;
-
-    // --- RENDERIZADO Y TIPOGRAFÍA DE FÓRMULAS LATEX (MATHJAX) ---
-    if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-        window.MathJax.typesetPromise([content]).catch(err => console.error("Error MathJax:", err));
-    }
 
     // --- MEJORA DEL ANCLA DE VALIDACIÓN ---
     if (isTranslated) {
@@ -1230,12 +1128,15 @@ async function renderChunk() {
         nextBtn.innerHTML = isLast ? "FIN" : "NEXT ▶";
     }
 
-    // 7. SINCRONIZACIÓN DE VOZ / MODO VISUAL
+    // 7. SINCRONIZACIÓN DE VOZ / MODO VISUAL (Nexus Voice)
     if (window.isSpeaking) { 
         if (isImage) {
             startImageTimer();
         } else {
+            // --- NUEVA LÓGICA DE SALTO HÍBRIDO ---
             if (window.hasAvailableVoice === false) {
+                // Si no hay voz, lanzamos la barra directamente al renderizar el nuevo párrafo
+               /* console.log("Nexus Vocal: Iniciando barra visual en nuevo párrafo.");*/
                 setTimeout(() => {
                     if (typeof showVisualTimer === 'function' && typeof calculateReadingTime === 'function') {
                         const text = content.innerText || "";
@@ -1243,6 +1144,7 @@ async function renderChunk() {
                     }
                 }, 300);
             } else {
+                // Si hay voz, esperamos la validación de Google normal
                 setTimeout(() => {
                     prepareAndStartSpeech();
                 }, 250);

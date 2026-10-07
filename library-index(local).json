@@ -182,14 +182,14 @@
   "repoIdx": 0
 },
 {
-  "name": "Guia Interpretativa de la Realidad.md",
-  "download_url": "http://localhost/documentos/Guia Interpretativa de la Realidad.md",
-  "displayName": "Guia Interpretativa de la Realidad",
-  "coverUrl": "https://i.ibb.co/RkZRNLNb/Cuanto-Minimo-de-Accion.jpg",
-  "soundtrack": "QujRfiLk3oI",
+  "name": "Fisica de la Informacion Noumenica.md",
+  "download_url": "http://localhost/documentos/Fisica%20de%20la%20Informacion%20Noumenica.md",
+  "coverUrl": "http://localhost/documentos//adjuntos/Cuanto%20Minimo%20de%20Accion.jpg",
+  "displayName": "Física de la Información Nouménica",
   "chaptersCount": 7,
-  "readingTime": "3 h 45 min",
-  "hasSynopsis": true,
+  "readingTime": "3 h 41 min",
+  "hasSynopsis": false,
+  "soundtrack": "QujRfiLk3oI",
   "index": true,
   "repoIdx": 0
 },

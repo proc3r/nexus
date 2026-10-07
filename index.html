@@ -707,8 +707,29 @@
           .then(reg => console.log('SW registrado correctamente en /nexus/'))
           .catch(err => console.log('Error al registrar SW:', err));
     }
+
+<!-- Configuración e Integración de MathJax 3 para LaTeX (Solo Bloques $$) -->
+
+
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true
+    },
+    svg: {
+      fontCache: 'global',
+      displayAlign: 'center'
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+      processHtmlClass: '.*' // Fuerza a MathJax a procesar MathJax dentro de etiquetas blockquote / citas
+    }
+  };
+
+
 </script>
-	
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>	
 <script src="https://www.youtube.com/iframe_api"></script>
 <script src="nexus-core.js" defer></script>    <!-- ATENCION NO BORRAR USADO PARA TEST LOCAL  -->
 <script src="vocal-language.js" defer></script> 
