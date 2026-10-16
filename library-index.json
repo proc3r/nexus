@@ -75,13 +75,13 @@
 {
   "name": "Holonomia y Ciencia.md",
   "download_url": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/Holonomia%20y%20Ciencia.md",
-  "coverUrl": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/Holonomia%20Full.png",
-  "displayName": "Holonomía y Ciencia",
+  "coverUrl": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/Holonomia%20FullX.jpg",
+  "displayName": "Holonomía",
   "chaptersCount": 4,
   "readingTime": "50 min",
   "hasSynopsis": false,
   "soundtrack": "QujRfiLk3oI",
-  "index": true,
+  "index": false,
   "repoIdx": 0
 },
 {
@@ -114,10 +114,10 @@
   "coverUrl": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/Manual%20Operador.jpg",
   "displayName": "Manual de Operacion",
   "chaptersCount": 4,
-  "readingTime": "1 h 28 min",
+  "readingTime": "1 h 37 min",
   "hasSynopsis": false,
   "soundtrack": "EqbnlPZKEcM",
-  "index": true,
+  "index": false,
   "repoIdx": 0
 },
 {
