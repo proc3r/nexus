@@ -109,6 +109,18 @@
   "repoIdx": 0
 },
 {
+  "name": "Manual de Operacion.md",
+  "download_url": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/Manual%20de%20Operacion.md",
+  "coverUrl": "https://raw.githubusercontent.com/proc3r/nexus/main/img/PortadaBase.jpg",
+  "displayName": "Manual de Operacion",
+  "chaptersCount": 4,
+  "readingTime": "1 h 28 min",
+  "hasSynopsis": false,
+  "soundtrack": "EqbnlPZKEcM",
+  "index": true,
+  "repoIdx": 0
+},
+{
   "name": "Civilizacion Tipo 3.md",
   "download_url": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/Civilizacion%20Tipo%203.md",
   "coverUrl": "https://raw.githubusercontent.com/proc3r/005-DOCUMENTOS-PROC3R/master/adjuntos/Civilizacion%20Tipo%203x.jpg",
